@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('year');
             $table->double('cost_from_bus');
             $table->timestamps();
+            //nnnnnnnnnnnnnn
         });
     }
 
