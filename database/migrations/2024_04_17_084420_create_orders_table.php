@@ -13,6 +13,21 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->string('father_name')->nullable();
+            $table->date('birthday')->nullable();
+            $table->tinyInteger('gender')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('address')->nullable();
+            $table->string('email')->nullable();
+            $table->boolean('classification')->nullable();
+            $table->string('class')->nullable();
+            $table->string('year')->nullable();
+            $table->unsignedBigInteger('studen_id')->nullable();
+            $table->unsignedBigInteger('course_id')->nullable();
+
             $table->timestamps();
         });
     }

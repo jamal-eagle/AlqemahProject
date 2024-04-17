@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('out__of__work__employees', function (Blueprint $table) {
             $table->id();
+
+            $table->date('date');
+            $table->integer('num_hour_out');
+            $table->string('note');
+            $table->unsignedBigInteger('school__mentor_id')->nullable();
+            $table->unsignedBigInteger('employee_id')->nullable();
+            $table->unsignedBigInteger('acounting_id')->nullable();
+            $table->unsignedBigInteger('teacher_id')->nullable();
+
             $table->timestamps();
         });
     }

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('image__archives', function (Blueprint $table) {
             $table->id();
-            $table->varchar('name');
-            $table->varchar('description');
+            $table->string('name');
+            $table->string('description');
             $table->unsignedBigInteger('archive_id');
             $table->timestamps();
         });

@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('program__students', function (Blueprint $table) {
             $table->id();
+
+            $table->string('type');
+            $table->unsignedBigInteger('section_id');
             $table->timestamps();
         });
     }

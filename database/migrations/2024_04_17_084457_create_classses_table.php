@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('classses', function (Blueprint $table) {
-            $table->id()->primary();
-            $table->varchar('name');
+            $table->id();
+            $table->string('name');
+            $table->unsignedBigInteger('fee_school_id');
             $table->timestamps();
         });
     }

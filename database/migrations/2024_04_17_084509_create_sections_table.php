@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sections', function (Blueprint $table) {
-            $table->id()->primary();
-            $table->varchar('num_section');
+            $table->id();
+            $table->string('num_section');
             $table->unsignedBigInteger('class_id');
             $table->timestamps();
         });

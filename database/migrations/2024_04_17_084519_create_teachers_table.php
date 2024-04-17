@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('num_hour');
             $table->integer('cost_hour');
             $table->integer('num_hour_added')->default(0);
-            $table->varchar('note_hour_added')->nullable();
+            $table->string('note_hour_added')->nullable();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('subject_id');
             $table->timestamps();

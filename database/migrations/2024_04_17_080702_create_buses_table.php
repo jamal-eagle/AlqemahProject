@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('buses', function (Blueprint $table) {
             $table->id();
-            $table->varchar('first_name');
-            $table->varchar('last_name');
-            $table->varchar('phone');
-            $table->varchar('address');
-            $table->varchar('year');
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('phone');
+            $table->string('address');
+            $table->string('year');
             $table->double('cost_from_bus');
             $table->timestamps();
         });

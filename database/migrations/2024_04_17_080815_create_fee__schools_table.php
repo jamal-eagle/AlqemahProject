@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('fee__schools', function (Blueprint $table) {
             $table->id();
+
+            $table->string('year');
+            $table->double('amount');
+            $table->unsignedBigInteger('class_id');
             $table->timestamps();
         });
     }

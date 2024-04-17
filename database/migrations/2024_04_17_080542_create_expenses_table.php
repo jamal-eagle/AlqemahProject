@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
 
             $table->date('date');
-            $table->varchar('product');
+            $table->string('product');
             $table->double('cost_one_piece');
             $table->integer('num_product');
             $table->double('total_cost');
-            $table->varchar('year');
+            $table->string('year');
 
             $table->timestamps();
         });

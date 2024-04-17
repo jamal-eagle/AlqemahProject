@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('out__of__work__students', function (Blueprint $table) {
             $table->id();
+
+            $table->date('date');
+            $table->string('justification')->nullable();
+            $table->unsignedBigInteger('student_id');
             $table->timestamps();
         });
     }

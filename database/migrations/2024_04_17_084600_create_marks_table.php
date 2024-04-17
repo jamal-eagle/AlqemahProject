@@ -13,6 +13,18 @@ return new class extends Migration
     {
         Schema::create('marks', function (Blueprint $table) {
             $table->id();
+
+            $table->integer('ponus')->default(0);
+            $table->integer('homework')->default(0);
+            $table->integer('exam_med')->default(0);
+            $table->integer('exam_final')->default(0);
+            $table->integer('oral')->default(0);
+            $table->integer('test1')->default(0);
+            $table->integer('test2')->default(0);
+            $table->unsignedBigInteger('student_id');
+            $table->unsignedBigInteger('subject_id');
+
+
             $table->timestamps();
         });
     }

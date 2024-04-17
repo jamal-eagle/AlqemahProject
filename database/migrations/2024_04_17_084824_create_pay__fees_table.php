@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('pay__fees', function (Blueprint $table) {
             $table->id();
+
+            $table->date('date');
+            $table->double('amount_money');
+            $table->double('remaining_fee');
+            $table->unsignedBigInteger('student_id');
             $table->timestamps();
         });
     }

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('homework', function (Blueprint $table) {
             $table->id();
-            $table->varchar('description');
-            $table->varchar('year');
+            $table->string('description');
+            $table->string('year');
             $table->unsignedBigInteger('class_id');
             $table->unsignedBigInteger('subject_id');
             $table->timestamps();
