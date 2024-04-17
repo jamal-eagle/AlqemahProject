@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('year')->nullable();
             $table->unsignedBigInteger('studen_id')->nullable();
             $table->unsignedBigInteger('course_id')->nullable();
+            //jjjjjjjjjjjjjjjjjjjjjjjjjjj
 
             $table->timestamps();
         });
