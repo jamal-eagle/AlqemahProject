@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->integer('num_hour');
+            $table->integer('success_rate');
             $table->unsignedBigInteger('class_id');
             $table->timestamps();
         });
