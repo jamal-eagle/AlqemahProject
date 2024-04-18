@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
 
-            $table->string('text');
+            $table->string('description');
             $table->foreignIdFor(Student::class,'student_id')->nullable();
             $table->foreignIdFor(Post::class,'post_id');
             $table->foreignIdFor(Teacher::class,'teacher_id')->nullable();
