@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Student;
 
 class Parentt extends Model
 {
@@ -14,4 +15,9 @@ class Parentt extends Model
         'user_id',
 
     ];
+
+    public function student()
+    {
+        return $this->hasMany('App\Models\Student',foreignKey:'parentt_id',localKey:'id');
+    }
 }

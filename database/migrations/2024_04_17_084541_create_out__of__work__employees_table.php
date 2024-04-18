@@ -17,10 +17,8 @@ return new class extends Migration
     {
         Schema::create('out__of__work__employees', function (Blueprint $table) {
             $table->id();
-
             $table->date('date');
             $table->integer('num_hour_out');
-            $table->string('num_hour_out');
             $table->foreignIdFor(School_Mentor::class,'school__mentor_id')->nullable();
             $table->foreignIdFor(Employee::class,'employee_id')->nullable();
             $table->foreignIdFor(Acounting::class,'acounting_id')->nullable();
