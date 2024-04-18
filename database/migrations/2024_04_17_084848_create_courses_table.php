@@ -27,7 +27,7 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('finish_time');
             $table->string('year');
-            $table->foreignIdFor(Publish::class,'publish_id');
+            //$table->foreignIdFor(Publish::class,'publish_id');
             $table->foreignIdFor(Subject::class,'subject_id');
             $table->foreignIdFor(Classs::class,'class_id');
             $table->foreignIdFor(Teacher::class,'teacher_id');

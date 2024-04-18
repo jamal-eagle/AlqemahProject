@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Course;
 
 
 class Teacher extends Model
@@ -20,4 +21,10 @@ class Teacher extends Model
         'user_id',
         'subject_id',
     ];
+
+    public function course()
+    {
+        return $this->hasMany('App\Models\Course',foreignKey:'teacher_id',localKey:'id');
+    }
+
 }
