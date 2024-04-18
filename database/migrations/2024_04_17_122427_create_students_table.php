@@ -3,6 +3,10 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\User;
+use App\Models\Classs;
+use App\Models\Section;
+use App\Models\Parentt;
 
 return new class extends Migration
 {
@@ -16,12 +20,12 @@ return new class extends Migration
 
             $table->boolean('calssification');
             $table->double('school_tuition');
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('class_id');
-            $table->unsignedBigInteger('section_id');
-            $table->unsignedBigInteger('parentt_id');
-
+            $table->foreignIdfor(User::class,'user_id');
+            $table->foreignIdfor(Classs::class,'class_id');
+            $table->foreignIdfor(Section::class,'section_id');
+            $table->foreignIdfor(Parentt::class,'parentt_id');
             $table->timestamps();
+
         });
     }
 

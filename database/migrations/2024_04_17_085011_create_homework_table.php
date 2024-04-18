@@ -3,6 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Classs;
+use App\Models\Subject;
 
 return new class extends Migration
 {
@@ -15,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('description');
             $table->string('year');
-            $table->unsignedBigInteger('class_id');
-            $table->unsignedBigInteger('subject_id');
+            $table->foreignIdFor(Classs::class,'class_id');
+            $table->foreignIdFor(Subject::class,'subject_id');
             $table->timestamps();
         });
     }

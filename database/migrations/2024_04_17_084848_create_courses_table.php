@@ -3,6 +3,11 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Publish;
+use App\Models\Subject;
+use App\Models\Classs;
+use App\Models\Teacher;
+
 
 return new class extends Migration
 {
@@ -22,10 +27,10 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('finish_time');
             $table->string('year');
-            $table->unsignedBigInteger('publish_id');
-            $table->unsignedBigInteger('subject_id');
-            $table->unsignedBigInteger('class_id');
-            $table->unsignedBigInteger('teacher_id');
+            $table->foreignIdFor(Publish::class,'publish_id');
+            $table->foreignIdFor(Subject::class,'subject_id');
+            $table->foreignIdFor(Classs::class,'class_id');
+            $table->foreignIdFor(Teacher::class,'teacher_id');
             $table->timestamps();
         });
     }

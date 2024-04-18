@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Homework;
 
 return new class extends Migration
 {
@@ -15,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('discription');
             $table->string('path');
-            $table->unsignedBigInteger('home_work_id');
+            $table->foreignIdFor(Homework::class,'home_work_id');
             $table->timestamps();
         });
     }

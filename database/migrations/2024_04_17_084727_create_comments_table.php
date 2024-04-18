@@ -3,6 +3,9 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Student;
+use App\Models\Post;
+use App\Models\Teacher;
 
 return new class extends Migration
 {
@@ -15,9 +18,9 @@ return new class extends Migration
             $table->id();
 
             $table->string('text');
-            $table->unsignedBigInteger('student_id')->nullable();
-            $table->unsignedBigInteger('post_id');
-            $table->unsignedBigInteger('teacher_id')->nullable();
+            $table->foreignIdFor(Student::class,'student_id')->nullable();
+            $table->foreignIdFor(Post::class,'post_id');
+            $table->foreignIdFor(Teacher::class,'teacher_id')->nullable();
             $table->timestamps();
         });
     }

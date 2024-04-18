@@ -3,6 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Student;
+use App\Models\Subject;
 
 return new class extends Migration
 {
@@ -22,8 +24,8 @@ return new class extends Migration
             $table->integer('exam_med')->default(0);
             $table->integer('exam_final')->default(0);
             $table->boolean('state')->default(0);
-            $table->unsignedBigInteger('student_id');
-            $table->unsignedBigInteger('subject_id');
+            $table->foreignIdFor(Student::class,'student_id');
+            $table->foreignIdFor(Subject::class,'subject_id');
 
 
             $table->timestamps();

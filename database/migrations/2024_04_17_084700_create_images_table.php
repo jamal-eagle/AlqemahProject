@@ -3,6 +3,9 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Program_Student;
+use App\Models\Program_Teachar;
+use App\Models\Publish;
 
 return new class extends Migration
 {
@@ -16,9 +19,9 @@ return new class extends Migration
 
             $table->string('path');
             $table->string('description')->nullable();
-            $table->unsignedBigInteger('program_student_id')->nullable();
-            $table->unsignedBigInteger('program_teacher_id')->nullable();
-            $table->unsignedBigInteger('publish_id')->nullable();
+            $table->foreignIdFor(Program_Student::class,'program_student_id')->nullable();
+            $table->foreignIdFor(Program_Teachar::class,'program_teacher_id')->nullable();
+            $table->foreignIdFor(Publish::class,'publish_id')->nullable();
             $table->timestamps();
         });
     }

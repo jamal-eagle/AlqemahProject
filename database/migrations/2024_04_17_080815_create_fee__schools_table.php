@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-
+use App\Models\Classs;
 return new class extends Migration
 {
     /**
@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->string('year');
             $table->double('amount');
-            $table->unsignedBigInteger('class_id');
+            $table->foreignIdFor(Classs::class,'class_id');
             $table->timestamps();
         });
     }

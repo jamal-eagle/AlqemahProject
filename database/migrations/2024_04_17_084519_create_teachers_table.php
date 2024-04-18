@@ -3,6 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\User;
+use App\Models\Subject;
 
 return new class extends Migration
 {
@@ -17,8 +19,8 @@ return new class extends Migration
             $table->integer('cost_hour');
             $table->integer('num_hour_added')->default(0);
             $table->string('note_hour_added')->nullable();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('subject_id');
+            $table->foreignIdFor(USer::class,'user_id');
+            $table->foreignIdFor(Subject::class,'subject_id');
             $table->timestamps();
         });
     }

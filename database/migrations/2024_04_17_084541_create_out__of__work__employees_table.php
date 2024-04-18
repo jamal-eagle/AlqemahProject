@@ -3,6 +3,10 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\School_Mentor;
+use App\Models\Employee;
+use App\Models\Acounting;
+use App\Models\Teacher;
 
 return new class extends Migration
 {
@@ -17,10 +21,10 @@ return new class extends Migration
             $table->date('date');
             $table->integer('num_hour_out');
             $table->string('note');
-            $table->unsignedBigInteger('school__mentor_id')->nullable();
-            $table->unsignedBigInteger('employee_id')->nullable();
-            $table->unsignedBigInteger('acounting_id')->nullable();
-            $table->unsignedBigInteger('teacher_id')->nullable();
+            $table->foreignIdFor(School_Mentor::class,'school__mentor_id')->nullable();
+            $table->foreignIdFor(Employee::class,'employee_id')->nullable();
+            $table->foreignIdFor(Acounting::class,'acounting_id')->nullable();
+            $table->foreignIdFor(Teacher::class,'teacher_id')->nullable();
 
             $table->timestamps();
         });

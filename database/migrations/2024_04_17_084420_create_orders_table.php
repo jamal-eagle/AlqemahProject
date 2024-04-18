@@ -3,6 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Student;
+use App\Models\Course;
 
 return new class extends Migration
 {
@@ -25,8 +27,8 @@ return new class extends Migration
             $table->boolean('classification')->nullable();
             $table->string('class')->nullable();
             $table->string('year')->nullable();
-            $table->unsignedBigInteger('studen_id')->nullable();
-            $table->unsignedBigInteger('course_id')->nullable();
+            $table->foreignIdFor(Student::class,'studen_id')->nullable();
+            $table->foreignIdFor(Course::class,'course_id')->nullable();
 
 
             $table->timestamps();
