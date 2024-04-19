@@ -10,6 +10,8 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\Student;
 use App\Models\School_Mentor;
 use App\Models\Note_Student;
+use App\Models\Note;
+use App\Models\Teacher;
 
 class User extends Authenticatable
 {
@@ -51,6 +53,17 @@ class User extends Authenticatable
     {
         return $this->hasMany('App\Models\Note_Student',foreignKey:'user_id',localKey:'id');
     }
+
+    public function note()
+    {
+        return $this->hasMany('App\Models\Note',foreignKey:'user_id',localKey:'id');
+    }
+
+    public function teacher(){
+        return $this->hasMany('App\Models\Teacher',foreignKey:'user_id',localKey:'id');
+    }
+
+
 
     /**
      * The attributes that should be hidden for serialization.

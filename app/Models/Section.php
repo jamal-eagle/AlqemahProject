@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Student;
 use App\Models\Post;
+use App\Models\Program_Student;
 
 class Section extends Model
 {
@@ -26,6 +27,10 @@ class Section extends Model
     public function posts()
     {
         return $this->hasMany('App\Models\Post',foreignKey:'section_id',localKey:'id');
+    }
+
+    public function program_student(){
+        return $this->hasMany('App\Models\Program_Student',foreignKey:'section_id',localKey:'id');
     }
 
 }

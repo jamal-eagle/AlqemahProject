@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\User;
 
 class Note extends Model
 {
@@ -16,4 +17,8 @@ class Note extends Model
         'description',
         'user_id',
     ];
+
+    public function user(){
+        return $this->belongsTo('App\Models\User',foreignKey:'user_id');
+    }
 }

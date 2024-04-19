@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Teacher;
 
 class Program_Teachar extends Model
 {
@@ -15,4 +16,8 @@ class Program_Teachar extends Model
         'teacher_id'
     ];
     public $Timestamp = false;
+
+    public function teachar(){
+        return $this->belongsTo('App\Models\Teacher',foreignKey:'teacher_id');
+    }
 }

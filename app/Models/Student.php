@@ -13,6 +13,10 @@ use App\Models\Parentt;
 use App\Models\Pay_Fee;
 use App\Models\Note_Student;
 use App\Models\Comment;
+use App\Models\Out_Of_Work_Student;
+use App\Models\Image;
+use App\Models\Mark;
+
 
 class Student extends Model
 {
@@ -55,5 +59,17 @@ class Student extends Model
     {
         return $this->hasMany('App\Models\Comment',foreignKey:'student_id',localKey:'id');
     }
+    public function out_of_work_student(){
+        return $this->hasMany('App\Models\Out_Of_Work_Student',foreignKey:'student_id',localKey:'id');
+    }
+    public function image(){
+        return $this->hasMany('App\Models\Image',foreignKey:'program_student_id',localKey:'id');
+    }
+
+    public function mark(){
+        return $this->hasMany('App\Models\Mark',foreignKey:'student_id',localKey:'id');
+    }
+
+
 
 }

@@ -10,6 +10,9 @@ use App\Models\Homework;
 use App\Models\Course;
 use App\Models\Archive;
 use App\Models\Post;
+use App\Models\Mark;
+use App\Models\Teacher;
+
 
 class Subject extends Model
 {
@@ -40,6 +43,14 @@ class Subject extends Model
     public function posts()
     {
         return $this->hasMany('App\Models\Post',foreignKey:'subject_id',localKey:'id');
+    }
+
+    public function mark(){
+        return $this->hasOne('App\Models\Mark',foreignKey:'subject_id',localKey:'id');
+    }
+
+    public function teacher(){
+        return $this->hasMany('App\Models\Teacher',foreignKey:'subject_id',localKey:'id');
     }
 
     protected $hidden = [

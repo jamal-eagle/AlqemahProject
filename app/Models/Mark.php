@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Student;
+use App\Models\Subject;
 
 class Mark extends Model
 {
@@ -23,4 +25,12 @@ class Mark extends Model
         'student_id',
         'subject_id',
     ];
+
+    public function student(){
+        return $this->belongsTo('App\Models\Student',foreignKey:'student_id');
+    }
+
+    public function subject(){
+        return $this->belongsTo('App\Models\Subject',foreignKey:'subject_id');
+    }
 }
