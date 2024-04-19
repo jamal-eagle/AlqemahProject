@@ -10,6 +10,10 @@ use App\Models\User;
 use App\Models\Classs;
 use App\Models\Section;
 use App\Models\Parentt;
+use App\Models\Pay_Fee;
+use App\Models\Note_Student;
+use App\Models\Comment;
+
 class Student extends Model
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -35,6 +39,21 @@ class Student extends Model
 
     public function parentt(){
         return $this->belongsTo('App\Models\Parentt',foreignKey:'parentt_id');
+    }
+
+    public function pay_fees()
+    {
+        return $this->hasMany('App\Models\Pay_Fee',foreignKey:'student_id',localKey:'id');
+    }
+
+    public function note_students()
+    {
+        return $this->hasMany('App\Models\Note_Student',foreignKey:'student_id',localKey:'id');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany('App\Models\Comment',foreignKey:'student_id',localKey:'id');
     }
 
 }

@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Student;
 use App\Models\School_Mentor;
+use App\Models\Note_Student;
 
 class User extends Authenticatable
 {
@@ -34,12 +35,6 @@ class User extends Authenticatable
         'password',
         'conf_password',
 
-
-
-
-
-
-
     ];
 
     public function student ()
@@ -50,6 +45,11 @@ class User extends Authenticatable
     public function school_mentor ()
     {
         return $this->hasOne('App\Models\School_Mentor',foreignKey:'user_id');
+    }
+
+    public function note_students()
+    {
+        return $this->hasMany('App\Models\Note_Student',foreignKey:'user_id',localKey:'id');
     }
 
     /**

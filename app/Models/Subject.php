@@ -9,6 +9,7 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\Homework;
 use App\Models\Course;
 use App\Models\Archive;
+use App\Models\Post;
 
 class Subject extends Model
 {
@@ -34,6 +35,11 @@ class Subject extends Model
     public function archive()
     {
         return $this->hasMany('App\Models\Archive',foreignKey:'subject_id',localKey:'id');
+    }
+
+    public function posts()
+    {
+        return $this->hasMany('App\Models\Post',foreignKey:'subject_id',localKey:'id');
     }
 
     protected $hidden = [
