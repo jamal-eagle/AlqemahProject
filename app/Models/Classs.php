@@ -10,6 +10,7 @@ use App\Models\Student;
 use App\Models\Homework;
 use App\Models\Course;
 use App\Models\Archive;
+use App\Models\Subject;
 
 class Classs extends Model
 {
@@ -39,6 +40,12 @@ class Classs extends Model
     {
         return $this->hasMany('App\Models\Archive',foreignKey:'class_id',localKey:'id');
     }
+
+    public function subject()
+    {
+        return $this->hasMany('App\Models\Subject',foreignKey:'class_id',localKey:'id');
+    }
+
 
 
 

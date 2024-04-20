@@ -10,6 +10,7 @@ use App\Models\Publish;
 use App\Models\Subject;
 use App\Models\Classs;
 use App\Models\Teacher;
+use App\Models\Order;
 
 class Course extends Model
 {
@@ -45,5 +46,9 @@ class Course extends Model
 
     public function teacher(){
         return $this->belongsTo('App\Models\Teacher',foreignKey:'teacher_id');
+    }
+
+    public function order(){
+        return $this->hasMany('App\Models\Order',foreignKey:'course_id',localKey:'id');
     }
 }

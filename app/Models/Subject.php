@@ -12,6 +12,7 @@ use App\Models\Archive;
 use App\Models\Post;
 use App\Models\Mark;
 use App\Models\Teacher;
+use App\Models\Classs;
 
 
 class Subject extends Model
@@ -51,6 +52,11 @@ class Subject extends Model
 
     public function teacher(){
         return $this->hasMany('App\Models\Teacher',foreignKey:'subject_id',localKey:'id');
+    }
+
+    public function classs()
+    {
+        return $this->belongsTo('App\Models\Classs',foreignKey:'class_id');
     }
 
     protected $hidden = [

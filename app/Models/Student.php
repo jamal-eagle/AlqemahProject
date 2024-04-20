@@ -70,6 +70,10 @@ class Student extends Model
         return $this->hasMany('App\Models\Mark',foreignKey:'student_id',localKey:'id');
     }
 
+    public function order(){
+        return $this->hasMany('App\Models\Order',foreignKey:'student_id',localKey:'id');
+    }
+
 
 
 }
