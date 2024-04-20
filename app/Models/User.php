@@ -12,6 +12,9 @@ use App\Models\School_Mentor;
 use App\Models\Note_Student;
 use App\Models\Note;
 use App\Models\Teacher;
+use App\Models\Admin;
+use App\Models\Parentt;
+use App\Models\Acounting;
 
 class User extends Authenticatable
 {
@@ -39,12 +42,12 @@ class User extends Authenticatable
 
     ];
 
-    public function student ()
+    public function student()
     {
         return $this->hasOne('App\Models\Student',foreignKey:'user_id');
     }
 
-    public function school_mentor ()
+    public function school_mentor()
     {
         return $this->hasOne('App\Models\School_Mentor',foreignKey:'user_id');
     }
@@ -61,6 +64,21 @@ class User extends Authenticatable
 
     public function teacher(){
         return $this->hasMany('App\Models\Teacher',foreignKey:'user_id',localKey:'id');
+    }
+
+    public function admin()
+    {
+        return $this->hasOne('App\Models\Admin',foreignKey:'user_id');
+    }
+
+    public function parentt()
+    {
+        return $this->hasOne('App\Models\Parentt',foreignKey:'user_id');
+    }
+
+    public function acounting()
+    {
+        return $this->hasOne('App\Models\Acounting',foreignKey:'user_id');
     }
 
 
