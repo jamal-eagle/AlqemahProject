@@ -11,6 +11,7 @@ use App\Models\Homework;
 use App\Models\Course;
 use App\Models\Archive;
 use App\Models\Subject;
+use App\Models\Fee_School;
 
 class Classs extends Model
 {
@@ -18,7 +19,7 @@ class Classs extends Model
 
     protected $fillable = [
         'name',
-        'fee_school_id',
+        //'fee_school_id',
     ];
 
     public function student()
@@ -44,6 +45,11 @@ class Classs extends Model
     public function subject()
     {
         return $this->hasMany('App\Models\Subject',foreignKey:'class_id',localKey:'id');
+    }
+
+    public function fee_School()
+    {
+        return $this->hasMany('App\Models\Fee_School',foreignKey:'class_id',localKey:'id');
     }
 
 
