@@ -27,7 +27,7 @@ return new class extends Migration
             $table->boolean('classification')->nullable();
             $table->string('class')->nullable();
             $table->string('year')->nullable();
-            $table->foreignIdFor(Student::class,'studen_id')->nullable();
+            $table->foreignIdFor(Student::class,'student_id')->nullable();
             $table->foreignIdFor(Course::class,'course_id')->nullable();
 
 
