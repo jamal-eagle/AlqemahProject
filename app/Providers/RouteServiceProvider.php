@@ -29,9 +29,34 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
+            Route::middleware('admin')
+                ->prefix('admin')
+                ->group(base_path('routes/admin.php'));
+
+            Route::middleware('student')
+            ->prefix('student')
+            ->group(base_path('routes/student.php'));
+
+            Route::middleware('accounting')
+            ->prefix('accounting')
+            ->group(base_path('routes/accounting.php'));
+
+            Route::middleware('monetor')
+            ->prefix('monetor')
+            ->group(base_path('routes/monetor.php'));
+
+            Route::middleware('parntt')
+            ->prefix('parntt')
+            ->group(base_path('routes/parntt.php'));
+
+            Route::middleware('teacher')
+            ->prefix('teacher')
+            ->group(base_path('routes/teacher.php'));
+
+
             Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
+            ->prefix('api')
+            ->group(base_path('routes/api.php'));
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
