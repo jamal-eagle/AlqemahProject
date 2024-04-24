@@ -55,6 +55,25 @@ class OrderController extends Controller
 
     public function CreateOrderForCourse(Request $request, $course_id)
     {
+
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'father_name' => 'required|string',
+            //'birthday' => 'required|date',
+            'gender' => 'required|in:0,1',
+            'phone' => 'required|string',
+            'address' => 'required|string',
+            'email' => 'required|email',
+            'classification' => 'required|in:0,1',
+            //'class' => 'required|string',
+            //'year' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
             $new = new Order;
 
             $new->first_name = $request->first_name;
@@ -70,5 +89,8 @@ class OrderController extends Controller
             //$new->year = $request->year;
             $new->course_id = $course_id;
             $new->save();
+            return response()->json(['message' => 'Order created successfully'], 200);
+
+
     }
 }
