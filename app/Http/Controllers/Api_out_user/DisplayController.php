@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api_out_user;
 
+use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Teacher;
 use App\Models\Course;
 
-class DisplayController extends Controller
+class DisplayController extends BaseController
 {
     /*------------------------teacher------------------------*/
     public function all_teatcher()

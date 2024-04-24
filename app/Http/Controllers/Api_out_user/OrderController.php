@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api_out_user;
 
+use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +12,7 @@ use App\Models\Order;
 //use App\Models\Appointment;
 //use Carbon\Carbon;
 
-class OrderController extends Controller
+class OrderController extends BaseController
 {
     public function CreateOrderForJoinToSchool(Request $request)
     {
@@ -31,7 +32,7 @@ class OrderController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 400);
+            return $this->responseError(['errors' => $validator->errors()]);
         }
 
 
@@ -50,7 +51,7 @@ class OrderController extends Controller
             $new->year = $request->year;
             $new->save();
 
-            return response()->json(['message' => 'Order created successfully'], 200);
+            return $this->responseData("success",$new);
     }
 
     public function CreateOrderForCourse(Request $request, $course_id)
@@ -71,7 +72,7 @@ class OrderController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 400);
+            return $this->responseError(['errors' => $validator->errors()]);
         }
 
             $new = new Order;
@@ -89,7 +90,7 @@ class OrderController extends Controller
             //$new->year = $request->year;
             $new->course_id = $course_id;
             $new->save();
-            return response()->json(['message' => 'Order created successfully'], 200);
+            return $this->responseData("success",$new);
 
 
     }
