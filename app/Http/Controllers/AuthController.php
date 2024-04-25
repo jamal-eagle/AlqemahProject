@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -36,15 +37,6 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-     $credetials = [
-        'email' => $request->email,
-        'password' => $request->password,
-     ];
 
-     if (Auth::attempt($credetials))
-     {
-        return 'success';
-     }
-     return 'error';
     }
 }

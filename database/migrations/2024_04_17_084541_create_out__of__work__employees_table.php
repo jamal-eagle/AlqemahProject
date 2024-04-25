@@ -19,9 +19,7 @@ return new class extends Migration
             $table->id();
             $table->date('date');
             $table->integer('num_hour_out');
-            $table->foreignIdFor(School_Mentor::class,'school__mentor_id')->nullable();
             $table->foreignIdFor(Employee::class,'employee_id')->nullable();
-            $table->foreignIdFor(Acounting::class,'acounting_id')->nullable();
             $table->foreignIdFor(Teacher::class,'teacher_id')->nullable();
 
             $table->timestamps();

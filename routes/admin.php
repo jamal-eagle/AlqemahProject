@@ -13,6 +13,6 @@ route::get('/p',function(){
 Route::post('/login', [AdminOperationController::class, 'login'])->name('login');
 
 route::group(['middleware'=>'auth'], function(){
-    Route::delete('/logout', [AdminOperationController::class, 'logout']);
+    Route::get('/logout', [AdminOperationController::class, 'logout']);
 });
 

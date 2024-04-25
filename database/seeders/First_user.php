@@ -30,6 +30,7 @@ class First_user extends Seeder
             'email'=>'jam@gmail.com',
             'password'=>123123123,
             'conf_password'=>123123123,
+            'user_type'=>'admin',
         ];
     }
 }
