@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api_out_user\DisplayController;
 use App\Http\Controllers\Api_out_user\OrderController;
+use App\Http\Controllers\AuthController;
 
 
 /*
@@ -32,6 +33,14 @@ Route::get('/info-teatcher/{teatcher_id}',[DisplayController::class,'info_teatch
 /*-----------------------course-----------------------*/
 Route::get('/all_course',[DisplayController::class,'all_course']);
 Route::get('/info_course/{id_course}',[DisplayController::class,'info_course']);
+
+
+Route::post('/register', [AuthController::class, 'registerPost']);
+Route::post('/login', [AuthController::class, 'login']);
+
+
+
+
 
 
 
