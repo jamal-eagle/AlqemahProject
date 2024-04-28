@@ -9,6 +9,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use App\Models\Order;
+use App\Models\Appointment;
+
 
 class AdminOperationController extends BaseController
 {
@@ -28,21 +32,47 @@ class AdminOperationController extends BaseController
                 // create a token
                 $token = $user->createToken("auth_token")->plainTextToken;
                 /// send a response
-                return $this->responseData($token,'User login successfully');
+                 return response()->json([
+            'User login successfully',
+            'token'=>$token,
+        ]);
             }
         }else{
             return $this->responseError(['please  check your Auth','auth error']);
         }
-
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        auth()->user()->tokens()->delete();
+         if(Auth::check()){
+        $request->user()->currentAccessToken()->delete();
         return $this->responseError(['the user logged out']);
+     }
     }
 
+    //عرض طلبات التسجيل بالمعهد
+    public function DisplayOrderNewStudent()
+    {
+        $order = DB::table('orders')->where('student_id','=',null)->where('course_id','=',null)->get();
 
+        return $order;
+    }
 
+    //إعطاء موعد لطلب تسجيل في المعهد
+    public function GiveDate(Request $request, $order_id)
+    {
+        $order = Order::where('id',$order_id)->first();
+
+        $request->validate([
+            "date" => "required|date|after:today"
+        ]);
+
+        $new = new Appointment;
+
+        $new->date =$request->date;
+        $new->order_id = $order_id;
+
+        $new->save();
+    }
 
 }

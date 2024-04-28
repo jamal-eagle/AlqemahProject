@@ -28,15 +28,15 @@ class AuthController extends Controller
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
         $user->conf_password = Hash::make($request->conf_password);
+        $user->user_type = $request->user_type;
 
         $user->save();
 
-        return 'success';
+        // create a token
+        $token = $user->createToken("auth_token")->plainTextToken;
+        /// send a response
+        return $token;
 
     }
 
-    public function login(Request $request)
-    {
-
-    }
 }
