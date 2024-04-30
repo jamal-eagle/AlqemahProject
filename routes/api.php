@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api_student\Student_operationController;
 use App\Http\Controllers\Api_admin\AdminOperationController;
 use App\Http\Controllers\Api_all_user\AllUserController;
+use App\Http\Controllers\Api_student\StudentPostController;
 
 
 /*
@@ -72,6 +73,13 @@ Route::prefix('student')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/my_programe',[Student_operationController::class,'programe_week']);
     //عرض الملاحظات الموجهة تجاه الطالب
     Route::get('/my_note',[Student_operationController::class,'display_note']);
+    //عرض جميع المناقشات الخاصة بشعبة الطالب فقط عنوان و اسم المدرس
+    Route::get('/display_all_post',[StudentPostController::class,'displayAllPost']);
+    //عرض مناقشة محددة التعليقات و السؤال
+    Route::get('/post/{post_id}',[StudentPostController::class,'displayPost']);
+    //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
+    Route::post('/add_comment/{post_id}',[StudentPostController::class,'addComment']);
+    
 });
 
 

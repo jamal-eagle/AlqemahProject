@@ -97,8 +97,4 @@ class Student_operationController extends BaseController
         return $note;
     }
 
-    
-
-
-
 }
