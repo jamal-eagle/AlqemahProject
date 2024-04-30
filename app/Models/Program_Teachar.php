@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Teacher;
+use App\Models\Image;
 
 class Program_Teachar extends Model
 {
@@ -19,5 +20,9 @@ class Program_Teachar extends Model
 
     public function teachar(){
         return $this->belongsTo('App\Models\Teacher',foreignKey:'teacher_id');
+    }
+
+    public function image(){
+        return $this->hasMany('App\Models\Image',foreignKey:'program_teacher_id',localKey:'id');
     }
 }

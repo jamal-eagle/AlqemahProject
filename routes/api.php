@@ -7,6 +7,7 @@ use App\Http\Controllers\Api_out_user\OrderController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api_student\Student_operationController;
 use App\Http\Controllers\Api_admin\AdminOperationController;
+use App\Http\Controllers\Api_all_user\AllUserController;
 
 
 /*
@@ -51,7 +52,10 @@ Route::prefix('out_user')->group(function () {
 Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
     //عرض طلبات التسجيل بالمعهد
     Route::get('/display_order',[AdminOperationController::class,'DisplayOrderNewStudent']);
+    //إعطاء موعد لطلب التسجيل
     route::post('/give_date/{order_id}',[AdminOperationController::class,'GiveDate']);
+    //إنشاء حساب للطالب
+    Route::post('/register/{order_id}', [AdminOperationController::class, 'registerPost']);
 });
 
 /*******************************************************student*******************************************************/
@@ -62,7 +66,16 @@ Route::prefix('student')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/file_subject/{subject_id}',[Student_operationController::class,'display_file_subject']);
     //الكورسات يلي مسجل فيها الطالب
     Route::get('/my_course',[Student_operationController::class,'my_course']);
+    //عرض وظائف الطالب لمادة محددة
+    Route::get('/my_homework/{subject_id}',[Student_operationController::class,'homework_subject']);
+    //عرض برنامج الدوام للطالب
+    Route::get('/my_programe',[Student_operationController::class,'programe_week']);
+    //عرض الملاحظات الموجهة تجاه الطالب
+    Route::get('/my_note',[Student_operationController::class,'display_note']);
 });
+
+
+
 
 
 

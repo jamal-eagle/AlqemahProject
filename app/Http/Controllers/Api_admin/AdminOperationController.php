@@ -50,6 +50,36 @@ class AdminOperationController extends BaseController
      }
     }
 
+    public function registerPost(Request $request, $order_id)
+    {
+        $order = Order::where('id', $order_id)->first();
+
+        $user = new User();
+
+        $user->first_name = $order->first_name;
+        $user->last_name = $order->last_name;
+        $user->father_name = $order->father_name;
+        $user->mother_name = $request->mother_name;
+        $user->birthday = $order->birthday;
+        $user->gender = $order->gender;
+        $user->phone = $order->phone;
+        $user->address = $order->address;
+        $user->year = $order->year;
+        $user->image = $request->image;
+        $user->email = $order->email;
+        $user->password = Hash::make($request->password);
+        $user->conf_password = Hash::make($request->conf_password);
+        $user->user_type = $request->user_type;
+
+        $user->save();
+
+        // create a token
+        $token = $user->createToken("auth_token")->plainTextToken;
+        /// send a response
+        return $token;
+
+    }
+
     //عرض طلبات التسجيل بالمعهد
     public function DisplayOrderNewStudent()
     {
