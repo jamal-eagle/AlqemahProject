@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Section;
+use App\Models\Image;
 
 class Program_Student extends Model
 {
@@ -18,6 +19,10 @@ class Program_Student extends Model
 
     public function section(){
         return $this->belongsTo('App\Models\Section',foreignKey:'section_id');
+    }
+
+    public function image(){
+        return $this->hasMany('App\Models\Image',foreignKey:'program_student_id',localKey:'id');
     }
 
 

@@ -7,6 +7,8 @@ use App\Http\Controllers\Api_out_user\OrderController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api_student\Student_operationController;
 use App\Http\Controllers\Api_admin\AdminOperationController;
+use App\Http\Controllers\Api_all_user\AllUserController;
+use App\Http\Controllers\Api_student\StudentPostController;
 
 
 /*
@@ -68,16 +70,9 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_a'])->group(function (
     Route::post('/register_parentt',[AdminOperationController::class,'register_parentt']);
     //عرض طلبات التسجيل بالمعهد
     Route::get('/display_order',[AdminOperationController::class,'DisplayOrderNewStudent']);
-    ///عرض البروفايل
-    Route::post('/show_profile',[AuthController::class,'get_profile']);
-    ////تعديل البروفايل
-    Route::post('/edit_profile{id}',[AuthController::class,'update_profile']);
-    ////عرض الطلاب من خلال الاختصاص
-    Route::post('/disply_student_classification/{classifaction}',[AdminOperationController::class,'student_classification']);
-    //عرض طلاب السنة الواحدة
-    Route::post('/disply_all_student_here/{year}',[AdminOperationController::class,'disply_all_student_here']);
-    //اطاء الموعد للطلاب
     route::post('/give_date/{order_id}',[AdminOperationController::class,'GiveDate']);
+    //إنشاء حساب للطالب
+    Route::post('/register/{order_id}', [AdminOperationController::class, 'registerPost']);
 });
 
 /*******************************************************student*******************************************************/
@@ -88,7 +83,23 @@ Route::prefix('student')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/file_subject/{subject_id}',[Student_operationController::class,'display_file_subject']);
     //الكورسات يلي مسجل فيها الطالب
     Route::get('/my_course',[Student_operationController::class,'my_course']);
+    //عرض وظائف الطالب لمادة محددة
+    Route::get('/my_homework/{subject_id}',[Student_operationController::class,'homework_subject']);
+    //عرض برنامج الدوام للطالب
+    Route::get('/my_programe',[Student_operationController::class,'programe_week']);
+    //عرض الملاحظات الموجهة تجاه الطالب
+    Route::get('/my_note',[Student_operationController::class,'display_note']);
+    //عرض جميع المناقشات الخاصة بشعبة الطالب فقط عنوان و اسم المدرس
+    Route::get('/display_all_post',[StudentPostController::class,'displayAllPost']);
+    //عرض مناقشة محددة التعليقات و السؤال
+    Route::get('/post/{post_id}',[StudentPostController::class,'displayPost']);
+    //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
+    Route::post('/add_comment/{post_id}',[StudentPostController::class,'addComment']);
+
 });
+
+
+
 
 
 
