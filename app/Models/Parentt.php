@@ -14,7 +14,14 @@ class Parentt extends Model
     use HasFactory ,Notifiable,HasApiTokens;
 
     protected $fillable = [
-        'user_id',
+        'first_name',
+        'last_name',
+        'phone',
+        'address',
+        'image',
+        'email',
+        'password',
+        'conf_password',
     ];
 
     public function student()
@@ -22,9 +29,5 @@ class Parentt extends Model
         return $this->hasMany('App\Models\Student',foreignKey:'parentt_id',localKey:'id');
     }
 
-    public function user()
-    {
-        return $this->belongsTo('App\Models\User',foreignKey:'user_id');
-    }
 
 }

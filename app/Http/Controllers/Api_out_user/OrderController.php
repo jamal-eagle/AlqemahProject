@@ -21,7 +21,7 @@ class OrderController extends BaseController
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'father_name' => 'required|string',
-            'birthday' => 'required|date',
+            'birthday' => 'required|date_format:Y-m-d',
             'gender' => 'required|in:0,1',
             'phone' => 'required|string',
             'address' => 'required|string',
@@ -61,7 +61,8 @@ class OrderController extends BaseController
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'father_name' => 'required|string',
-            //'birthday' => 'required|date',
+            'mother_name'=>'required|string',
+            'birthday' => 'required|date_format:Y-m-d',
             'gender' => 'required|in:0,1',
             'phone' => 'required|string',
             'address' => 'required|string',
@@ -80,7 +81,8 @@ class OrderController extends BaseController
             $new->first_name = $request->first_name;
             $new->last_name = $request->last_name;
             $new->father_name = $request->father_name;
-            //$new->birthday = $request->birthday;
+            $new->mother_name = $request->mother_name;
+            $new->birthday = $request->birthday;
             $new->gender = $request->gender;
             $new->phone = $request->phone;
             $new->address = $request->address;

@@ -44,7 +44,7 @@ class User extends Authenticatable
 
     public function student()
     {
-        return $this->hasOne('App\he GET methModels\Student',foreignKey:'user_id');
+        return $this->hasOne('App\Models\Student',foreignKey:'user_id');
     }
 
     public function note_students()
@@ -61,10 +61,6 @@ class User extends Authenticatable
         return $this->hasMany('App\Models\Teacher',foreignKey:'user_id',localKey:'id');
     }
 
-    public function parentt()
-    {
-        return $this->hasOne('App\Models\Parentt',foreignKey:'user_id');
-    }
 
 
 

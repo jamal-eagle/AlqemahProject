@@ -16,7 +16,7 @@ class chech_Admin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()->user_type !== 'admin')
+        if ($request->user() && $request->user()->user_type !== 'admin')
         {
         abort(403, 'Unauthorized action');
         }

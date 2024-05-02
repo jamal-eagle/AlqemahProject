@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Student;
 use App\Models\Course;
 use App\Models\Post;
 use App\Models\Comment;
@@ -14,6 +15,7 @@ use App\Models\Program_Teachar;
 use App\Models\Out_Of_Work_Employee;
 use App\Models\User;
 use App\Models\Subject;
+
 
 class Teacher extends Model
 {

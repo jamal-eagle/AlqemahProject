@@ -14,7 +14,15 @@ return new class extends Migration
     {
         Schema::create('parentts', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class,'user_id');
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('phone');
+            $table->string('address');
+            $table->string('image')->nullable();
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('conf_password');
+
             $table->timestamps();
         });
     }

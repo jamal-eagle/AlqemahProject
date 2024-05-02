@@ -24,10 +24,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-/*******************************************************all user*******************************************************/
-Route::group(['middleware'=>'auth:sanctum'], function(){
-    Route::post('/logout', [AdminOperationController::class, 'logout']);
-});
+
+route::get('/pp',function(){
+    dd('iam here');
+})->middleware('ckeck_admin');
 
 /*******************************************************out user*******************************************************/
 Route::prefix('out_user')->group(function () {
@@ -45,12 +45,38 @@ Route::prefix('out_user')->group(function () {
     Route::get('/all_course',[DisplayController::class,'all_course']);
     //عرض معلومات دورة معينة
     Route::get('/info_course/{id_course}',[DisplayController::class,'info_course']);
+
+    /////لا تنسى عرض الاعلانات
 });
 
+/*******************************************************all user*******************************************************/
+Route::group(['middleware'=>'auth:sanctum'], function(){
+    Route::post('/logout', [AdminOperationController::class, 'logout']);
+        ///عرض البروفايل
+        Route::post('/show_profile',[AuthController::class,'get_profile']);
+        ////تعديل البروفايل
+        Route::post('/edit_profile{id}',[AuthController::class,'update_profile']);
+});
+
+
+
 /*******************************************************admin*******************************************************/
-Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum','check_a'])->group(function () {
+    ///خلق حسابات الطلاب
+    Route::post('/register_student/{order_id}',[AdminOperationController::class,'register_student']);
+    ///خلق حساب للأهل
+    Route::post('/register_parentt',[AdminOperationController::class,'register_parentt']);
     //عرض طلبات التسجيل بالمعهد
     Route::get('/display_order',[AdminOperationController::class,'DisplayOrderNewStudent']);
+    ///عرض البروفايل
+    Route::post('/show_profile',[AuthController::class,'get_profile']);
+    ////تعديل البروفايل
+    Route::post('/edit_profile{id}',[AuthController::class,'update_profile']);
+    ////عرض الطلاب من خلال الاختصاص
+    Route::post('/disply_student_classification/{classifaction}',[AdminOperationController::class,'student_classification']);
+    //عرض طلاب السنة الواحدة
+    Route::post('/disply_all_student_here/{year}',[AdminOperationController::class,'disply_all_student_here']);
+    //اطاء الموعد للطلاب
     route::post('/give_date/{order_id}',[AdminOperationController::class,'GiveDate']);
 });
 
