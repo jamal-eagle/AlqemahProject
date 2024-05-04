@@ -47,6 +47,28 @@ class Student_operationController extends BaseController
         return $archive;
     }
 
+    public function orderCourse($course_id)
+    {
+        $user = User::where('id',auth()->user()->id)->first();
+        $new = new Order;
+
+        $new->first_name = $user->first_name;
+        $new->last_name = $user->last_name;
+        $new->father_name = $user->father_name;
+        //$new->mother_name = $user->mother_name;
+        $new->birthday = $user->birthday;
+        $new->gender = $user->gender;
+        $new->phone = $user->phone;
+        $new->address = $user->address;
+        $new->email = $user->email;
+        $new->classification = $user->classification;
+        //$new->class = $request->class;
+        //$new->year = $request->year;
+        $new->course_id = $course_id;
+        $new->save();
+        return $this->responseData("success",$new);
+    } 
+
     //عرض الدورات التي سجل فيها الطالب
     public function my_course()
     {
@@ -79,7 +101,7 @@ class Student_operationController extends BaseController
     // }
 
     //عرض برنامج الدوام الخاص بالطالب
-    public function programe_week()
+    public function programe()
     {
         $student = Student::where('user_id', auth()->user()->id)->first();
 

@@ -27,28 +27,52 @@ class AdminOperationController extends BaseController
         ]);
 
         // check email
-        $user = User::where("email", "=", $request->email)->first();
-
-        if(isset($user->id)){
-            if(Hash::check($request->password, $user->password)){
-                // create a token
-                $token = $user->createToken("auth_token")->plainTextToken;
-                /// send a response
-                return response()->json([
-            'User login successfully',
-            'token'=>$token,
-        ]);
-            }
-        }else{
-            return $this->responseError(['please  check your Auth','auth error']);
+        $user = User::where("email", "=", $request->email);
+if($user){
+    $user = User::where("email", "=", $request->email)->first();
+    if(isset($user->id)){
+        if(Hash::check($request->password, $user->password)){
+            // create a token
+            $token = $user->createToken("auth_token")->plainTextToken;
+            /// send a response
+            return response()->json([
+        'User login successfully',
+        'token'=>$token,
+    ]);
         }
+    }else{
+        $parent = Parentt::where("email", "=", $request->email)->first();
+    if(isset($parent->id)){
+        if(Hash::check($request->password, $parent->password)){
+            // create a token
+            $token = $parent->createToken("auth_token")->plainTextToken;
+            /// send a response
+            return response()->json([
+        'User login successfully',
+        'token'=>$token,
+    ]);
+        }
+    }else{
+        return $this->responseError(['please  check your Auth','auth error']);
+    }
+        
+    }
+    return $this->responseError(['please  check your Auth','auth error']);
+}       
     }
 
     public function logout(Request $request)
     {
         if(Auth::check()){
+            $user = User::where("email", auth()->user()->email);
+            if($user){
         $request->user()->currentAccessToken()->delete();
         return $this->responseError(['the user logged out']);
+            }
+            else {
+                $request->parent()->currentAccessToken()->delete();
+                return $this->responseError(['the user logged out']);
+            }
     }
     }
 
@@ -227,5 +251,45 @@ public function disply_all_student_here($year)
 
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

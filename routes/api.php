@@ -9,6 +9,8 @@ use App\Http\Controllers\Api_student\Student_operationController;
 use App\Http\Controllers\Api_admin\AdminOperationController;
 use App\Http\Controllers\Api_all_user\AllUserController;
 use App\Http\Controllers\Api_student\StudentPostController;
+use App\Http\Controllers\Api_student\MarkController;
+use App\Http\Controllers\Api_parentt\ParenttController;
 
 
 /*
@@ -47,7 +49,8 @@ Route::prefix('out_user')->group(function () {
     Route::get('/all_course',[DisplayController::class,'all_course']);
     //عرض معلومات دورة معينة
     Route::get('/info_course/{id_course}',[DisplayController::class,'info_course']);
-
+    //تعديل طلب تسجيل في دورة
+    Route::put('/update/{id}',[OrderController::class,'update']);
     /////لا تنسى عرض الاعلانات
 });
 
@@ -81,6 +84,8 @@ Route::prefix('student')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/my_subject',[Student_operationController::class,'display_subject']);
     //عرض الملفات و الصور للمادة المختارة
     Route::get('/file_subject/{subject_id}',[Student_operationController::class,'display_file_subject']);
+    //تسجيل طالب في دورة
+    Route::post('/create-order-course/{course_id}',[Student_operationController::class,'orderCourse']);
     //الكورسات يلي مسجل فيها الطالب
     Route::get('/my_course',[Student_operationController::class,'my_course']);
     //عرض وظائف الطالب لمادة محددة
@@ -95,16 +100,29 @@ Route::prefix('student')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/post/{post_id}',[StudentPostController::class,'displayPost']);
     //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
     Route::post('/add_comment/{post_id}',[StudentPostController::class,'addComment']);
-
+    //حذف تعليق من قبل طالب أو أستاذ الخ مع العلم تعليق الطالب يستطيع أستاذ أو موجه الخ حذفه
+    Route::delete('/delete_comment/{comment_id}',[StudentPostController::class,'deleteComment']);
+    /*تعديل التعليق لسع مو جاهز للتجريب */
+    //تعديل تعليق
+    Route::put('/edit_comment/{comment_id}',[StudentPostController::class,'editComment']); 
+    //عرض علامات المذاكرة علامات الفحص الخ
+    Route::get('/my_mark',[MarkController::class,'displayMark']);
 });
 
 
+// Route::get('/image', function () {
+//     $path = storage_path('C:\Users\ASUS\Desktop\AlqemahProject\public\img\xxx.jpg'); // تأكد من تغيير المسار إلى مسار صورتك
+//     return response()->file($path);
+// });
 
 
+Route::prefix('parent')->middleware(['auth:sanctum'])->group(function () {
+    Route::get('/displayAllBaby',[ParenttController::class,'displayAllBaby']);
+});
 
-
-
-
+// route::get('/displayAllBaby',function(){
+//     dd('iam here');
+// })->middleware('auth:sanctum');
 
 
 
