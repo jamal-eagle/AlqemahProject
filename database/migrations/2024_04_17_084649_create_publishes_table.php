@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
 
             $table->string('description');
-            $table->foreignIdFor(Course::class,'course_id');
+            $table->foreignIdFor(Course::class,'course_id')->nullable();
 
             $table->timestamps();
         });

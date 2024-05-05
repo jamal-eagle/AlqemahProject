@@ -14,6 +14,7 @@ use App\Models\Archive;
 use App\Models\Homework;
 use App\Models\Program_Student;
 use App\Models\Note_Student;
+use App\Models\Publish;
 use Illuminate\Support\Facades\Auth;
 
 class Student_operationController extends BaseController
@@ -117,6 +118,12 @@ class Student_operationController extends BaseController
         $note= Note_Student::where('student_id', $student->id)->with('user')->get();
 
         return $note;
+    }
+
+    public function publish()
+    {
+        $publish = Publish::with('course')->with('image')->get();
+        return $publish;
     }
 
 }

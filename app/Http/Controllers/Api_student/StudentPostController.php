@@ -74,7 +74,7 @@ class StudentPostController extends Controller
 
             return 'you can not delete this comment';
         }
-    /*تعديل التعليق لسع مو جاهز للتجريب */
+    //تعديل تعليق
     public function editComment(Request $request, $comment_id)
         {
             $comment = Comment::find($comment_id);
@@ -84,22 +84,20 @@ class StudentPostController extends Controller
 
             elseif ($comment->student_id != null) {
                 $student = Student::where('user_id', auth()->user()->id)->first();
-                //$comment->where('student_id', $student->id)->update($request->all());
-                $data = $request->only(['description']);
-                $comment->where('student_id', $student->id)->first();
-                $comment->update($data);
-                $comment->save();
-                return $comment;
+                $comment2=Comment::where('student_id', $student->id)->first();
+                
+                $comment2->description = $request->description;
+                $comment2->save();
+                return $comment2;
             }
 
             elseif ($comment->teacher_id != null) {
                 $teacher = Teacher::where('user_id', auth()->user()->id)->first();
-                //$comment->where('teacher_id', $teacher->id)->update($request->all());
-                $data = $request->only(['description']);
-                $comment->where('teacher_id', $teacher->id)->first();
-                $comment->update($data);
-                $comment->save();
-                return $comment;
+                $comment2=Comment::where('teacher_id', $teacher->id)->first();
+                
+                $comment2->description = $request->description;
+                $comment2->save();
+                return $comment2;
                 
             }
 

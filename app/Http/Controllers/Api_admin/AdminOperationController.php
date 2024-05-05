@@ -70,7 +70,7 @@ if($user){
         return $this->responseError(['the user logged out']);
             }
             else {
-                $request->parent()->currentAccessToken()->delete();
+                $request->parentt()->currentAccessToken()->delete();
                 return $this->responseError(['the user logged out']);
             }
     }
