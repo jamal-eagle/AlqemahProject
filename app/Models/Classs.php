@@ -12,7 +12,7 @@ use App\Models\Course;
 use App\Models\Archive;
 use App\Models\Subject;
 use App\Models\Fee_School;
-
+use App\Models\Section;
 class Classs extends Model
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -50,6 +50,11 @@ class Classs extends Model
     public function fee_School()
     {
         return $this->hasMany('App\Models\Fee_School',foreignKey:'class_id',localKey:'id');
+    }
+
+    public function classs()
+    {
+        return $this->hasMany('App\Models\Section',foreignKey:'class_id',localKey:'id');
     }
 
 

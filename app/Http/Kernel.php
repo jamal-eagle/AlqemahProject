@@ -101,7 +101,7 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'ckeck_admin' => \App\Http\Middleware\chech_Admin::class,
+        'check_admin' => \App\Http\Middleware\chech_Admin::class,
         'check_teacher' => \App\Http\Middleware\chech_Teacher::class,
         'ckeck_parentt' => \App\Http\Middleware\chech_Parentt::class,
         'ckeck_accounting' => \App\Http\Middleware\chech_Accounting::class,

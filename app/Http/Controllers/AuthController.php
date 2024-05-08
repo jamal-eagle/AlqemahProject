@@ -7,6 +7,7 @@ use App\Models\Classs;
 use App\Models\Order;
 use App\Models\Parentt;
 use App\Models\Student;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -31,7 +32,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return $this->responseError(['errors' => $validator->errors()]);
+            return response()->json(['errors' => $validator->errors()]);
         }
         $email = $order->first_name.Str::random(5)."@gmail.com";
         $password = $order->first_name.Str::random(6);
@@ -64,7 +65,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator1->fails()) {
-            return $this->responseError(['errors' => $validator1->errors()]);
+            return response()->json(['errors' => $validator1->errors()]);
         }
 
         $student = new Student;
@@ -92,7 +93,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return $this->responseError(['errors' => $validator->errors()]);
+            return response()->json(['errors' => $validator->errors()]);
         }
 
         $parentt =new Parentt();
@@ -112,11 +113,58 @@ class AuthController extends Controller
 
     public function get_profile_user(){
 
-        return $this->sendResponse2(auth()->user(),'this is user profile');
+        return response()->json([auth()->user(),'this is user profile']);
 
     }
 
-    public function updateprofile(Request $request ,$id)
+    public function get_teacher_profile($teacher_id)
+    {
+        $user = User::find($teacher_id);
+        if(!$user){
+            return response()->json(['user not found ']);
+        }
+        $teacher = Teacher::where( 'user_id',$user->id );
+        if(!$teacher)
+        {
+            return response()->json(['this user not teacher']);
+        }
+        return response()->json([$user,$teacher,'this is our teacher']);
+    }
+
+
+    public function update_teacher_profile(Request $request,$teacher_id)
+    {
+        $user = User::find($teacher_id);
+        if(!$user){
+            return response()->json(['user not found ']);
+        }
+        $teacher = Teacher::where( 'user_id',$user->id );
+        if(!$teacher)
+        {
+            return response()->json(['this user not teacher']);
+        }
+
+        $validator = validator::make($request->all(),[
+            'num_hour'=>'required',
+            'cost_hour'=>'required',
+            'num_our_added'=>'required',
+            'note_hour_added'=>'required',
+        ]);
+        if($validator->fails())
+        {
+            return response()->json(['Please validate error',$validator->errors()]);
+        }
+        $teacher = Teacher::where( 'user_id',$user->id );
+        $teacher->update([
+            'num_hour'=>$request->num_hour,
+            'cost_hour'=>$request->cost_hour,
+            'num_our_added'=>$request->num_hour_added,
+            'note_hour_added'=>$request->note_hour_added,
+        ]);
+
+    }
+
+    public function update_profile_user(Request $request ,$id)
 {
 
     $validator = Validator::make($request->all(),[

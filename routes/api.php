@@ -55,24 +55,38 @@ Route::prefix('out_user')->group(function () {
 Route::group(['middleware'=>'auth:sanctum'], function(){
     Route::post('/logout', [AdminOperationController::class, 'logout']);
         ///عرض البروفايل
-        Route::post('/show_profile',[AuthController::class,'get_profile']);
+        Route::get('/show_profile',[AuthController::class,'get_profile_user']);
         ////تعديل البروفايل
-        Route::post('/edit_profile{id}',[AuthController::class,'update_profile']);
+        Route::post('/edit_profile/{id}',[AuthController::class,'update_profile_user']);
 });
 
 
 
 /*******************************************************admin*******************************************************/
-Route::prefix('admin')->middleware(['auth:sanctum','check_a'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(function () {
     ///خلق حسابات الطلاب
     Route::post('/register_student/{order_id}',[AdminOperationController::class,'register_student']);
     ///خلق حساب للأهل
     Route::post('/register_parentt',[AdminOperationController::class,'register_parentt']);
     //عرض طلبات التسجيل بالمعهد
     Route::get('/display_order',[AdminOperationController::class,'DisplayOrderNewStudent']);
+    //اعطاء موعد
     route::post('/give_date/{order_id}',[AdminOperationController::class,'GiveDate']);
     //إنشاء حساب للطالب
     Route::post('/register/{order_id}', [AdminOperationController::class, 'registerPost']);
+    //عرض معلومات المدرس
+    route::get('/get_teacher_profile/{teacher_id}',[AuthController::class,'get_teacher_profile']);
+    //تعديل معلومات المدرس
+    route::post('/update_teacher_profile/{teacher_id}',[AuthController::class,'update_teacher_profile']);
+    //استعراض راتب المدرس
+    route::get('/desplay_teacher_salary/{teacher_id}',[AdminOperationController::class,'desplay_teacher_salary']);
+    //استعراض الدورات التي يعطي فيها مدرس
+    route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
+    //عرض الموظفين
+    route::get('/desplay_employee',[AdminOperationController::class,'desplay_employee']);
+    //عرض الصفوف والشعب
+    route::get('/desplay_classs_and_section',[AdminOperationController::class,'desplay_classs_and_section']);
+
 });
 
 /*******************************************************student*******************************************************/

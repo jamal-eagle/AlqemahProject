@@ -33,4 +33,8 @@ class Section extends Model
         return $this->hasMany('App\Models\Program_Student',foreignKey:'section_id',localKey:'id');
     }
 
+    public function classs()
+    {
+        return $this->belongsTo('App\Models\classs',foreignKey:'class_id');
+    }
 }

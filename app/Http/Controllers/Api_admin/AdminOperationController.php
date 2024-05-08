@@ -12,8 +12,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Models\Appointment;
+use App\Models\Classs;
 use App\Models\Student;
 use App\Models\Parentt;
+use App\Models\Teacher;
+use App\Models\Course;
+use App\Models\Employee;
 use Illuminate\Support\Str;
 
 class AdminOperationController extends BaseController
@@ -227,5 +231,63 @@ public function disply_all_student_here($year)
 
     }
 }
+
+public function desplay_teacher_salary($teacher_id)
+{
+    $teacher = Teacher::where('id' , $teacher_id)->get()->first();
+    if(!$teacher)
+    {
+        return response()->json(['teacher not found ']);
+    }
+    $salary = ($teacher->num_hour * $teacher->cost_hour) + ($teacher->num_our_added * $teacher->cost_hour);
+
+    return response()->json([$teacher,$salary,'successsss']);
+}
+
+public function desplay_teacher_course($teacher_id)
+{
+    $teacher = Teacher::find($teacher_id);
+    if(!$teacher)
+    {
+        return response()->json(['teacher not found ']);
+    }
+
+    return  $teacher->course;
+
+}
+
+public function desplay_employee()
+{
+    $employee = Employee::get()->all();
+    if(!$employee)
+    {
+        return response()->json(['you havenot any employee']);
+    }
+
+    return response()->json([$employee,'you havenot any employee']);
+}
+
+public function desplay_classs_and_section()
+{
+    $classs = Classs::get()->all();
+    if(!$classs)
+    {
+        return response()->json(['you havenot any class']);
+    }
+    $classs1 =  $classs->section;
+    return response()->json([$classs,$classs1,'successsssssss']);
+}
+
+
+public function desplay_section_for_classs($class_id)
+{
+    $classs = Classs::find($class_id);
+    if(!$classs)
+    {
+        return response()->json(['you havenot any class']);
+    }
+    return  $classs->section;
+}
+
 
 }
