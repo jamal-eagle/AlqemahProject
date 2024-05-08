@@ -13,6 +13,7 @@ use App\Http\Controllers\Api_student\MarkController;
 use App\Http\Controllers\Api_parentt\ParenttController;
 use App\Http\Controllers\Api_parentt\OutWorkStudentController;
 use App\Http\Controllers\Api_parentt\FeeAndPayController;
+use App\Http\Controllers\Api_teacher\TeacherController;
 
 
 /*
@@ -60,41 +61,31 @@ Route::prefix('out_user')->group(function () {
 Route::group(['middleware'=>'auth:sanctum'], function(){
     Route::post('/logout', [AdminOperationController::class, 'logout']);
         ///عرض البروفايل
-        Route::get('/show_profile',[AuthController::class,'get_profile_user']);
+        Route::post('/show_profile',[AuthController::class,'get_profile']);
         ////تعديل البروفايل
         Route::post('/edit_profile{id}',[AuthController::class,'update_profile']);
-});
-
-
+        //إعلانات المعهد
+        Route::get('all_publish', [Student_operationController::class, 'publish']);
+});  
 
 /*******************************************************admin*******************************************************/
-Route::prefix('admin')->middleware(['auth:sanctum','check_a'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum','ckeck_admin'])->group(function () {
     ///خلق حسابات الطلاب
     Route::post('/register_student/{order_id}',[AdminOperationController::class,'register_student']);
     ///خلق حساب للأهل
     Route::post('/register_parentt',[AdminOperationController::class,'register_parentt']);
     //عرض طلبات التسجيل بالمعهد
     Route::get('/display_order',[AdminOperationController::class,'DisplayOrderNewStudent']);
+    //إعطاء موعد
     route::post('/give_date/{order_id}',[AdminOperationController::class,'GiveDate']);
     //إنشاء حساب للطالب
     Route::post('/register/{order_id}', [AdminOperationController::class, 'registerPost']);
-    //عرض معلومات المدرس
-    route::get('/get_teacher_profile/{teacher_id}',[AuthController::class,'get_teacher_profile']);
-    //تعديل معلومات المدرس
-    route::post('/update_teacher_profile/{teacher_id}',[AuthController::class,'update_teacher_profile']);
-    //استعراض راتب المدرس
-    route::get('/desplay_teacher_salary/{teacher_id}',[AdminOperationController::class,'desplay_teacher_salary']);
-    //استعراض الدورات التي يعطي فيها مدرس
-    route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
-    //عرض الموظفين
-    route::get('/desplay_employee',[AdminOperationController::class,'desplay_employee']);
-    //عرض الصفوف والشعب
-    route::get('/desplay_classs_and_section',[AdminOperationController::class,'desplay_classs_and_section']);
 
+    Route::get('/classification/{classifaction}',[AdminOperationController::class,'student_classification']);
 });
 
 /*******************************************************student*******************************************************/
-Route::prefix('student')->middleware(['auth:sanctum'])->group(function () {
+Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(function () {
     //عرض مواد الطالب
     Route::get('/my_subject',[Student_operationController::class,'display_subject']);
     //عرض الملفات و الصور للمادة المختارة
@@ -118,7 +109,7 @@ Route::prefix('student')->middleware(['auth:sanctum'])->group(function () {
     //حذف تعليق من قبل طالب أو أستاذ الخ مع العلم تعليق الطالب يستطيع أستاذ أو موجه الخ حذفه
     Route::delete('/delete_comment/{comment_id}',[StudentPostController::class,'deleteComment']);
     //تعديل تعليق
-    Route::post('/edit_comment/{comment_id}',[StudentPostController::class,'editComment']);
+    Route::post('/edit_comment/{comment_id}',[StudentPostController::class,'editComment']); 
     //عرض علامات المذاكرة علامات الفحص الخ
     Route::get('/my_mark',[MarkController::class,'displayMark']);
 });
@@ -138,13 +129,24 @@ Route::prefix('parent')->middleware(['auth:sanctum'])->group(function () {
     //إضافة تبرير للابن لغيابه في يوم محدد
     Route::post('/add_Justification/{Out_Of_Work_Student_id}', [OutWorkStudentController::class, 'add_Justification']);
     //عرض الملاحظات التي بحق الابن
-    Route::get('/display_note/{student_id}',[ParenttController::class,'display_note']);
+    Route::get('/display_note/{student_id}',[ParenttController::class,'display_note']); 
     //عرض علامات الابن
-    Route::get('/display_mark/{student_id}',[ParenttController::class,'displayMark']);
+    Route::get('/display_mark/{student_id}',[ParenttController::class,'displayMark']); 
     //القسط و الدفعات و المتبقي
     Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
-
 });
+
+/*******************************************************teacher*******************************************************/
+Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(function () {
+    //عرض برنامج الدوام الأستاذ
+    Route::get('/my_programe_teacher',[TeacherController::class,'programe']);
+    //
+    Route::post('/add_note_about_student/{student_id}',[TeacherController::class,'add_note_about_student']); 
+    Route::get('/class',[TeacherController::class,'display_class']);
+    
+    
+});
+
 
 
 // Route::get('/image', function () {
@@ -155,7 +157,9 @@ Route::prefix('parent')->middleware(['auth:sanctum'])->group(function () {
 
 
 
-
+Route::post('/create',[AuthController::class,'create']);
+Route::get('/get',[AuthController::class,'get']);
+Route::patch('/edit/{id}',[AuthController::class,'edit']);
 
 
 
