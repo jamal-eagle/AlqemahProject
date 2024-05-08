@@ -68,7 +68,7 @@ Route::group(['middleware'=>'auth:sanctum'], function(){
 
 
 /*******************************************************admin*******************************************************/
-Route::prefix('admin')->middleware(['auth:sanctum','check_a'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(function () {
     ///خلق حسابات الطلاب
     Route::post('/register_student/{order_id}',[AdminOperationController::class,'register_student']);
     ///خلق حساب للأهل
@@ -90,6 +90,10 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_a'])->group(function (
     route::get('/desplay_employee',[AdminOperationController::class,'desplay_employee']);
     //عرض الصفوف والشعب
     route::get('/desplay_classs_and_section',[AdminOperationController::class,'desplay_classs_and_section']);
+    // عرض الشعب التي تتبع لصف معين
+    route::get('/desplay_section_for_class/{class_id}',[AdminOperationController::class,'desplay_section_for_class']);
+    //التعديل على معلومات موظف
+    route::post('/update_employee_profile/{teacher_id}',[AdminOperationController::class,'update_employee_profile']);
 
 });
 
