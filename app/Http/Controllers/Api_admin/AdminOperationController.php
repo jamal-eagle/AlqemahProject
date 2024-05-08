@@ -232,15 +232,15 @@ if($user){
         $new->save();
     }
 
-    public function student_classification($classifaction)
+    public function student_classification($classifiaction)
     {
-        if($classifaction = 1){
-        $stud =Student::where('classifaction' ,'=', 1)->get();
+        if($classifiaction = 1){
+        $stud =Student::where('classifiaction' ,'=', 1)->get();
         $student = User::where($stud->user_id, 'id')->get()->all();
             return response()->json([$stud,$student]);
     }
     else {
-        $stud =Student::where('classifaction' ,'=', 0)->get();
+        $stud =Student::where('classifiaction' ,'=', 0)->get();
         $student = User::where($stud->user_id, 'id')->get()->all();
             return response()->json([$stud,$student]);
     }
@@ -313,5 +313,28 @@ public function desplay_section_for_classs($class_id)
     return  $classs->section;
 }
 
+public function update_employee_profile(Request $request,$employee_id)
+{
+    $employee = Employee::find($employee_id);
+    if(!$employee)
+    {
+        return response()->json(['you have not any employee']);
+    }
+    $validator = Validator::make($request->all(),[
+        'salary' => 'required',
+        'type' => 'required',
+        'year' => 'required',
+    ]);
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $employee ->update([
+        'salary' => $request->salary,
+        'type' => $request->type,
+        'year' => $request->year,
+    ]);
+
+}
 
 }
