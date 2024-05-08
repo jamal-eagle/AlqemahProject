@@ -173,6 +173,6 @@ Route::post('/create',[AuthController::class,'create']);
 Route::get('/get',[AuthController::class,'get']);
 Route::patch('/edit/{id}',[AuthController::class,'edit']);
 
-//تتتتتت
+//khjjj
 
 
