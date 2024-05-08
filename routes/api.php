@@ -69,7 +69,7 @@ Route::group(['middleware'=>'auth:sanctum'], function(){
 });  
 
 /*******************************************************admin*******************************************************/
-Route::prefix('admin')->middleware(['auth:sanctum','ckeck_admin'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum','check_a'])->group(function () {
     ///خلق حسابات الطلاب
     Route::post('/register_student/{order_id}',[AdminOperationController::class,'register_student']);
     ///خلق حساب للأهل
@@ -80,6 +80,18 @@ Route::prefix('admin')->middleware(['auth:sanctum','ckeck_admin'])->group(functi
     route::post('/give_date/{order_id}',[AdminOperationController::class,'GiveDate']);
     //إنشاء حساب للطالب
     Route::post('/register/{order_id}', [AdminOperationController::class, 'registerPost']);
+    //عرض معلومات المدرس
+    route::get('/get_teacher_profile/{teacher_id}',[AuthController::class,'get_teacher_profile']);
+    //تعديل معلومات المدرس
+    route::post('/update_teacher_profile/{teacher_id}',[AuthController::class,'update_teacher_profile']);
+    //استعراض راتب المدرس
+    route::get('/desplay_teacher_salary/{teacher_id}',[AdminOperationController::class,'desplay_teacher_salary']);
+    //استعراض الدورات التي يعطي فيها مدرس
+    route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
+    //عرض الموظفين
+    route::get('/desplay_employee',[AdminOperationController::class,'desplay_employee']);
+    //عرض الصفوف والشعب
+    route::get('/desplay_classs_and_section',[AdminOperationController::class,'desplay_classs_and_section']);
 
     Route::get('/classification/{classifaction}',[AdminOperationController::class,'student_classification']);
 });
