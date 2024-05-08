@@ -93,7 +93,32 @@ class OrderController extends BaseController
             $new->course_id = $course_id;
             $new->save();
             return $this->responseData("success",$new);
+    }
 
-
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'father_name' => 'required|string',
+            //'birthday' => 'required|date',
+            'gender' => 'required|in:0,1',
+            'phone' => 'required|string',
+            'address' => 'required|string',
+            'email' => 'required|email',
+            'classification' => 'required|in:0,1',
+            //'class' => 'required|string',
+            //'year' => 'required|integer',
+                 ]);
+                 $order = Order::find($id);
+                     if(!$order)
+        {
+            return ['err' => 'not found'];
+        }
+      $order->update($request->all());
+    //$data = $request->only(['first_name', 'last_name', 'father_name', 'gender', 'phone', 'address', 'email', 'classification']);
+    //$order->update($data);
+    $order->save();
+        return $order;
     }
 }
