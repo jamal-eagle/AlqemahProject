@@ -52,7 +52,7 @@ class Classs extends Model
         return $this->hasMany('App\Models\Fee_School',foreignKey:'class_id',localKey:'id');
     }
 
-    public function classs()
+    public function section()
     {
         return $this->hasMany('App\Models\Section',foreignKey:'class_id',localKey:'id');
     }
