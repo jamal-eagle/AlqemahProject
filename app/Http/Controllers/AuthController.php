@@ -197,7 +197,7 @@ class AuthController extends Controller
 ]);
 
 
-    return response()->json([$user,'the Estate created succeflly']);
+    return response()->json([$user,'the user updated succeflly']);
 
 }
 

@@ -19,6 +19,9 @@ use App\Models\Teacher;
 use App\Models\Course;
 use App\Models\Employee;
 use Illuminate\Support\Str;
+use App\Models\Note;
+use App\Models\Note_Student;
+use App\Models\Publish;
 
 class AdminOperationController extends BaseController
 {
@@ -336,5 +339,107 @@ public function update_employee_profile(Request $request,$employee_id)
     ]);
 
 }
+
+public function desplay_all_student_regester($year)
+{
+    $student = User::where('year',$year)->with('student')->get()->all();
+    return response()->json([$student,'all student regester here']);
+}
+
+public function create_note_student(Request $request , $student_id)
+{
+    $student = Student::find($student_id);
+    if(!$student)
+    {
+        return response()->json(['the student not found']);
+    }
+    $validator = Validator::make($request->all(),[
+        'text'=>'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+
+        $note_student = new Note_Student();
+        $note_student->text = $request->text;
+        $note_student->student_id = $student_id;
+        $note_student->user_id = auth()->user()->id;
+
+        $note_student->save();
+
+        return response()->json(['successssss']);
+
+}
+
+public function desplay_publish()
+{
+    $publish = Publish::get()->all();
+    return response()->json([$publish,'this is all publish']);
+}
+
+public function display_order_for_course($course_id)
+{
+    $course = Course::find($course_id);
+    if(!$course)
+    {
+        return response()->json(['course not found']);
+    }
+    $course->order;
+    return $course;
+}
+
+public function add_publish(Request $request)
+{
+    $validator = Validator::make($request->all(),[
+        'description'=>'required|string',
+        'course_id'=>'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+
+        $publish = new Publish();
+        $publish->description = $request->description;
+        $publish->course_id = $request->course_id;
+        $publish->save();
+        return response()->json(['sucssscceccs']);
+}
+
+public function delete_publish($publish_id)
+{
+    $publish = Publish::find($publish_id);
+    if(!$publish)
+    {
+        return response()->json(['the publish not found or was deleted  ']);
+    }
+    $publish->delete();
+    return response()->json(['the publish  deleted  ']);
+
+}
+
+public function update_publish(Request $request,$publish_id)
+{
+    $publish = Publish::find($publish_id);
+    if(!$publish)
+    {
+        return response()->json(['the publish not found']);
+    }
+    $validator = Validator::make($request->all(),[
+        'description'=>'required|string',
+        'course_id'=>'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+        
+        $publish->description = $request->description;
+        $publish->course_id = $request->course_id;
+        $publish->update();
+        return response()->json(['sucssscceccs']);
+}
+
 
 }
