@@ -18,6 +18,7 @@ use App\Models\Parentt;
 use App\Models\Teacher;
 use App\Models\Course;
 use App\Models\Employee;
+use App\Models\Mark;
 use Illuminate\Support\Str;
 use App\Models\Note;
 use App\Models\Note_Student;
@@ -434,11 +435,45 @@ public function update_publish(Request $request,$publish_id)
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()]);
         }
-        
+
         $publish->description = $request->description;
         $publish->course_id = $request->course_id;
         $publish->update();
         return response()->json(['sucssscceccs']);
+}
+
+public function add_mark_to_student(request $request,$student_id)
+{
+    $student = Student::find($student_id);
+    if(!$student)
+    {
+        return response()->json(['the student not found']);
+    }
+
+    $mark = new Mark;
+    $mark->ponus = $request->ponus  ;
+    $mark->homework = $request->homework || null;
+    $mark->oral = $request->oral || null;
+    $mark->test1 = $request->test1 || null;
+    $mark->test2 = $request->test2 || null;
+    $mark->exam_med = $request->exam_med || null;
+    $mark->exam_final = $request->exam_final || null;
+    $aggregrate = ($request->ponus + $request->homework
+    + $request->oral + $request->test1
+    +$request->test2 + $request->exam_med
+    +$request->exam_final);
+    if ($aggregrate > 50){
+    $mark->state = 1;
+    }
+    else {
+        $mark->state = 0;
+    }
+    $mark->student_id = $student_id;
+    $mark->subject_id = $request->subject_id;
+    $mark->save();
+
+    return response()->json(['succusssss']);
+
 }
 
 

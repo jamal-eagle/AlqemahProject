@@ -17,6 +17,48 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    public function show_profile_student($student_id)
+    {
+        $student = Student::find($student_id);
+        if(!$student)
+        {
+            return response()->json('the student not found ');
+        }
+        $student->user;
+        return response()->json([$student,'sucsseesss ']);
+
+    }
+    public function update_profile_student(Request $request,$student_id)
+    {
+        $student = Student::find($student_id);
+        if(!$student)
+        {
+            return response()->json('the student not found ');
+        }
+        $validator = Validator::make($request->all(),[
+            'calssification' => 'required',
+            'school_tuition'=>'required',
+            'class_id'=>'required',
+            'section_id'=>'required',
+            'parentt_id'=>'required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+        $user = $student->user;
+        $user_id = $user->id;
+        $student->calssification = $request->calssification;
+        $student->school_tuition = $request->school_tuition;
+        $student->user_id = $user_id;
+        $student->class_id =$request->class_id;
+        $student->section_id= $request->section_id;
+        $student->parentt_id = $request->parentt_id;
+
+        $student->update();
+        return response()->json(['sucussssss']);
+
+    }
+
     public function register_student(Request $request,$order_id)
     {
 
@@ -73,6 +115,7 @@ class AuthController extends Controller
         $student->school_tuition = $request->school_tuition;
         $student->user_id = $user->id;
         $student->class_id =$request->class_id;
+        $student->section_id= $request->section_id;
         $student->parentt_id = $request->parentt_id;
 
         $student->save();

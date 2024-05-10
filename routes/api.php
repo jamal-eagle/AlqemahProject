@@ -13,6 +13,7 @@ use App\Http\Controllers\Api_student\MarkController;
 use App\Http\Controllers\Api_parentt\ParenttController;
 use App\Http\Controllers\Api_parentt\OutWorkStudentController;
 use App\Http\Controllers\Api_parentt\FeeAndPayController;
+use App\Http\Controllers\Api_school_monetor\MonetorController;
 use App\Http\Controllers\Api_teacher\TeacherController;
 
 
@@ -98,8 +99,6 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/desplay_employee',[AdminOperationController::class,'desplay_employee']);
     //عرض الصفوف والشعب
     route::get('/desplay_classs_and_section',[AdminOperationController::class,'desplay_classs_and_section']);
-    //عرض تصنيف الطلاب
-    Route::get('/classification/{classifaction}',[AdminOperationController::class,'student_classification']);
     ////  عرض الاعلانات
     route::get('/desplay_publish', [AdminOperationController::class, 'desplay_publish']);
     //اضافو اعلان
@@ -108,9 +107,54 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::delete('/delete_publish/{publish_id}', [AdminOperationController::class, 'delete_publish']);
     //تعديل اعلان
     route::post('/update_publish/{publish_id}', [AdminOperationController::class, 'update_publish']);
+    //اضافة علامة طالب
+    route::post('/add_mark_to_student/{student_id}', [AdminOperationController::class, 'add_mark_to_student']);
+    //عرض تصنيف الطلاب
+    Route::get('/classification/{classifaction}',[AdminOperationController::class,'student_classification']);
     // //اضافة للارشيف ملفات وصور
     // route::post('/add_files_and_paper', [AdminOperationController::class, 'add_files_and_paper']);
 
+});
+
+Route::prefix('monetor')->middleware(['auth:sanctum','check_admin'])->group(function(){
+    //عرض تصنيف الطلاب
+    Route::get('/classification/{classifaction}',[MonetorController::class,'student_classification']);
+    //عرض الطلاب المنتمين للمعهد
+    route::get('/desplay_all_student/{year}', [MonetorController::class, 'desplay_all_student_regester']);
+    //عرض الصفوف والشعب
+    route::get('/desplay_classs_and_section',[MonetorController::class,'desplay_classs_and_section']);
+    /// عرض البروفايل للطالب
+    Route::get('show_profile_student/{student_id}',[MonetorController::class,'show_profile_student']);
+    //تعديل معلومات الطالب
+    Route::post('update_profile_student/{student_id}',[MonetorController::class,'update_profile_student']);
+    //عرض علامات طالب
+    route::get('desplay_student_marks/{student_id}',[MonetorController::class,'desplay_student_marks']);
+    //عرض الملاحظات تجاه الطال
+    route::get('desplay_student_note/{student_id}',[MonetorController::class,'desplay_student_note']);
+    //ارسال انذارات وملاحظات للطالب
+    route::post('/create_note/{student_id}', [MonetorController::class, 'create_note_student']);
+    //عرض كل مدرسي المعهد
+    Route::get('/all-teatcher',[MonetorController::class,'all_teatcher']);
+    //عرض معلومات مدرس معين
+    Route::get('/info-teatcher/{teatcher_id}',[MonetorController::class,'info_teatcher']);
+    //استعراض الدورات التي يعطي فيها مدرس
+    route::get('/desplay_teacher_course/{teacher_id}',[MonetorController::class,'desplay_teacher_course']);
+    //عرض معلومات دورة معينة
+    Route::get('/info_course/{id_course}',[MonetorController::class,'info_course']);
+    ////  عرض الاعلانات
+    route::get('/desplay_publish', [MonetorController::class, 'desplay_publish']);
+    //عرض طلبات التسجيل بالمعهد
+    Route::get('/display_order',[MonetorController::class,'DisplayOrderNewStudent']);
+    // //عرض طلبات التسجيل في دورة معينة
+    // route::get('/display_order_for_course/{course_id}',[MonetorController::class,'display_order_for_course']);
+    //اضافو اعلان
+    route::post('/add_publish', [MonetorController::class, 'add_publish']);
+    //حذف اعلان
+    route::delete('/delete_publish/{publish_id}', [MonetorController::class, 'delete_publish']);
+    //تعديل اعلان
+    route::post('/update_publish/{publish_id}', [MonetorController::class, 'update_publish']);
+    //اضافة علامة طالب
+    route::post('/add_mark_to_student/{student_id}', [MonetorController::class, 'add_mark_to_student']);
 });
 
 /*******************************************************student*******************************************************/
