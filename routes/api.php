@@ -15,6 +15,7 @@ use App\Http\Controllers\Api_parentt\OutWorkStudentController;
 use App\Http\Controllers\Api_parentt\FeeAndPayController;
 use App\Http\Controllers\Api_school_monetor\MonetorController;
 use App\Http\Controllers\Api_teacher\TeacherController;
+use App\Http\Controllers\Api_teacher\PostController;
 
 
 /*
@@ -213,9 +214,41 @@ Route::prefix('parent')->middleware(['auth:sanctum'])->group(function () {
 Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(function () {
     //عرض برنامج الدوام الأستاذ
     Route::get('/my_programe_teacher',[TeacherController::class,'programe']);
-    //
-    Route::post('/add_note_about_student/{student_id}',[TeacherController::class,'add_note_about_student']);
-    Route::get('/class',[TeacherController::class,'display_class']);
+    //إضافة ملاحظات لطالب معين
+    Route::post('/add_note_about_student/{student_id}',[TeacherController::class,'add_note_about_student']); 
+    //غيابات المدرس
+    Route::get('/out_work_teacher',[TeacherController::class,'out_work_teacher']);
+    //عرض المواد التي أدرسها
+    Route::get('/display_supject',[TeacherController::class,'display_supject']);
+    //عرض المواد التي أدرسها
+    Route::get('/display_file_subject_teacher/{subject_id}',[TeacherController::class,'display_file_subject']);
+    //عرض ملفات الأرشيف لسنة محددة
+    Route::get('/display_file_image_archive/{subject_id}/{year}',[TeacherController::class,'display_file_image_archive']);
+    /*//الشعب و الصف الذي يعطيها المدرس
+    Route::get('/classs',[TeacherController::class,'classs']);
+    Route::get('/section/{class_id}', [TeacherController::class,'suction']);*/
+    //عرض طلاب شعبة محددة
+    Route::get('/display_student_section/{section_id}',[TeacherController::class,'display_student_section']);
+    //عرض علامات طالب لمادة محددة حسب المادة التي يعطيها المدرس
+    Route::get('/display_mark/{student_id}', [TeacherController::class,'display_mark']);
+    //تعديل علامة طالب
+    Route::post('/edit_mark/{mark_id}', [TeacherController::class,'edit_mark']);
+    //إنشاء مناقشة لشعبة محددة
+    Route::post('/create_post/{section_id}',[PostController::class,'create_post']);
+    //عرض المدرس لمناقشاته
+    Route::get('/display_post',[PostController::class,'display_post']);
+    //عرض مناقشة محددة التعليقات و السؤال
+    Route::get('/post/{post_id}',[PostController::class,'displayPost']);
+    //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
+    Route::post('/add_comment/{post_id}',[PostController::class,'addComment']);    
+    //تعديل تعليق
+    Route::post('/edit_comment/{comment_id}',[PostController::class,'editComment']); 
+    //حذف تعليق من قبل طالب أو أستاذ الخ مع العلم تعليق الطالب يستطيع أستاذ أو موجه الخ حذفه
+    Route::delete('/delete_comment/{comment_id}',[PostController::class,'deleteComment']);
+    //إنهاء مناقشة
+    
+
+    
 
 
 });

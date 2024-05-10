@@ -9,6 +9,8 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\Student;
 use App\Models\Post;
 use App\Models\Program_Student;
+use App\Models\Teacher_section;
+use App\Models\Teacher;
 
 class Section extends Model
 {
@@ -37,4 +39,14 @@ class Section extends Model
     {
         return $this->belongsTo('App\Models\classs',foreignKey:'class_id');
     }
+
+    // public function teacher_section(){
+    //     return $this->hasMany('App\Models\Teacher_section',foreignKey:'section_id',localKey:'id');
+    // }
+
+    public function teachers()
+{
+    return $this->belongsToMany(Teacher::class, 'teacher_sections', 'section_id','teacher_id');
+}
+
 }

@@ -15,6 +15,8 @@ use App\Models\Program_Teachar;
 use App\Models\Out_Of_Work_Employee;
 use App\Models\User;
 use App\Models\Subject;
+use App\Models\Teacher_section;
+use App\Models\Section;
 
 
 class Teacher extends Model
@@ -63,6 +65,16 @@ public function user(){
 }
 public function subject(){
     return $this->belongsTo('App\Models\Subject',foreignKey:'subject_id');
+}
+
+// public function teacher_section()
+//     {
+//         return $this->hasMany('App\Models\Teacher_section',foreignKey:'teacher_id',localKey:'id');
+//     }
+
+public function sections()
+{
+    return $this->belongsToMany(Section::class, 'teacher_sections', 'section_id','teacher_id');
 }
 
 }

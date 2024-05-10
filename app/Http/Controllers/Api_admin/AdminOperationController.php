@@ -236,19 +236,19 @@ if($user){
         $new->save();
     }
 
-    public function student_classification($classifiaction)
+    public function student_classification($classifaction)
     {
-        if($classifiaction = 1){
-        $stud =Student::where('classifiaction' ,'=', 1)->get();
-        $student = User::where($stud->user_id, 'id')->get()->all();
-            return response()->json([$stud,$student]);
+        if($classifaction = 1){
+        $stud =Student::where('calssification' ,'=', 1)->with('user')->get();
+       // $student = User::where($stud->user_id, 'id')->get()->all();
+            return response()->json([$stud]);
     }
     else {
-        $stud =Student::where('classifiaction' ,'=', 0)->get();
-        $student = User::where($stud->user_id, 'id')->get()->all();
-            return response()->json([$stud,$student]);
+        $stud =Student::where('calssification' ,'=', 0)->with('user')->get();
+        //$student = User::where($stud->user_id, 'id')->get()->all();
+            return response()->json([$stud]);
     }
-}
+    }
 
 public function disply_all_student_here($year)
 {
