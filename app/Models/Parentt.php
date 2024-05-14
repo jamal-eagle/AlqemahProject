@@ -22,6 +22,7 @@ class Parentt extends Model
         'email',
         'password',
         'conf_password',
+        'status',
     ];
 
     public function student()

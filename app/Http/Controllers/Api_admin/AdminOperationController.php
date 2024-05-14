@@ -174,6 +174,62 @@ if($user){
 
     }
 
+    public function show_profile_student($student_id)
+    {
+        $student = Student::find($student_id);
+        if(!$student)
+        {
+            return response()->json('the student not found ');
+        }
+        $student->user;
+        return response()->json([$student,'sucsseesss ']);
+
+    }
+
+    public function update_profile_student(Request $request,$student_id)
+    {
+        $student = Student::find($student_id);
+        if(!$student)
+        {
+            return response()->json('the student not found ');
+        }
+        $validator = Validator::make($request->all(),[
+            'calssification' => 'required',
+            'school_tuition'=>'required',
+            'class_id'=>'required',
+            'section_id'=>'required',
+            'parentt_id'=>'required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+        $user = $student->user;
+        $user_id = $user->id;
+        $student->calssification = $request->calssification;
+        $student->school_tuition = $request->school_tuition;
+        $student->user_id = $user_id;
+        $student->class_id =$request->class_id;
+        $student->section_id= $request->section_id;
+        $student->parentt_id = $request->parentt_id;
+
+        $student->update();
+        return response()->json(['sucussssss']);
+
+    }
+
+    public function desplay_student_marks($student_id)
+    {
+        $student = Student::find($student_id);
+        if(!$student)
+        {
+            return response()->json(['student not found ']);
+        }
+        $student->mark;
+        return response()->json([$student,'sucssssss']);
+
+    }
+
+
     public function get_profile_user(){
 
         return $this->sendResponse2(auth()->user(),'this is user profile');
@@ -286,35 +342,24 @@ public function desplay_teacher_course($teacher_id)
 
 public function desplay_employee()
 {
-    $employee = Employee::get()->all();
+    $employee = Employee::get();
     if(!$employee)
     {
         return response()->json(['you havenot any employee']);
     }
+    return response()->json([$employee,'all employee']);
 
-    return response()->json([$employee,'you havenot any employee']);
 }
 
-public function desplay_classs_and_section()
+public function desplay_one_employee($employee_id)
 {
-    $classs = Classs::get()->all();
-    if(!$classs)
+    $employee = Employee::find($employee_id);
+    if(!$employee)
     {
-        return response()->json(['you havenot any class']);
+        return response()->json(['you havenot any employee']);
     }
-    $classs1 =  $classs->section;
-    return response()->json([$classs,$classs1,'successsssssss']);
-}
+    return response()->json([$employee]);
 
-
-public function desplay_section_for_classs($class_id)
-{
-    $classs = Classs::find($class_id);
-    if(!$classs)
-    {
-        return response()->json(['you havenot any class']);
-    }
-    return  $classs->section;
 }
 
 public function update_employee_profile(Request $request,$employee_id)
@@ -340,6 +385,32 @@ public function update_employee_profile(Request $request,$employee_id)
     ]);
 
 }
+
+
+
+public function desplay_classs_and_section()
+{
+    $classs = Classs::get()->all();
+    if(!$classs)
+    {
+        return response()->json(['you havenot any class']);
+    }
+    $classs1 =  $classs->section;
+    return response()->json([$classs,$classs1,'successsssssss']);
+}
+
+
+public function desplay_section_for_classs($class_id)
+{
+    $classs = Classs::find($class_id);
+    if(!$classs)
+    {
+        return response()->json(['you havenot any class']);
+    }
+    return  $classs->section;
+}
+
+
 
 public function desplay_all_student_regester($year)
 {
@@ -475,6 +546,8 @@ public function add_mark_to_student(request $request,$student_id)
     return response()->json(['succusssss']);
 
 }
+
+
 
 
 }

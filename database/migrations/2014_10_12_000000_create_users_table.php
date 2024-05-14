@@ -27,8 +27,8 @@ return new class extends Migration
             $table->string('password');
             $table->string('conf_password');
             $table->string('user_type');
+            $table->tinyInteger('status')->default(1);
             $table->timestamp('email_verified_at')->nullable();
-
             $table->rememberToken();
             $table->timestamps();
         });

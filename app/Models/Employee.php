@@ -19,6 +19,7 @@ class Employee extends Model
         'salary',
         'type',
         'year',
+        'status',
     ];
 
     public function out_of_work_employee()
