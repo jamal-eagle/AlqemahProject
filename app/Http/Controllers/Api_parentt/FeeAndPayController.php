@@ -16,7 +16,7 @@ class FeeAndPayController extends Controller
     
       // حساب المبلغ المتبقي للطالب
       $total_paid = $pay->sum('amount_money');
-      $total_fee1 = Student::where('id', $student_id)->first('school_tuition');
+      //$total_fee1 = Student::where('id', $student_id)->first('school_tuition');
       $total_fee = Student::where('id', $student_id)->value('school_tuition');
       $remaining_fee = $total_fee - $total_paid;
 

@@ -99,10 +99,10 @@ public function upload_file_image_archive()
     
 }
 
-//المادة و الشعب و الصف الذي يعطيه المدرس
+//المادة و الصف الذي يعطيه المدرس
 public function classs()
 {
-    $teacher = Teacher::where('user_id', auth()->user()->id)->with('subject.classs.section')->get();
+    $teacher = Teacher::where('user_id', auth()->user()->id)->with('subject.classs')->get();
     //$section = Teacher_section::where('section_id',$teacher->section()->id)->get();
     //$teacher = Teacher::where('user_id', auth()->user()->id)->with('sections')->get();
 
@@ -113,19 +113,27 @@ public function classs()
 
 public function suction($class_id)
 {
-    $teacher = Teacher::where('user_id', auth()->user()->id)->first();
-    $section = Teacher::where('id', $teacher->id)->with('sections')->get();
-    return $section;
+     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    $all_section_class = Section::where('class_id', $class_id)->get();
+    $class = Teacher_section::where('teacher_id',$teacher->id)->get();
+    
+    foreach ($all_section_class as $section) {
+        $section_id = $section->id;
+        foreach ($class as $sectionclass)
+        {
+            $sectionclass_id = $sectionclass->section_id;
+            if ($section_id == $sectionclass_id) {
+                //echo $section;
+                $result[] = $section;
+            }
+        }
+        
+    }
 
+    return $result;
 }
 
-// public function suction($class_id)
-// {
-//     $teacher = Teacher::where('user_id', auth()->user()->id);
-//     $section = $teacher->sections()->get();
-//     return $section;
 
-// }
 
 // public function classs()
 // {
@@ -143,16 +151,6 @@ public function suction($class_id)
 // }
 
 
-// public function section($classs_id)
-// {
-//     //$section = Section::where('class_id',$classs_id)->with('teacher_section')->get();
-//     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
-//     $teacher_section = Teacher_section::where('teacher_id',$teacher->id)->get();
-
-    
-// }
-
-
 
 //الشعب و الصف الذي يعطيها المدرس
 // public function classs()
@@ -166,6 +164,13 @@ public function display_student_section($section_id)
 {
     $student = Student::where('section_id', $section_id)->with('user')->get();
 
+    return $student;
+}
+
+//عرض معلومات طالب
+public function display_info_student($student_id)
+{
+    $student = Student::where('id', $student_id)->with('user')->first();
     return $student;
 }
 
@@ -225,5 +230,8 @@ public function edit_mark(Request $request,$mark_id)
     return $mark;
 
 }
+
+
+
 
 }

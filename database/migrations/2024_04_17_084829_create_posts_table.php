@@ -19,9 +19,11 @@ return new class extends Migration
 
             $table->string('quostion');
             $table->string('year');
+            $table->integer('state_on_off')->default(1);//0->off 1->on
             $table->foreignIdFor(Section::class,'section_id');
             $table->foreignIdFor(Subject::class,'subject_id');
             $table->foreignIdFor(Teacher::class,'teacher_id');
+
 
             $table->timestamps();
         });

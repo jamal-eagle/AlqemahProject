@@ -17,6 +17,7 @@ class Post extends Model
 
     protected $fillable = [
         'quostion',
+        'state_on_off',
         'section_id',
         'subject_id',
         'teacher_id',

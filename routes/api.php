@@ -132,7 +132,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::post('/add_mark_to_student/{student_id}', [AdminOperationController::class, 'add_mark_to_student']);
     // //اضافة للارشيف ملفات وصور
     // route::post('/add_files_and_paper', [AdminOperationController::class, 'add_files_and_paper']);
-
+    //إنهاء و إعادة تفعيل مناقشة
+    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);  
 });
 
 Route::prefix('monetor')->middleware(['auth:sanctum','check_monetor'])->group(function(){
@@ -174,6 +175,8 @@ Route::prefix('monetor')->middleware(['auth:sanctum','check_monetor'])->group(fu
     route::post('/update_publish/{publish_id}', [MonetorController::class, 'update_publish']);
     //اضافة علامة طالب
     route::post('/add_mark_to_student/{student_id}', [MonetorController::class, 'add_mark_to_student']);
+    //إنهاء و إعادة تفعيل مناقشة
+    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);  
 });
 
 /*******************************************************student*******************************************************/
@@ -238,15 +241,18 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     Route::get('/out_work_teacher',[TeacherController::class,'out_work_teacher']);
     //عرض المواد التي أدرسها
     Route::get('/display_supject',[TeacherController::class,'display_supject']);
-    //عرض المواد التي أدرسها
+    //عرض ملفات المواد التي أدرسها
     Route::get('/display_file_subject_teacher/{subject_id}',[TeacherController::class,'display_file_subject']);
     //عرض ملفات الأرشيف لسنة محددة
     Route::get('/display_file_image_archive/{subject_id}/{year}',[TeacherController::class,'display_file_image_archive']);
-    /*//الشعب و الصف الذي يعطيها المدرس
+    //المواد و الصف الذي يعطيها المدرسzahraa
     Route::get('/classs',[TeacherController::class,'classs']);
-    Route::get('/section/{class_id}', [TeacherController::class,'suction']);*/
+    //الشعب التي يعطيها المدرس حسب الصفzahraa
+    Route::get('/section/{class_id}', [TeacherController::class,'suction']);
     //عرض طلاب شعبة محددة
     Route::get('/display_student_section/{section_id}',[TeacherController::class,'display_student_section']);
+    //عرض معلومات طالب
+    Route::get('display_info_student/{student_id}', [TeacherController::class,'display_info_student']);
     //عرض علامات طالب لمادة محددة حسب المادة التي يعطيها المدرس
     Route::get('/display_mark/{student_id}', [TeacherController::class,'display_mark']);
     //تعديل علامة طالب
@@ -264,7 +270,9 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     //حذف تعليق من قبل طالب أو أستاذ الخ مع العلم تعليق الطالب يستطيع أستاذ أو موجه الخ حذفه
     Route::delete('/delete_comment/{comment_id}',[PostController::class,'deleteComment']);
     //إنهاء مناقشة
-
+    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);    
+    //رفع ملف أو صورة لملفات السنة الحاليةzahraa
+    //رفع ملف أو صورة لملفات الأرشيفzahraa
 
 
 

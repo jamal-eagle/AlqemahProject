@@ -28,14 +28,37 @@ class StudentPostController extends Controller
             return $post;
         }
     
-        //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
-        public function addComment(Request $request, $post_id)
-        {
-            $comment = new Comment;
+        // //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
+        // public function addComment(Request $request, $post_id)
+        // {
+        //     $comment = new Comment;
     
-            $comment->description = $request->description;
-            $comment->post_id = $post_id;
+        //     $comment->description = $request->description;
+        //     $comment->post_id = $post_id;
     
+        //     if(auth()->user()->user_type == 'student')
+        //     {
+        //         $student = Student::where('user_id', auth()->user()->id)->first();
+        //         $comment->student_id = $student->id;
+        //     }
+        //     elseif(auth()->user()->user_type == 'teacher')
+        //     {
+        //         $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+        //         $comment->teacher_id = $teacher->id;
+        //     }
+        //     $comment->save();
+        // }
+
+         //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
+    public function addComment(Request $request, $post_id)
+    {
+        $comment = new Comment;
+
+        $comment->description = $request->description;
+        $comment->post_id = $post_id;
+
+        $post = Post::where('id', $post_id)->first();
+        if ($post->state_on_off == 1) {
             if(auth()->user()->user_type == 'student')
             {
                 $student = Student::where('user_id', auth()->user()->id)->first();
@@ -49,6 +72,28 @@ class StudentPostController extends Controller
             $comment->save();
         }
 
+        elseif($post->state_on_off == 0) {
+            if(auth()->user()->user_type == 'teacher')
+            {
+                $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+                $comment->teacher_id = $teacher->id;
+                $comment->save();
+            }
+            
+        }
+
+        // if(auth()->user()->user_type == 'student')
+        // {
+        //     $student = Student::where('user_id', auth()->user()->id)->first();
+        //     $comment->student_id = $student->id;
+        // }
+        // elseif(auth()->user()->user_type == 'teacher')
+        // {
+        //     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+        //     $comment->teacher_id = $teacher->id;
+        // }
+        // $comment->save();
+    }
         //حذف تعليق من قبل طالب أو أستاذ مع العلم يستطيع أي مستخدم حذف تعليق طالب عدا طالب آخر
         public function deleteComment ($comment_id)
         {
@@ -74,14 +119,17 @@ class StudentPostController extends Controller
 
             return 'you can not delete this comment';
         }
-    //تعديل تعليق
-    public function editComment(Request $request, $comment_id)
-        {
-            $comment = Comment::find($comment_id);
+     //تعديل تعليق
+     public function editComment(Request $request, $comment_id)
+     {
+         $comment = Comment::find($comment_id);
+         $post = Post::where('id', $comment->post_id)->first();
+
+         if ($post->state_on_off == 1) {
             if (!$comment) {
                 return ['err' => 'not found'];
             }
-
+   
             elseif ($comment->student_id != null) {
                 $student = Student::where('user_id', auth()->user()->id)->first();
                 $comment2=Comment::where('student_id', $student->id)->first();
@@ -90,7 +138,7 @@ class StudentPostController extends Controller
                 $comment2->save();
                 return $comment2;
             }
-
+   
             elseif ($comment->teacher_id != null) {
                 $teacher = Teacher::where('user_id', auth()->user()->id)->first();
                 $comment2=Comment::where('teacher_id', $teacher->id)->first();
@@ -100,7 +148,17 @@ class StudentPostController extends Controller
                 return $comment2;
                 
             }
+   
+            return 'you can not edit this comment'; 
+         }
 
-            return 'you can not edit this comment';
+         elseif ($post->state_on_off == 0 && $comment->teacher_id != null) {
+            $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+            $comment2=Comment::where('teacher_id', $teacher->id)->first();
+            
+            $comment2->description = $request->description;
+            $comment2->save();
+            return $comment2;
         }
+     }
 }
