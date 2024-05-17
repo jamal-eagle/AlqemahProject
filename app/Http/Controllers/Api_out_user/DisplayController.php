@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Teacher;
 use App\Models\Course;
+use App\Models\Teacher_subject;
+use App\Models\Subject;
 
 class DisplayController extends BaseController
 {
@@ -20,8 +22,14 @@ class DisplayController extends BaseController
 
     public function info_teatcher($teatcher_id)
     {
-        $teatcher = Teacher::where('id',$teatcher_id)->with('user')->with('subject')->get();
-        return $teatcher;
+        $teacher = Teacher::where('id', $teatcher_id)->first();
+        $teacher_subject = Teacher_subject::where('teacher_id', $teacher->id)->get();
+
+        foreach ($teacher_subject as $subject) {
+            $info_subject = Subject::where('id', $subject->subject_id)->get();
+            $result[] = $info_subject;
+        }
+        return [$teacher, $result];
     }
 
     /*------------------------course------------------------*/

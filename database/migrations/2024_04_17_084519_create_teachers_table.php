@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('num_hour_added')->default(0);
             $table->string('note_hour_added')->nullable();
             $table->foreignIdFor(User::class,'user_id');
-            $table->foreignIdFor(Subject::class,'subject_id');
+           // $table->foreignIdFor(Subject::class,'subject_id');
             $table->timestamps();
         });
     }

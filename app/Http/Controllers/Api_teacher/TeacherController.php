@@ -14,6 +14,8 @@ use App\Models\Archive;
 use App\Models\Section;
 use App\Models\Teacher_section;
 use App\Models\Mark;
+use App\Models\Teacher_subject;
+use App\Models\Subject;
 
 class TeacherController extends Controller
 {
@@ -47,11 +49,31 @@ class TeacherController extends Controller
         return $out_work;
     }
 
+    //عرض المواد مع الصف التي أدرسها
+    public function display_supject_with_class()
+    {
+        $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+        $teacher_subject = Teacher_subject::where('teacher_id', $teacher->id)->get();
+
+        foreach ($teacher_subject as $subject) {
+            $info_subject = Subject::where('id', $subject->subject_id)->with('classs')->get();
+            $result[] = $info_subject;
+        }
+        return $result;
+
+    }
+
     //عرض المواد التي أدرسها
     public function display_supject()
     {
-        $teacher = Teacher::where('user_id', auth()->user()->id)->with('subject.classs')->get();
-        return $teacher;
+        $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+        $teacher_subject = Teacher_subject::where('teacher_id', $teacher->id)->get();
+
+        foreach ($teacher_subject as $subject) {
+            $info_subject = Subject::where('id', $subject->subject_id)->get();
+            $result[] = $info_subject;
+        }
+        return $result;
 
     }
 
@@ -99,15 +121,16 @@ public function upload_file_image_archive()
     
 }
 
-//المادة و الصف الذي يعطيه المدرس
+//الصفوف الذي يعطيه المدرس
 public function classs()
 {
-    $teacher = Teacher::where('user_id', auth()->user()->id)->with('subject.classs')->get();
-    //$section = Teacher_section::where('section_id',$teacher->section()->id)->get();
-    //$teacher = Teacher::where('user_id', auth()->user()->id)->with('sections')->get();
-
-
-    return $teacher;
+        $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+        $teacher_subject = Teacher_subject::where('teacher_id', $teacher->id)->get();
+        foreach ($teacher_subject as $subject) {
+           $info_subject = Subject::find($subject->subject_id);
+            $result[] = $info_subject->classs;
+        }
+        return $result;
  
 }
 

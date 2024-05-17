@@ -50,9 +50,9 @@ class Subject extends Model
         return $this->hasOne('App\Models\Mark',foreignKey:'subject_id',localKey:'id');
     }
 
-    public function teacher(){
-        return $this->hasMany('App\Models\Teacher',foreignKey:'subject_id',localKey:'id');
-    }
+    // public function teacher(){
+    //     return $this->hasMany('App\Models\Teacher',foreignKey:'subject_id',localKey:'id');
+    // }
 
     public function classs()
     {

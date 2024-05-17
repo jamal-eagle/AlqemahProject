@@ -29,7 +29,7 @@ class Teacher extends Model
         'num_hour_added',
         'note_hour_added',
         'user_id',
-        'subject_id',
+        //'subject_id',
     ];
 
     public function course()
@@ -63,9 +63,9 @@ class Teacher extends Model
 public function user(){
     return $this->belongsTo('App\Models\User',foreignKey:'user_id');
 }
-public function subject(){
-    return $this->belongsTo('App\Models\Subject',foreignKey:'subject_id');
-}
+// public function subject(){
+//     return $this->belongsTo('App\Models\Subject',foreignKey:'subject_id');
+// }
 
 // public function teacher_section()
 //     {

@@ -14,6 +14,8 @@ use App\Models\Note_Student;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use App\Models\Teacher_subject;
+use App\Models\Subject;
 
 class MonetorController extends Controller
 {
@@ -147,8 +149,14 @@ class MonetorController extends Controller
     }
     public function info_teatcher($teatcher_id)
     {
-        $teatcher = Teacher::where('id',$teatcher_id)->with('user')->with('subject')->get();
-        return $teatcher;
+        $teacher = Teacher::where('id', $teatcher_id)->first();
+        $teacher_subject = Teacher_subject::where('teacher_id', $teacher->id)->get();
+
+        foreach ($teacher_subject as $subject) {
+            $info_subject = Subject::where('id', $subject->subject_id)->get();
+            $result[] = $info_subject;
+        }
+        return [$teacher, $result];
     }
 
     public function desplay_teacher_course($teacher_id)

@@ -241,13 +241,15 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     Route::get('/out_work_teacher',[TeacherController::class,'out_work_teacher']);
     //عرض المواد التي أدرسها
     Route::get('/display_supject',[TeacherController::class,'display_supject']);
+    //عرض المواد مع الصف التي أدرسها
+    Route::get('/display_supject_with_class',[TeacherController::class,'display_supject_with_class']);
     //عرض ملفات المواد التي أدرسها
     Route::get('/display_file_subject_teacher/{subject_id}',[TeacherController::class,'display_file_subject']);
     //عرض ملفات الأرشيف لسنة محددة
     Route::get('/display_file_image_archive/{subject_id}/{year}',[TeacherController::class,'display_file_image_archive']);
-    //المواد و الصف الذي يعطيها المدرسzahraa
+    //المواد و الصف الذي يعطيها المدرس
     Route::get('/classs',[TeacherController::class,'classs']);
-    //الشعب التي يعطيها المدرس حسب الصفzahraa
+    //الشعب التي يعطيها المدرس حسب الصف
     Route::get('/section/{class_id}', [TeacherController::class,'suction']);
     //عرض طلاب شعبة محددة
     Route::get('/display_student_section/{section_id}',[TeacherController::class,'display_student_section']);
