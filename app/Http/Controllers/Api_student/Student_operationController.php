@@ -16,6 +16,7 @@ use App\Models\Program_Student;
 use App\Models\Note_Student;
 use App\Models\Publish;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Image;
 
 class Student_operationController extends BaseController
 {
@@ -102,13 +103,51 @@ class Student_operationController extends BaseController
     // }
 
     //عرض برنامج الدوام الخاص بالطالب
-    public function programe()
-    {
-        $student = Student::where('user_id', auth()->user()->id)->first();
+public function programe_week()
+{
+    $student = Student::where('user_id', auth()->user()->id)->first();
+    $section_id = $student->section_id;
+    //$programe = Program_Student::where('section_id', $student->section_id)->get();
+    $programe = Program_Student::all();
 
-        $programe = Program_Student::where('section_id',$student->section_id)->with('image')->get();
-        return $programe;
+    if ($programe) {
+        $result = [];
+
+        foreach ($programe as $p) {
+            if ($p->section_id == $student->section_id) {
+                $img = Image::all();
+                foreach ($img as $i) {
+                    if ($p->id == $i->program_student_id) {
+                        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+                        if (file_exists($imagePath)) {
+                            $result[] = [
+                                'path' => $imagePath,
+                                'image_info' => $i
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($result)) {
+            return response()->json([
+                'status' => 'true',
+                'images' => $result
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No images found'
+            ]);
+        }
+    } else {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Program not found for this student'
+        ]);
     }
+}
 
     //عرض الملاحظات التي بحق الطالب
     public function display_note()

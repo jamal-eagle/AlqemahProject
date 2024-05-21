@@ -16,17 +16,35 @@ use App\Models\Teacher_section;
 use App\Models\Mark;
 use App\Models\Teacher_subject;
 use App\Models\Subject;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Image;
 
 class TeacherController extends Controller
 {
     //عرض برنامج الدوام الأستاذ
     public function programe()
-    {
-        $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+{
+    $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    $programe = Program_Teachar::where('teacher_id',$teacher->id)->first();
 
-        $programe = Program_Teachar::where('teacher_id',$teacher->id)->with('image')->get();
-        return $programe;
-    }
+    if ($programe) {
+                    $img = Image::where('program_teacher_id', $programe->id)->latest()->first();
+                    //return $img;
+                        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$img->path);
+                        //return response()->file($imagePath);
+                        if (file_exists($imagePath)) {
+                            return response()->json([
+                                'path' => $imagePath,
+                                'image_info' => $img
+                            ]);    
+                        }
+        } else {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No images found'
+            ]);
+        }
+}
 
     //إضافة ملاحظات لطالب معين
     public function add_note_about_student(Request $request ,$student_id)
@@ -77,7 +95,7 @@ class TeacherController extends Controller
 
     }
 
-    //عرض صور و ملفات المادة التي يعطيها للسنة الحالية
+    //عرض صور و ملفات المادة التي يعطيها للسنة الحاليةzahraa
 public function display_file_subject($subject_id)
 {
     $user= User::where('id',auth()->user()->id)->first();
@@ -90,32 +108,33 @@ public function display_file_subject($subject_id)
     return $archive;
 }
 
-//حذف ملف أو صورة من ملفات السنة الحالية
+//حذف ملف أو صورة من ملفات السنة الحاليةzahraa
 public function delete_file_image()
 {
 
 }
 
+//zahraa
 public function upload_file_image()
 {
 
 }
 
 
-//عرض ملفات الأرشيف لسنة محددة
+//عرض ملفات الأرشيف لسنة محددةzahraa
 public function display_file_image_archive($subject_id,$year)
 {  
     $archive = Archive::where('year',$year)->where('subject_id', $subject_id)->with('image_Archives')->with('file_Archive')->get();
     return $archive;
 }
 
-//حذف ملف أو صورة من ملفات الأرشيف
+//حذف ملف أو صورة من ملفات الأرشيفzahraa
 public function delete_file_image_archive()
 {
 
 }
 
-//رفع ملف أو صورة من ملفات الأرشيف
+//رفع ملف أو صورة من ملفات الأرشيفzahraa
 public function upload_file_image_archive()
 {
     
@@ -155,32 +174,6 @@ public function suction($class_id)
 
     return $result;
 }
-
-
-
-// public function classs()
-// {
-//     $teacher = Teacher::where('user_id', auth()->user()->id)->with('subject.classs.section')->get();
-//     return $teacher;
- 
-// }
-// public function classs()
-// {
-//     $teacher = Teacher::where('user_id', auth()->user()->id)
-//         ->with('subject.classs:id,name,section')
-//         ->get();
-
-//     return $teacher;
-// }
-
-
-
-//الشعب و الصف الذي يعطيها المدرس
-// public function classs()
-// {
-//     $teacher = Teacher::where('user_id', auth()->user()->id)->with('teacher_section.section.classs')->get();
-//     return $teacher;
-// }
 
 //عرض طلاب شعبة محددة
 public function display_student_section($section_id)
@@ -252,6 +245,97 @@ public function edit_mark(Request $request,$mark_id)
     $mark->save();
     return $mark;
 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+public function upload(Request $request)
+{
+    //Route::post('/upload',[TeacherController::class,'upload']);
+    $validator = Validator::make($request->all(),[
+        'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
+
+    $img = $request->path;
+    $ext = $img->getClientOriginalExtension();
+    $imageName = time().'.'.$ext;
+    $img->move(public_path().'/upload',$imageName);
+
+    $image = new Image;
+    $image->path = $imageName;
+    $image->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'image upload success',
+        'path' => asset('/upload/'.$imageName),
+        'data' => $image
+    ]);
+}
+
+
+public function showImage($path)
+{
+    $image = public_path().'/upload/'.$path;
+
+    if (file_exists($image)) {
+        return response()->file($image);
+    } else {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Image not found'
+        ]);
+    }
+}
+
+
+public function delete($id)
+{
+    $image = Image::findOrFail($id);
+
+    // حذفت الملف من المجلد يلي خزنتو في
+    $imagePath = public_path().'/upload/'.$image->path;
+    if(file_exists($imagePath)) {
+        unlink($imagePath);
+    }
+
+    // حذفت الملف من الداتا عندي
+    $image->delete();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'Image deleted successfully'
+    ]);
 }
 
 

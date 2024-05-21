@@ -298,3 +298,9 @@ Route::patch('/edit/{id}',[AuthController::class,'edit']);
 //khjjj
 
 
+Route::post('/upload',[TeacherController::class,'upload']);
+Route::get('/upload/{imageName}', [TeacherController::class, 'showImage']);
+Route::get('/listImages', [TeacherController::class, 'listImages']);
+
+Route::delete('/delete/{id}', [TeacherController::class, 'delete']);
+
