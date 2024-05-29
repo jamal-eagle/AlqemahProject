@@ -17,6 +17,9 @@ use App\Models\Note_Student;
 use App\Models\Publish;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Image;
+use App\Models\Image_Archive;
+use App\Models\File_Archive;
+use App\Models\Accessories;
 
 class Student_operationController extends BaseController
 {
@@ -44,9 +47,44 @@ class Student_operationController extends BaseController
             return response()->json(['error' => 'user not found'], 404);
         }
 
-        $archive = Archive::where('year',$user->year)->where('subject_id', $subject_id)->with('image_Archives')->with('file_Archive')->get();
+        $archive = Archive::where('year',$user->year)->where('subject_id', $subject_id)->first();
+        //صور السنة الحالية للمادة المحددة
+        $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
+        foreach ($image_select_year as $i) {
+            $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+                        //return response()->file($imagePath);
+                        if (file_exists($imagePath)) {
+                            $result[] = [
+                                'path' => $imagePath,
+                                'image_info' => $i
+                            ];    
+                        }
+        }
 
-        return $archive;
+        //صور السنة الحالية للمادة المحددة
+        $file_select_year = File_Archive::where('archive_id',$archive->id)->get();
+        foreach ($file_select_year as $f) {
+            $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
+                        //return response()->file($imagePath);
+                        if (file_exists($imagePath)) {
+                            $result[] = [
+                                'path' => $filePath,
+                                'file_info' => $f
+                            ];    
+                        }
+        }
+        //عم نشوف إذا في نتائج أو لاء
+        if (!empty($result)) {
+            return response()->json([
+                'status' => 'true',
+                'images' => $result
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No images found'
+            ]);
+        }
     }
 
     public function orderCourse($course_id)
@@ -83,18 +121,86 @@ class Student_operationController extends BaseController
         return $order;
     }
 
-    //عرض وظائف الطالب لمادة محددة
+    //عرض وظائف الطالب لمادة محددةzahraa
+    // public function homework_subject($subject_id)
+    // {
+    //     $user= User::where('id',auth()->user()->id)->first();
+    //     if (!$user) {
+    //         return response()->json(['error' => 'user not found'], 404);
+    //     }
+
+    //     $homework = Homework::where('year',$user->year)->where('subject_id', $subject_id)->get();
+    //     foreach ($homework as $h) {
+    //         $accessori = Accessories::where('home_work_id',$h->id)->get();
+    //         foreach ($accessori as $a) {
+    //             $homework_path = str_replace('\\', '/', public_path().'/upload/'.$a->path);
+    //                     //return response()->file($imagePath);
+    //                     if (file_exists($homework_path)) {
+    //                         $result[] = [
+    //                             'homework_info' => $h,
+    //                             'path' => $homework_path,
+    //                             'file_image_info' => $a
+                                
+    //                         ];    
+    //                     }
+    //         }
+    //     }
+    //     //عم نشوف إذا في نتائج أو لاء
+    //     if (!empty($result)) {
+    //         // return response()->json([
+    //         //     'status' => 'true',
+    //         //     'images' => $result
+    //         // ]);
+    //         return $result;
+    //     } else {
+    //         return response()->json([
+    //             'status' => 'false',
+    //             'message' => 'No images found'
+    //         ]);
+    //     }
+
+        
+    //     // return $homework;
+    // }
     public function homework_subject($subject_id)
-    {
-        $user= User::where('id',auth()->user()->id)->first();
-        if (!$user) {
-            return response()->json(['error' => 'user not found'], 404);
-        }
-
-        $homework = Homework::where('year',$user->year)->where('subject_id', $subject_id)->with('accessories')->get();
-
-        return $homework;
+{
+    $user= User::where('id',auth()->user()->id)->first();
+    if (!$user) {
+        return response()->json(['error' => 'user not found'], 404);
     }
+
+    $homework = Homework::where('year',$user->year)->where('subject_id', $subject_id)->get();
+    $result = [];
+    foreach ($homework as $h) {
+        $accessori = Accessories::where('home_work_id',$h->id)->get();
+        $homework_info = [
+            'homework_info' => $h,
+            'file_image_info' => []
+        ];
+        foreach ($accessori as $a) {
+            $homework_path = str_replace('\\', '/', public_path().'/upload/'.$a->path);
+            if (file_exists($homework_path)) {
+                $homework_info['file_image_info'][] = [
+                    'path' => $homework_path,
+                    'file_image_info' => $a
+                ];    
+            }
+        }
+        if (!empty($homework_info['file_image_info'])) {
+            $result[] = $homework_info;
+        }
+    }
+    
+    if (!empty($result)) {
+        return $result;
+    } else {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'No images found'
+        ]);
+    }
+}
+
 
     // public function Read_File($accessori_id)
     // {
@@ -148,6 +254,55 @@ public function programe_week()
         ]);
     }
 }
+    //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
+    public function display_year_archive($subject_id)
+    {
+        $archive = Archive::where('subject_id',$subject_id)->get();
+        return $archive;
+    }
+
+    //عرض ملفات و صور مادة محددة حسب سنة محددة
+    public function file_image_subject_year($subject_id,$year)
+    {
+        $archive = Archive::where('subject_id',$subject_id)->where('year', $year)->first();
+        //صور السنة الحالية للمادة المحددة
+        $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
+        foreach ($image_select_year as $i) {
+            $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+                        //return response()->file($imagePath);
+                        if (file_exists($imagePath)) {
+                            $result[] = [
+                                'path' => $imagePath,
+                                'image_info' => $i
+                            ];    
+                        }
+        }
+
+        //صور السنة الحالية للمادة المحددة
+        $file_select_year = File_Archive::where('archive_id',$archive->id)->get();
+        foreach ($file_select_year as $f) {
+            $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
+                        //return response()->file($imagePath);
+                        if (file_exists($imagePath)) {
+                            $result[] = [
+                                'path' => $filePath,
+                                'file_info' => $f
+                            ];    
+                        }
+        }
+        //عم نشوف إذا في نتائج أو لاء
+        if (!empty($result)) {
+            return response()->json([
+                'status' => 'true',
+                'files' => $result
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No images found'
+            ]);
+        }
+    }
 
     //عرض الملاحظات التي بحق الطالب
     public function display_note()

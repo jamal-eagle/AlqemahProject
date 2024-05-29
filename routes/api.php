@@ -193,6 +193,10 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     Route::get('/my_homework/{subject_id}',[Student_operationController::class,'homework_subject']);
     //عرض برنامج الدوام للطالب
     Route::get('/my_programe',[Student_operationController::class,'programe_week']);
+    //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
+    Route::get('/display_year_archive/{subject_id}',[Student_operationController::class,'display_year_archive']);
+    //عرض ملفات و صور مادة محددة حسب سنة محددة
+    Route::get('/file_image_subject_year/{subject_id}/{year}',[Student_operationController::class,'file_image_subject_year']);
     //عرض الملاحظات الموجهة تجاه الطالب
     Route::get('/my_note',[Student_operationController::class,'display_note']);
     //عرض جميع المناقشات الخاصة بشعبة الطالب فقط عنوان و اسم المدرس
@@ -245,8 +249,10 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     Route::get('/display_supject_with_class',[TeacherController::class,'display_supject_with_class']);
     //عرض ملفات المواد التي أدرسها
     Route::get('/display_file_subject_teacher/{subject_id}',[TeacherController::class,'display_file_subject']);
-    //عرض ملفات الأرشيف لسنة محددة
-    Route::get('/display_file_image_archive/{subject_id}/{year}',[TeacherController::class,'display_file_image_archive']);
+    //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
+    Route::get('/display_year_archive/{subject_id}',[TeacherController::class,'display_year_archive']);
+    //عرض ملفات و صور مادة محددة حسب سنة محددة
+    Route::get('/file_image_subject_year/{subject_id}/{year}',[TeacherController::class,'file_image_subject_year']);
     //المواد و الصف الذي يعطيها المدرس
     Route::get('/classs',[TeacherController::class,'classs']);
     //الشعب التي يعطيها المدرس حسب الصف
@@ -275,10 +281,6 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);    
     //رفع ملف أو صورة لملفات السنة الحاليةzahraa
     //رفع ملف أو صورة لملفات الأرشيفzahraa
-
-
-
-
 });
 
 
