@@ -99,7 +99,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //إنشاء حساب للطالب
     Route::post('/register/{order_id}', [AdminOperationController::class, 'registerPost']);
     //حذف طالب
-    
+
 
     //انشاء حساب للاستاذ
 
@@ -111,13 +111,24 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/desplay_teacher_salary/{teacher_id}',[AdminOperationController::class,'desplay_teacher_salary']);
     //استعراض الدورات التي يعطي فيها مدرس
     route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
+    //ادخال برنامج دوام المدرس
+    route::post('/add_Weekly_Schedule_for_student',[AdminOperationController::class,'addWeekly_Schedule_for_student']);
+    //تعديل برنامج دوام المدرس
+    route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[AdminOperationController::class,'updateWeeklySchedule']);
+    //عرض سجل دوام المدرس
+    route::put('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkschedule']);
+    //عرض ايام دوام المدرس
+    route::get('/get_monthly_attendance_teacher/{teacher_id}/{year}/{month}',[AdminOperationController::class,'calculatemonthlyattendance']);
+    //عرض غيابات المدرس
+    route::get('/get_out_of_work_employee/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherabsences']);
     //عرض الموظفين
     route::get('/desplay_employee',[AdminOperationController::class,'desplay_employee']);
     //استعراض معلومات موظف
     route::get('/desplay_employee/{employee_id}',[AdminOperationController::class,'desplay_one_employee']);
     //تعديل معلومات موظف
     route::put('/update_employee_profile/{employee_id}',[AdminOperationController::class,'update_employee_profile']);
-
+    //عرض ايام دوام المدرس
+    route::get('/get_monthly_attendance_employee/{employee_id}/{year}/{month}',[AdminOperationController::class,'getEmployeeAttendance']);
 
 
     ////  عرض الاعلانات
@@ -133,7 +144,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     // //اضافة للارشيف ملفات وصور
     // route::post('/add_files_and_paper', [AdminOperationController::class, 'add_files_and_paper']);
     //إنهاء و إعادة تفعيل مناقشة
-    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);  
+    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
 });
 
 Route::prefix('monetor')->middleware(['auth:sanctum','check_monetor'])->group(function(){
@@ -147,6 +158,8 @@ Route::prefix('monetor')->middleware(['auth:sanctum','check_monetor'])->group(fu
     Route::get('show_profile_student/{student_id}',[MonetorController::class,'show_profile_student']);
     //تعديل معلومات الطالب
     Route::post('update_profile_student/{student_id}',[MonetorController::class,'update_profile_student']);
+    //عرض سجل دوام الطالب
+    Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReport']);
     //عرض علامات طالب
     route::get('desplay_student_marks/{student_id}',[MonetorController::class,'desplay_student_marks']);
     //عرض الملاحظات تجاه الطال
@@ -159,6 +172,16 @@ Route::prefix('monetor')->middleware(['auth:sanctum','check_monetor'])->group(fu
     Route::get('/info-teatcher/{teatcher_id}',[MonetorController::class,'info_teatcher']);
     //استعراض الدورات التي يعطي فيها مدرس
     route::get('/desplay_teacher_course/{teacher_id}',[MonetorController::class,'desplay_teacher_course']);
+    //تعديل برنامج دوام المدرس
+    route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[MonetorController::class,'updateWeeklySchedule']);
+    //عرض سجل دوام المدرس
+    route::put('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[MonetorController::class,'getteacherworkschedule']);
+    //عرض ايام دوام المدرس
+    route::get('/get_monthly_attendance_teacher/{teacher_id}/{year}/{month}',[MonetorController::class,'calculatemonthlyattendance']);
+    //عرض غيابات المدرس
+    route::get('/get_out_of_work_employee/{teacher_id}/{year}/{month}',[MonetorController::class,'getteacherabsences']);
+    //تقرير كامل مفصل عن ايام الشهر
+    route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReportReport']);
     //عرض معلومات دورة معينة
     Route::get('/info_course/{id_course}',[MonetorController::class,'info_course']);
     ////  عرض الاعلانات
@@ -175,8 +198,12 @@ Route::prefix('monetor')->middleware(['auth:sanctum','check_monetor'])->group(fu
     route::post('/update_publish/{publish_id}', [MonetorController::class, 'update_publish']);
     //اضافة علامة طالب
     route::post('/add_mark_to_student/{student_id}', [MonetorController::class, 'add_mark_to_student']);
+    //تعديل علامة طالب
+    route::post('/{student_id}/marks/{subject_id}/edit', [MonetorController::class, 'editMark']);
+    //اضافة يوم غياب للطالب
+    route::post('/add_student_out_of_work/{student_id}', [MonetorController::class, 'addAbsence']);
     //إنهاء و إعادة تفعيل مناقشة
-    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);  
+    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
 });
 
 /*******************************************************student*******************************************************/
@@ -278,7 +305,7 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     //حذف تعليق من قبل طالب أو أستاذ الخ مع العلم تعليق الطالب يستطيع أستاذ أو موجه الخ حذفه
     Route::delete('/delete_comment/{comment_id}',[PostController::class,'deleteComment']);
     //إنهاء مناقشة
-    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);    
+    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
     //رفع ملف أو صورة لملفات السنة الحاليةzahraa
     //رفع ملف أو صورة لملفات الأرشيفzahraa
 });

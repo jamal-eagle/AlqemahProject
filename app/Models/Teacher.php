@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Models\Subject;
 use App\Models\Teacher_section;
 use App\Models\Section;
+use App\Models\Teacher_Schedule;
 
 
 class Teacher extends Model
@@ -76,5 +77,10 @@ public function sections()
 {
     return $this->belongsToMany(Section::class, 'teacher_sections', 'section_id','teacher_id');
 }
+
+public function teacher_schedule()
+    {
+        return $this->hasOne(Teacher_Schedule::class);
+    }
 
 }

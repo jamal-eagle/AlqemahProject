@@ -23,6 +23,9 @@ use Illuminate\Support\Str;
 use App\Models\Note;
 use App\Models\Note_Student;
 use App\Models\Publish;
+use Illuminate\Support\Carbon;
+use App\Models\Out_Of_Work_Employee;
+use App\Models\Teacher_Schedule;
 
 class AdminOperationController extends BaseController
 {
@@ -340,6 +343,189 @@ public function desplay_teacher_course($teacher_id)
 
 }
 
+public function addWeekly_Schedule_for_student(Request $request)
+{
+    // تحقق من صحة البيانات المرسلة
+    $request->validate([
+        'teacher_id' => 'required|exists:teachers,id',
+        'schedules' => 'required|array|min:7',
+        'schedules.*.day_of_week' => 'required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
+        'schedules.*.start_time' => 'required|date_format:H:i',
+        'schedules.*.end_time' => 'required|date_format:H:i|after:schedules.*.start_time',
+    ]);
+
+    $teacher_id = $request->teacher_id;
+    $schedulesData = $request->schedules;
+
+    foreach ($schedulesData as $scheduleData) {
+        Teacher_Schedule::create([
+            'teacher_id' => $teacher_id,
+            'day_of_week' => $scheduleData['day_of_week'],
+            'start_time' => $scheduleData['start_time'],
+            'end_time' => $scheduleData['end_time'],
+        ]);
+    }
+
+    // إرجاع رد ناجح
+    return response()->json(['message' => 'Teacher weekly schedule added successfully'], 201);
+}
+
+
+public function updateWeeklySchedule(Request $request, $teacher_id)
+    {
+        // تحقق من صحة البيانات المرسلة
+        $request->validate([
+            'schedules' => 'required|array|min:7',
+            'schedules.*.day_of_week' => 'required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
+            'schedules.*.start_time' => 'required|date_format:H:i',
+            'schedules.*.end_time' => 'required|date_format:H:i|after:schedules.*.start_time',
+        ]);
+
+        // حذف برنامج الدوام السابق
+        Teacher_Schedule::where('teacher_id', $teacher_id)->delete();
+
+        // إضافة البرنامج الدوامي الجديد
+        foreach ($request->schedules as $scheduleData) {
+            Teacher_Schedule::create([
+                'teacher_id' => $teacher_id,
+                'day_of_week' => $scheduleData['day_of_week'],
+                'start_time' => $scheduleData['start_time'],
+                'end_time' => $scheduleData['end_time'],
+            ]);
+        }
+
+        // إرجاع رسالة ناجحة
+        return response()->json(['message' => 'Teacher weekly schedule updated successfully'], 200);
+    }
+
+
+    public function getteacherworkschedule($teacher_id, $year, $month)
+    {
+        // استرجاع سجل غياب المدرس خلال الشهر المحدد
+        $absences = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->pluck('date')
+            ->toArray();
+
+        // تنسيق البيانات لعرضها بشكل مفهوم
+        $workSchedule = [];
+        foreach ($absences as $day) {
+            $workSchedule[] = [
+                'date' => $day,
+                'hours' => 0, // عدد الساعات للأيام التي تم فيها الغياب هو صفر
+            ];
+        }
+
+        // إضافة أيام العمل التي لم يتم فيها الغياب مع عدد ساعات العمل
+        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth();
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = Carbon::createFromDate($year, $month, $day);
+            if ($date->dayOfWeek != Carbon::FRIDAY && $date->dayOfWeek != Carbon::SATURDAY) {
+                $workHours = $this->getWorkingHoursForDay($teacher_id, $date);
+                if ($workHours > 0) {
+                    $workSchedule[] = [
+                        'date' => $date->format('Y-m-d'),
+                        'hours' => $workHours,
+                    ];
+                }
+            }
+        }
+
+        return response()->json([
+            'teacher_id' => $teacher_id,
+            'year' => $year,
+            'month' => $month,
+            'work_schedule' => $workSchedule,
+        ]);
+    }
+
+    // دالة لاستخراج عدد ساعات العمل ليوم معين
+    private function getWorkingHoursForDay($teacher_id, $date)
+    {
+        // استرجاع عدد ساعات العمل من جدول برنامج الدوام
+        $workSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)
+            ->whereDate('date', $date)
+            ->first();
+
+        if ($workSchedule) {
+            return $workSchedule->work_hours;
+        }
+
+        return 0; // إذا لم يتم العثور على برنامج دوام لهذا اليوم
+    }
+
+    public function calculatemonthlyattendance($teacher_id, $year, $month)
+    {
+        // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
+        $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+
+        // استرجاع قائمة الأيام العطل في الشهر
+        $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->pluck('date');
+
+        // حساب عدد الأيام في الشهر
+        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth();
+
+        // حساب عدد أيام الدوام وعدد ساعات الدوام لكل يوم في الشهر
+        $totalWorkingDays = 0;
+        $totalWorkingHours = 0;
+        foreach ($teacherSchedule as $schedule) {
+            $workingHours = $this->getWorkingHoursForDay($teacher_id,$schedule->day_of_week); // استرجاع عدد ساعات العمل لهذا اليوم
+            $workingDaysInMonth = $this->calculateWorkingDaysInMonth($year, $month, $schedule->day_of_week, $holidays, $daysInMonth);
+            $totalWorkingDays += $workingDaysInMonth;
+
+            $totalWorkingHours += $workingDaysInMonth * $workingHours;
+        }
+
+        return response()->json([
+            'teacher_id' => $teacher_id,
+            'year' => $year,
+            'month' => $month,
+            'total_working_days' => $totalWorkingDays,
+            'total_working_hours' => $totalWorkingHours,
+        ]);
+    }
+
+    private function calculateWorkingDaysInMonth($year, $month, $dayOfWeek, $holidays, $daysInMonth)
+    {
+        $totalWorkingDays = 0;
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = Carbon::createFromDate($year, $month, $day);
+            if ($date->format('l') == $dayOfWeek && !$holidays->contains($date->format('Y-m-d')) && !in_array($date->format('l'), ['Friday', 'Saturday'])) {
+                $totalWorkingDays++;
+            }
+        }
+        return $totalWorkingDays;
+    }
+
+
+
+    public function getteacherabsences($teacher_id, $year, $month)
+    {
+        // استرجاع الأيام التي تغيب فيها الاستاذ خلال الشهر المحدد
+        $absences = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->whereNotIn(DB::raw('DAYOFWEEK(date)'), [6, 7]) // استبعاد أيام الجمعة (6) والسبت (7)
+            ->get();
+
+        // حساب عدد الأيام التي تم غياب الاستاذ فيها وعدد الساعات التي غاب فيها
+        $totalAbsenceDays = $absences->count();
+        $totalAbsenceHours = $absences->sum('num_hour_out');
+
+        return response()->json([
+            'teacher_id' => $teacher_id,
+            'year' => $year,
+            'month' => $month,
+            'total_absence_days' => $totalAbsenceDays,
+            'total_absence_hours' => $totalAbsenceHours,
+        ]);
+    }
+
+
 public function desplay_employee()
 {
     $employee = Employee::get();
@@ -384,6 +570,30 @@ public function update_employee_profile(Request $request,$employee_id)
         'year' => $request->year,
     ]);
 
+}
+
+
+public function getEmployeeAttendance($employeeId, $year, $month)
+{
+    // انشاء تواريخ البداية والنهاية للشهر المحدد
+    $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+    $endDate = $startDate->copy()->endOfMonth();
+
+    // احتساب عدد الأيام الكاملة
+    $totalWorkDays = $startDate->diffInDaysFiltered(function (Carbon $date) {
+        return !$date->isWeekend();
+    }, $endDate);
+
+    // عدد الأيام في الشهر
+    $daysInMonth = $startDate->daysInMonth;
+
+    return response()->json([
+        'employee_id' => $employeeId,
+        'year' => $year,
+        'month' => $month,
+        'attendance_days' => $daysInMonth, // لأن الموظف يعمل اليوم كاملا
+        'total_work_days' => $totalWorkDays
+    ]);
 }
 
 

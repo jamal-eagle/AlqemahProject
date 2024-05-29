@@ -16,7 +16,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Teacher_subject;
 use App\Models\Subject;
-
+use App\Models\Out_Of_Work_Employee;
+use App\Models\Out_Of_Work_Student;
+use Illuminate\Support\Carbon;
+use App\Models\Teacher_Schedule;
 class MonetorController extends Controller
 {
     public function student_classification($classifiaction)
@@ -90,6 +93,49 @@ class MonetorController extends Controller
         $student->update();
         return response()->json(['sucussssss']);
 
+    }
+
+
+    public function generateMonthlyAttendanceReport($student_id, $year, $month)
+    {
+        // استرجاع قائمة الأيام العطل في الشهر
+        $holidays = collect([]);
+
+        // حساب عدد الأيام في الشهر
+        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth();
+
+        // تهيئة مصفوفة لتخزين تفاصيل الحضور لكل يوم في الشهر
+        $attendanceDetails = [];
+
+        // تحديث تفاصيل الحضور لكل يوم في الشهر
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = Carbon::createFromDate($year, $month, $day);
+            $attendanceStatus = 'حاضر';
+
+            if ($date->format('l') !== 'Friday' && $date->format('l') !== 'Saturday') {
+                $absence = Out_Of_Work_Student::where('student_id', $student_id)
+                    ->whereDate('date', $date)
+                    ->first();
+
+                if ($absence) {
+                    $attendanceStatus = 'غائب';
+                }
+            } else {
+                $attendanceStatus = 'عطلة';
+            }
+
+            $attendanceDetails[] = [
+                'date' => $date->toDateString(),
+                'attendance_status' => $attendanceStatus,
+            ];
+        }
+
+        return response()->json([
+            'student_id' => $student_id,
+            'year' => $year,
+            'month' => $month,
+            'attendance_details' => $attendanceDetails,
+        ]);
     }
 
     public function desplay_student_marks($student_id)
@@ -170,6 +216,205 @@ class MonetorController extends Controller
         return  $teacher->course;
 
     }
+
+
+public function updateWeeklySchedule(Request $request, $teacher_id)
+{
+    // تحقق من صحة البيانات المرسلة
+    $request->validate([
+        'schedules' => 'required|array|min:7',
+        'schedules.*.day_of_week' => 'required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
+        'schedules.*.start_time' => 'required|date_format:H:i',
+        'schedules.*.end_time' => 'required|date_format:H:i|after:schedules.*.start_time',
+    ]);
+
+    // حذف برنامج الدوام السابق
+    Teacher_Schedule::where('teacher_id', $teacher_id)->delete();
+
+    // إضافة البرنامج الدوامي الجديد
+    foreach ($request->schedules as $scheduleData) {
+        Teacher_Schedule::create([
+            'teacher_id' => $teacher_id,
+            'day_of_week' => $scheduleData['day_of_week'],
+            'start_time' => $scheduleData['start_time'],
+            'end_time' => $scheduleData['end_time'],
+        ]);
+    }
+
+    // إرجاع رسالة ناجحة
+    return response()->json(['message' => 'Teacher weekly schedule updated successfully'], 200);
+}
+
+
+public function getteacherworkschedule($teacher_id, $year, $month)
+{
+    // استرجاع سجل غياب المدرس خلال الشهر المحدد
+    $absences = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+        ->whereYear('date', $year)
+        ->whereMonth('date', $month)
+        ->pluck('date')
+        ->toArray();
+
+    // تنسيق البيانات لعرضها بشكل مفهوم
+    $workSchedule = [];
+    foreach ($absences as $day) {
+        $workSchedule[] = [
+            'date' => $day,
+            'hours' => 0, // عدد الساعات للأيام التي تم فيها الغياب هو صفر
+        ];
+    }
+
+    // إضافة أيام العمل التي لم يتم فيها الغياب مع عدد ساعات العمل
+    $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth();
+    for ($day = 1; $day <= $daysInMonth; $day++) {
+        $date = Carbon::createFromDate($year, $month, $day);
+        if ($date->dayOfWeek != Carbon::FRIDAY && $date->dayOfWeek != Carbon::SATURDAY) {
+            $workHours = $this->getWorkingHoursForDay($teacher_id, $date);
+            if ($workHours > 0) {
+                $workSchedule[] = [
+                    'date' => $date->format('Y-m-d'),
+                    'hours' => $workHours,
+                ];
+            }
+        }
+    }
+
+    return response()->json([
+        'teacher_id' => $teacher_id,
+        'year' => $year,
+        'month' => $month,
+        'work_schedule' => $workSchedule,
+    ]);
+}
+
+// دالة لاستخراج عدد ساعات العمل ليوم معين
+private function getWorkingHoursForDay($teacher_id, $date)
+{
+    // استرجاع عدد ساعات العمل من جدول برنامج الدوام
+    $workSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)
+        ->whereDate('date', $date)
+        ->first();
+
+    if ($workSchedule) {
+        return $workSchedule->work_hours;
+    }
+
+    return 0; // إذا لم يتم العثور على برنامج دوام لهذا اليوم
+}
+
+public function calculatemonthlyattendance($teacher_id, $year, $month)
+{
+    // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
+    $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+
+    // استرجاع قائمة الأيام العطل في الشهر
+    $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+        ->whereYear('date', $year)
+        ->whereMonth('date', $month)
+        ->pluck('date');
+
+    // حساب عدد الأيام في الشهر
+    $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth();
+
+    // حساب عدد أيام الدوام وعدد ساعات الدوام لكل يوم في الشهر
+    $totalWorkingDays = 0;
+    $totalWorkingHours = 0;
+    foreach ($teacherSchedule as $schedule) {
+        $workingHours = $this->getWorkingHoursForDay($teacher_id,$schedule->day_of_week); // استرجاع عدد ساعات العمل لهذا اليوم
+
+        $workingDaysInMonth = $this->calculateWorkingDaysInMonth($year, $month, $schedule->day_of_week, $holidays, $daysInMonth);
+        $totalWorkingDays += $workingDaysInMonth;
+
+        $totalWorkingHours += $workingDaysInMonth * $workingHours;
+    }
+
+    return response()->json([
+        'teacher_id' => $teacher_id,
+        'year' => $year,
+        'month' => $month,
+        'total_working_days' => $totalWorkingDays,
+        'total_working_hours' => $totalWorkingHours,
+    ]);
+}
+
+private function calculateWorkingDaysInMonth($year, $month, $dayOfWeek, $holidays, $daysInMonth)
+{
+    $totalWorkingDays = 0;
+    for ($day = 1; $day <= $daysInMonth; $day++) {
+        $date = Carbon::createFromDate($year, $month, $day);
+        if ($date->format('l') == $dayOfWeek && !$holidays->contains($date->format('Y-m-d')) && !in_array($date->format('l'), ['Friday', 'Saturday'])) {
+            $totalWorkingDays++;
+        }
+    }
+    return $totalWorkingDays;
+}
+
+
+
+public function getteacherabsences($teacher_id, $year, $month)
+{
+    // استرجاع الأيام التي تغيب فيها الاستاذ خلال الشهر المحدد
+    $absences = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+        ->whereYear('date', $year)
+        ->whereMonth('date', $month)
+        ->whereNotIn(DB::raw('DAYOFWEEK(date)'), [6, 7]) // استبعاد أيام الجمعة (6) والسبت (7)
+        ->get();
+
+    // حساب عدد الأيام التي تم غياب الاستاذ فيها وعدد الساعات التي غاب فيها
+    $totalAbsenceDays = $absences->count();
+    $totalAbsenceHours = $absences->sum('num_hour_out');
+
+    return response()->json([
+        'teacher_id' => $teacher_id,
+        'year' => $year,
+        'month' => $month,
+        'total_absence_days' => $totalAbsenceDays,
+        'total_absence_hours' => $totalAbsenceHours,
+    ]);
+}
+
+
+public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month)
+{
+    // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
+    $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+
+    // استرجاع قائمة الأيام العطل في الشهر (يمكن تركها فارغة في حال لم يكن لديك بيانات)
+    $holidays = collect([]);
+
+    // حساب عدد الأيام في الشهر
+    $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth();
+
+    // تهيئة مصفوفة لتخزين تفاصيل سجل الدوام لكل يوم في الشهر
+    $attendanceDetails = [];
+
+    // تحديث تفاصيل سجل الدوام لكل يوم في الشهر
+    foreach ($teacherSchedule as $schedule) {
+        $workingHours = $schedule->work_hours;
+        $dayOfWeek = $schedule->day_of_week;
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = Carbon::createFromDate($year, $month, $day);
+            if ($date->format('l') === $dayOfWeek && !$holidays->contains($date->format('Y-m-d')) && !in_array($date->format('l'), ['Friday', 'Saturday'])) {
+                $attendanceDetails[] = [
+                    'date' => $date->toDateString(),
+                    'working_hours' => $workingHours,
+                ];
+            }
+        }
+    }
+
+    return response()->json([
+        'teacher_id' => $teacher_id,
+        'year' => $year,
+        'month' => $month,
+        'attendance_details' => $attendanceDetails,
+    ]);
+}
+
+
+
+
     public function info_course($id_course)
     {
         $course = Course::where('id', $id_course)->with('subject')->with('classs')->with('teacher.user')->get();
@@ -239,38 +484,109 @@ class MonetorController extends Controller
         return response()->json(['sucssscceccs']);
     }
 
-    public function add_mark_to_student(request $request,$student_id)
+    public function add_mark_to_student(Request $request, $student_id)
+{
+    // القيام بالتحقق من وجود الطالب
+    $student = Student::find($student_id);
+    if(!$student)
     {
-        $student = Student::find($student_id);
-        if(!$student)
-        {
-            return response()->json(['the student not found']);
-        }
-
-        $mark = new Mark;
-        $mark->ponus = $request->ponus  ;
-        $mark->homework = $request->homework || null;
-        $mark->oral = $request->oral || null;
-        $mark->test1 = $request->test1 || null;
-        $mark->test2 = $request->test2 || null;
-        $mark->exam_med = $request->exam_med || null;
-        $mark->exam_final = $request->exam_final || null;
-        $aggregrate = ($request->ponus + $request->homework
-        + $request->oral + $request->test1
-        +$request->test2 + $request->exam_med
-        +$request->exam_final);
-        if ($aggregrate > 50){
-        $mark->state = 1;
-        }
-        else {
-            $mark->state = 0;
-        }
-        $mark->student_id = $student_id;
-        $mark->subject_id = $request->subject_id;
-        $mark->save();
-
-        return response()->json(['succusssss']);
-
+        return response()->json(['error' => 'The student not found']);
     }
+
+    // إنشاء وحفظ العلامات
+    $mark = new Mark;
+    $mark->student_id = $student_id;
+    $mark->subject_id = $request->input('subject_id');
+
+    $mark->ponus = $request->input('ponus');
+    $mark->homework = $request->input('homework');
+    $mark->oral = $request->input('oral');
+    $mark->test1 = $request->input('test1');
+    $mark->test2 = $request->input('test2');
+    $mark->exam_med = $request->input('exam_med');
+    $mark->exam_final = $request->input('exam_final');
+
+    // حساب المجموع
+    $aggregate = ($mark->ponus ?? 0) + ($mark->homework ?? 0) + ($mark->oral ?? 0) + ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) + ($mark->exam_final ?? 0);
+
+    // تحديد حالة الطالب (ناجح/راسب)
+    $mark->state = ($aggregate > 50) ? 1 : 0;
+
+    $mark->save();
+
+    return response()->json(['success' => 'Marks added successfully']);
+}
+
+
+public function editMark(request $request,$student_id, $subject_id)
+{
+    $student = Student::find($student_id);
+    if(!$student)
+    {
+        return response()->json(['error' => 'The student not found']);
+    }
+
+    // التحقق مما إذا كانت العلامة موجودة بالفعل للطالب لنفس المادة
+    $mark = Mark::where('student_id', $student_id)
+                ->where('subject_id', $subject_id)
+                ->first();
+
+    if(!$mark)
+    {
+        return response()->json(['error' => 'The mark does not exist for this student and subject']);
+    }
+
+    // التحقق من أن العلامة التي تم تعديلها تنتمي لنفس الطالب ونفس المادة
+    if($mark->student_id != $student_id || $mark->subject_id != $subject_id)
+    {
+        return response()->json(['error' => 'The mark does not belong to the same student or subject']);
+    }
+
+    $mark->ponus = $request->ponus ?? $mark->ponus;
+    $mark->homework = $request->homework ?? $mark->homework;
+    $mark->oral = $request->oral ?? $mark->oral;
+    $mark->test1 = $request->test1 ?? $mark->test1;
+    $mark->test2 = $request->test2 ?? $mark->test2;
+    $mark->exam_med = $request->exam_med ?? $mark->exam_med;
+    $mark->exam_final = $request->exam_final ?? $mark->exam_final;
+
+    $aggregate = ($mark->ponus + $mark->homework + $mark->oral +
+        $mark->test1 + $mark->test2 + $mark->exam_med + $mark->exam_final);
+    $mark->state = ($aggregate > 50) ? 1 : 0;
+
+    $mark->save();
+
+    return response()->json(['success' => 'Mark updated successfully']);
+}
+
+public function addAbsence(Request $request, $student_id)
+{
+    // التحقق من وجود الطالب
+    $student = Student::find($student_id);
+    if (!$student) {
+        return response()->json(['message' => 'Student not found'], 404);
+    }
+
+    // التحقق من صحة البيانات المدخلة
+    $validator = Validator::make($request->all(), [
+        'date' => 'required|date',
+        'justification' => 'nullable|string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // إنشاء سجل الغياب
+    $absence = new Out_Of_Work_Student();
+    $absence->date = $request->date;
+    $absence->justification = $request->justification;
+    $absence->student_id = $student_id;
+    $absence->save();
+
+    return response()->json(['message' => 'Absence added successfully'], 200);
+}
+
+
 
 }
