@@ -77,7 +77,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     ///خلق حساب للأهل
     Route::post('/register_parentt',[AdminOperationController::class,'register_parentt']);
     //عرض تصنيف الطلاب
-    Route::get('/classification/{classifaction}',[AdminOperationController::class,'student_classification']);
+    Route::get('/classification/{calssification}',[AdminOperationController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد
     route::get('/desplay_all_student/{year}', [AdminOperationController::class, 'desplay_all_student_regester']);
     //عرض الصفوف والشعب
@@ -112,11 +112,11 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //استعراض الدورات التي يعطي فيها مدرس
     route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
     //ادخال برنامج دوام المدرس
-    route::post('/add_Weekly_Schedule_for_student',[AdminOperationController::class,'addWeekly_Schedule_for_student']);
+    route::post('/add_Weekly_Schedule_for_teacher/{teacher_id}',[AdminOperationController::class,'addTeacherSchedule']);
     //تعديل برنامج دوام المدرس
     route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[AdminOperationController::class,'updateWeeklySchedule']);
-    //عرض سجل دوام المدرس
-    route::put('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkschedule']);
+    // يرجع ايام العطل  مع عدد الاسعات التي غاب فيها  عرض سجل دوام المدرس
+    route::get('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkschedule']);
     //عرض ايام دوام المدرس
     route::get('/get_monthly_attendance_teacher/{teacher_id}/{year}/{month}',[AdminOperationController::class,'calculatemonthlyattendance']);
     //عرض غيابات المدرس
@@ -149,7 +149,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
 
 Route::prefix('monetor')->middleware(['auth:sanctum','check_monetor'])->group(function(){
     //عرض تصنيف الطلاب
-    Route::get('/classification/{classifaction}',[MonetorController::class,'student_classification']);
+    Route::get('/classification/{classification/}',[MonetorController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد
     route::get('/desplay_all_student/{year}', [MonetorController::class, 'desplay_all_student_regester']);
     //عرض الصفوف والشعب

@@ -10,7 +10,12 @@ class Teacher_Schedule extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['day_of_week', 'start_time', 'end_time'];
+    protected $fillable = [
+        'teacher_id',
+        'day_of_week',
+        'start_time',
+        'end_time',
+    ];
 
     public function teacher()
     {

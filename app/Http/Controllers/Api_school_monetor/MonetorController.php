@@ -22,15 +22,15 @@ use Illuminate\Support\Carbon;
 use App\Models\Teacher_Schedule;
 class MonetorController extends Controller
 {
-    public function student_classification($classifiaction)
+    public function student_classification($classification)
     {
-        if($classifiaction = 1){
-        $stud =Student::where('classifiaction' ,'=', 1)->get();
+        if($classification = 1){
+        $stud =Student::where('classification' ,'=', 1)->get();
         $student = User::where($stud->user_id, 'id')->get()->all();
             return response()->json([$stud,$student]);
         }
         else {
-            $stud =Student::where('classifiaction' ,'=', 0)->get();
+            $stud =Student::where('classification' ,'=', 0)->get();
             $student = User::where($stud->user_id, 'id')->get()->all();
                 return response()->json([$stud,$student]);
             }

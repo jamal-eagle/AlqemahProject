@@ -295,9 +295,9 @@ if($user){
         $new->save();
     }
 
-    public function student_classification($classifaction)
+    public function student_classification($calssification)
     {
-        if($classifaction = 1){
+        if($calssification = 1){
         $stud =Student::where('calssification' ,'=', 1)->with('user')->get();
        // $student = User::where($stud->user_id, 'id')->get()->all();
             return response()->json([$stud]);
@@ -343,40 +343,54 @@ public function desplay_teacher_course($teacher_id)
 
 }
 
-public function addWeekly_Schedule_for_student(Request $request)
+public function addTeacherSchedule(Request $request,$teacher_id)
 {
-    // تحقق من صحة البيانات المرسلة
-    $request->validate([
-        'teacher_id' => 'required|exists:teachers,id',
-        'schedules' => 'required|array|min:7',
-        'schedules.*.day_of_week' => 'required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
+    $teacher = Teacher::find($teacher_id);
+    if(!$teacher)
+    {
+        return response()->json(['the teacher not found']);
+    }
+
+    // التحقق من صحة المدخلات
+    $validator = Validator::make($request->all(), [
+        // 'teacher_id' => 'required|exists:teachers,id',
+        'schedules' => 'required|array',
+        'schedules.*.day_of_week' => 'required|in:Sunday,Monday,Tuesday,Wednesday,Thursday',
         'schedules.*.start_time' => 'required|date_format:H:i',
         'schedules.*.end_time' => 'required|date_format:H:i|after:schedules.*.start_time',
     ]);
 
-    $teacher_id = $request->teacher_id;
-    $schedulesData = $request->schedules;
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
 
-    foreach ($schedulesData as $scheduleData) {
+    // إذا كان التحقق ناجحًا، تابع عملية إضافة الجدول
+    foreach ($request->schedules as $schedule) {
         Teacher_Schedule::create([
             'teacher_id' => $teacher_id,
-            'day_of_week' => $scheduleData['day_of_week'],
-            'start_time' => $scheduleData['start_time'],
-            'end_time' => $scheduleData['end_time'],
+            'day_of_week' => $schedule['day_of_week'],
+            'start_time' => $schedule['start_time'],
+            'end_time' => $schedule['end_time'],
         ]);
     }
 
-    // إرجاع رد ناجح
-    return response()->json(['message' => 'Teacher weekly schedule added successfully'], 201);
+    return response()->json(['message' => 'Schedule added successfully'], 200);
 }
 
 
 public function updateWeeklySchedule(Request $request, $teacher_id)
     {
+        $teacher = Teacher::find($teacher_id);
+        if(!$teacher)
+        {
+            return response()->json(['the teacher not found']);
+        }
+
         // تحقق من صحة البيانات المرسلة
-        $request->validate([
-            'schedules' => 'required|array|min:7',
-            'schedules.*.day_of_week' => 'required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
+        $validator = Validator::make($request->all(), [
+            // 'teacher_id' => 'required|exists:teachers,id',
+            'schedules' => 'required|array',
+            'schedules.*.day_of_week' => 'required|in:Sunday,Monday,Tuesday,Wednesday,Thursday',
             'schedules.*.start_time' => 'required|date_format:H:i',
             'schedules.*.end_time' => 'required|date_format:H:i|after:schedules.*.start_time',
         ]);
@@ -399,96 +413,112 @@ public function updateWeeklySchedule(Request $request, $teacher_id)
     }
 
 
-    public function getteacherworkschedule($teacher_id, $year, $month)
-    {
-        // استرجاع سجل غياب المدرس خلال الشهر المحدد
-        $absences = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
-            ->pluck('date')
-            ->toArray();
+    public function getTeacherWorkSchedule($teacher_id, $year, $month)
+{
+    // استرجاع سجل غياب المدرس خلال الشهر المحدد
+    $absences = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+        ->whereYear('date', $year)
+        ->whereMonth('date', $month)
+        ->pluck('date')
+        ->toArray();
 
-        // تنسيق البيانات لعرضها بشكل مفهوم
-        $workSchedule = [];
-        foreach ($absences as $day) {
-            $workSchedule[] = [
-                'date' => $day,
-                'hours' => 0, // عدد الساعات للأيام التي تم فيها الغياب هو صفر
-            ];
-        }
+    // تنسيق البيانات لعرضها بشكل مفهوم
+    $workSchedule = [];
+    foreach ($absences as $day) {
+        $workSchedule[] = [
+            'date' => $day,
+            'hours' => 0, // عدد الساعات للأيام التي تم فيها الغياب هو صفر
+        ];
+    }
 
-        // إضافة أيام العمل التي لم يتم فيها الغياب مع عدد ساعات العمل
-        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth();
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            $date = Carbon::createFromDate($year, $month, $day);
-            if ($date->dayOfWeek != Carbon::FRIDAY && $date->dayOfWeek != Carbon::SATURDAY) {
-                $workHours = $this->getWorkingHoursForDay($teacher_id, $date);
-                if ($workHours > 0) {
-                    $workSchedule[] = [
-                        'date' => $date->format('Y-m-d'),
-                        'hours' => $workHours,
-                    ];
-                }
+    // حساب عدد الأيام في الشهر
+    $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
+
+    // إضافة أيام العمل التي لم يتم فيها الغياب مع عدد ساعات العمل
+    for ($day = 1; $day <= $daysInMonth; $day++) {
+        $date = Carbon::create($year, $month, $day);
+        if ($date->dayOfWeek != Carbon::FRIDAY && $date->dayOfWeek != Carbon::SATURDAY) {
+            $workHours = $this->getWorkingHoursForDay($teacher_id, $date);
+            if ($workHours > 0 && !in_array($date->format('Y-m-d'), $absences)) {
+                $workSchedule[] = [
+                    'date' => $date->format('Y-m-d'),
+                    'hours' => $workHours,
+                ];
             }
         }
-
-        return response()->json([
-            'teacher_id' => $teacher_id,
-            'year' => $year,
-            'month' => $month,
-            'work_schedule' => $workSchedule,
-        ]);
     }
+
+    return response()->json([
+        'teacher_id' => $teacher_id,
+        'year' => $year,
+        'month' => $month,
+        'work_schedule' => $workSchedule,
+    ]);
+}
 
     // دالة لاستخراج عدد ساعات العمل ليوم معين
-    private function getWorkingHoursForDay($teacher_id, $date)
-    {
-        // استرجاع عدد ساعات العمل من جدول برنامج الدوام
-        $workSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)
-            ->whereDate('date', $date)
-            ->first();
+    private function getWorkingHoursForDay($teacher_id, $dayOfWeek)
+{
+    // استرجاع بيانات الدوام لهذا اليوم
+    $workSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)
+        ->where('day_of_week', $dayOfWeek)
+        ->first();
 
-        if ($workSchedule) {
-            return $workSchedule->work_hours;
+    if ($workSchedule) {
+        // التحقق من وجود بيانات البداية والنهاية
+        if (!empty($workSchedule->start_time) && !empty($workSchedule->end_time)) {
+            // حساب عدد ساعات العمل بين وقت البداية ووقت النهاية
+            $startTime = Carbon::createFromFormat('H:i:s', $workSchedule->start_time);
+            $endTime = Carbon::createFromFormat('H:i:s', $workSchedule->end_time);
+            $workingHours = $endTime->diffInHours($startTime);
+            return $workingHours;
+        } else {
+            return 0; // إذا كانت القيم غير متوفرة
         }
-
-        return 0; // إذا لم يتم العثور على برنامج دوام لهذا اليوم
     }
+
+    return 0; // إذا لم يتم العثور على برنامج دوام لهذا اليوم
+}
+
+
 
     public function calculatemonthlyattendance($teacher_id, $year, $month)
-    {
-        // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
-        $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+{
+    // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
+    $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
 
-        // استرجاع قائمة الأيام العطل في الشهر
-        $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
-            ->pluck('date');
+    // استرجاع قائمة الأيام العطل في الشهر
+    $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+        ->whereYear('date', $year)
+        ->whereMonth('date', $month)
+        ->pluck('date');
 
-        // حساب عدد الأيام في الشهر
-        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth();
+    // حساب عدد الأيام في الشهر
+    $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
 
-        // حساب عدد أيام الدوام وعدد ساعات الدوام لكل يوم في الشهر
-        $totalWorkingDays = 0;
-        $totalWorkingHours = 0;
-        foreach ($teacherSchedule as $schedule) {
-            $workingHours = $this->getWorkingHoursForDay($teacher_id,$schedule->day_of_week); // استرجاع عدد ساعات العمل لهذا اليوم
-            $workingDaysInMonth = $this->calculateWorkingDaysInMonth($year, $month, $schedule->day_of_week, $holidays, $daysInMonth);
-            $totalWorkingDays += $workingDaysInMonth;
 
-            $totalWorkingHours += $workingDaysInMonth * $workingHours;
-        }
+    // return response()->json([$daysInMonth]);
+    // حساب عدد أيام الدوام وعدد ساعات الدوام لكل يوم في الشهر
+    $totalWorkingDays = 0;
+    $totalWorkingHours = 0;
 
-        return response()->json([
-            'teacher_id' => $teacher_id,
-            'year' => $year,
-            'month' => $month,
-            'total_working_days' => $totalWorkingDays,
-            'total_working_hours' => $totalWorkingHours,
-        ]);
+    foreach ($teacherSchedule as $schedule) {
+
+        $workingHours = $this->getWorkingHoursForDay($teacher_id, $schedule->day_of_week); // استرجاع عدد ساعات العمل لهذا اليوم
+
+        $workingDaysInMonth = $this->calculateWorkingDaysInMonth($year, $month, $schedule->day_of_week, $holidays, $daysInMonth);
+        $totalWorkingDays += $workingDaysInMonth;
+        $totalWorkingHours += $workingDaysInMonth * $workingHours;
     }
 
+    return response()->json([
+        'teacher_id' => $teacher_id,
+        'year' => $year,
+        'month' => $month,
+        'total_working_days' => $totalWorkingDays,
+        'total_working_hours' => $totalWorkingHours,
+    ]);
+}
     private function calculateWorkingDaysInMonth($year, $month, $dayOfWeek, $holidays, $daysInMonth)
     {
         $totalWorkingDays = 0;
