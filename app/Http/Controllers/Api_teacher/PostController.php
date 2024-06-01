@@ -147,6 +147,7 @@ class PostController extends Controller
                  return 'you can not delete this comment';
              }
         
+    //إنهاء مناقشة
     public function off_on_post($post_id)
     {
         $post = Post::where('id', $post_id)->first();

@@ -66,7 +66,7 @@ class Student_operationController extends BaseController
         foreach ($file_select_year as $f) {
             $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                         //return response()->file($imagePath);
-                        if (file_exists($imagePath)) {
+                        if (file_exists($filePath)) {
                             $result[] = [
                                 'path' => $filePath,
                                 'file_info' => $f
@@ -278,12 +278,12 @@ public function programe_week()
                         }
         }
 
-        //صور السنة الحالية للمادة المحددة
+        //ملفات السنة الحالية للمادة المحددة
         $file_select_year = File_Archive::where('archive_id',$archive->id)->get();
         foreach ($file_select_year as $f) {
             $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                         //return response()->file($imagePath);
-                        if (file_exists($imagePath)) {
+                        if (file_exists($filePath)) {
                             $result[] = [
                                 'path' => $filePath,
                                 'file_info' => $f
@@ -316,8 +316,109 @@ public function programe_week()
 
     public function publish()
     {
-        $publish = Publish::with('course')->with('image')->get();
-        return $publish;
-    }
+        // $publish = Publish::with('course')->with('image')->get();
+        // return $publish;
 
+        // $publish = Publish::all();
+        // $result = [];
+        
+        // foreach ($publish as $p) {
+        //     $images = Image::where('publish_id', $p->id)->get();
+            
+        //     foreach ($images as $i) {
+        //         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+                
+        //         if (file_exists($imagePath)) {
+        //             $result[] = [
+        //                 'path' => $imagePath,
+        //                 'file_info' => $i
+        //             ];
+        //         }
+        //     }
+        // }
+        
+        // if (!empty($result)) {
+        //     return response()->json([
+        //         'status' => 'true',
+        //         'files' => $result
+        //     ]);
+        // } else {
+        //     return response()->json([
+        //         'status' => 'false',
+        //         'message' => 'No images found'
+        //     ]);
+        // }
+
+
+
+//         $publish = Publish::all();
+// $result = [];
+
+// foreach ($publish as $p) {
+//     $images = Image::where('publish_id', $p->id)->get();
+    
+//     foreach ($images as $i) {
+//         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+        
+//         if (file_exists($imagePath)) {
+//             $result[] = [
+//                 'ad_info' => $p,
+//                 'image_info' => $i,
+//                 'path' => $imagePath
+//             ];
+//         }
+//     }
+// }
+
+// if (!empty($result)) {
+//     return response()->json([
+//         'status' => 'true',
+//         'files' => $result
+//     ]);
+// } else {
+//     return response()->json([
+//         'status' => 'false',
+//         'message' => 'No images found'
+//     ]);
+// }
+
+$publish = Publish::all();
+$result = [];
+
+foreach ($publish as $p) {
+    $images = Image::where('publish_id', $p->id)->get();
+    $imageData = [];
+
+    foreach ($images as $i) {
+        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+        
+        if (file_exists($imagePath)) {
+            $imageData[] = [
+                'path' => $imagePath,
+                'file_info' => $i
+            ];
+        }
+    }
+    
+    $result[] = [
+        'ad_info' => $p,
+        'images' => $imageData
+    ];
+}
+
+if (!empty($result)) {
+    return response()->json([
+        'status' => 'true',
+        'ads' => $result
+    ]);
+} else {
+    return response()->json([
+        'status' => 'false',
+        'message' => 'No images found'
+    ]);
+}
+
+
+
+    }        
 }

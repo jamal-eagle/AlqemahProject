@@ -250,6 +250,8 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     Route::post('/edit_comment/{comment_id}',[StudentPostController::class,'editComment']);
     //عرض علامات المذاكرة علامات الفحص الخ
     Route::get('/my_mark',[MarkController::class,'displayMark']);
+    //عرض الإعلانات
+    route::get('/publish',[Student_operationController::class,'publish']);
 });
 
 /*******************************************************parent*******************************************************/
