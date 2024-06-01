@@ -121,6 +121,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/get_monthly_attendance_teacher/{teacher_id}/{year}/{month}',[AdminOperationController::class,'calculatemonthlyattendance']);
     //عرض غيابات المدرس
     route::get('/get_out_of_work_employee/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherabsences']);
+    //تقرير مفصل عن كامل ايام الشهر
+    route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReportReport']);
     //عرض الموظفين
     route::get('/desplay_employee',[AdminOperationController::class,'desplay_employee']);
     //استعراض معلومات موظف
@@ -129,6 +131,9 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::put('/update_employee_profile/{employee_id}',[AdminOperationController::class,'update_employee_profile']);
     //عرض ايام دوام المدرس
     route::get('/get_monthly_attendance_employee/{employee_id}/{year}/{month}',[AdminOperationController::class,'getEmployeeAttendance']);
+
+    //
+    route::get('/get_monthly_salary_employee/{employee_id}/{year}/{month}',[AdminOperationController::class,'calculateMonthlySalary']);
 
 
     ////  عرض الاعلانات
@@ -145,9 +150,14 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     // route::post('/add_files_and_paper', [AdminOperationController::class, 'add_files_and_paper']);
     //إنهاء و إعادة تفعيل مناقشة
     Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
+
+
+
+    route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReportReport']);
+
 });
 
-Route::prefix('monetor')->middleware(['auth:sanctum','check_monetor'])->group(function(){
+Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){
     //عرض تصنيف الطلاب
     Route::get('/classification/{classification/}',[MonetorController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد
@@ -204,6 +214,8 @@ Route::prefix('monetor')->middleware(['auth:sanctum','check_monetor'])->group(fu
     route::post('/add_student_out_of_work/{student_id}', [MonetorController::class, 'addAbsence']);
     //إنهاء و إعادة تفعيل مناقشة
     Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
+    //عرض طلبات التسجيل في دورة معينة
+    Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
 });
 
 /*******************************************************student*******************************************************/

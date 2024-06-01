@@ -25,7 +25,6 @@ class Teacher extends Model
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'num_hour',
         'cost_hour',
         'num_hour_added',
         'note_hour_added',

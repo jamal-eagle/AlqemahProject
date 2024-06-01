@@ -788,6 +788,67 @@ public function add_mark_to_student(request $request,$student_id)
 }
 
 
+public function calculateMonthlySalary($teacher_id, $year, $month)
+{
+    // استرجاع برنامج الدوام الأسبوعي للأستاذ
+    $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+
+    // استرجاع قائمة أيام العطل والغيابات في الشهر
+    $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+        ->whereYear('date', $year)
+        ->whereMonth('date', $month)
+        ->pluck('date')->toArray();
+
+    // حساب عدد الأيام في الشهر
+    $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+
+    // استرجاع أجر الساعة للأستاذ
+    $teacher = Teacher::findOrFail($teacher_id);
+    $hourlyRate = $teacher->hourly_rate;
+
+    $totalWorkingHours = 0;
+
+    // حساب عدد ساعات العمل في الشهر
+    for ($day = 1; $day <= $daysInMonth; $day++) {
+        $date = Carbon::createFromDate($year, $month, $day);
+        $dayOfWeek = $date->format('l');
+
+        if (in_array($date->toDateString(), $holidays) || in_array($dayOfWeek, ['Friday', 'Saturday'])) {
+            continue; // تخطي أيام العطل والغيابات
+        }
+
+        foreach ($teacherSchedule as $schedule) {
+            if ($schedule->day_of_week == $dayOfWeek) {
+                $workingHours = $this->getWorkingHoursForDays($schedule);
+                $totalWorkingHours += $workingHours;
+            }
+        }
+    }
+    $teacher = Teacher::find($teacher_id);
+    $hourlyRate = $teacher->cost_hour ;
+    $addedHour = $teacher->num_hour_added ;
+    // حساب الراتب الشهري
+    $monthlySalary = ($totalWorkingHours + $addedHour) * $hourlyRate;
+
+    return response()->json([
+        'teacher_id' => $teacher_id,
+        'year' => $year,
+        'month' => $month,
+        'total_working_hours' => $totalWorkingHours,
+        'monthly_salary' => $monthlySalary,
+    ]);
+}
+
+private function getWorkingHoursForDays($schedule)
+{
+    // حساب عدد ساعات العمل بين وقت البداية ووقت النهاية
+    $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
+    $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
+    $workingHours = $endTime->diffInHours($startTime);
+    return $workingHours;
+}
+
+
 
 
 }

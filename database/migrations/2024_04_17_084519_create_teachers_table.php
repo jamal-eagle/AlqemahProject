@@ -15,7 +15,6 @@ return new class extends Migration
     {
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
-            $table->integer('num_hour');
             $table->integer('cost_hour');
             $table->integer('num_hour_added')->default(0);
             $table->string('note_hour_added')->nullable();
