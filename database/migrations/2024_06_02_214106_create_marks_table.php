@@ -15,19 +15,16 @@ return new class extends Migration
     {
         Schema::create('marks', function (Blueprint $table) {
             $table->id();
-
-            $table->integer('ponus')->default(0);
-            $table->integer('homework')->default(0);
-            $table->integer('oral')->default(0);
-            $table->integer('test1')->default(0);
-            $table->integer('test2')->default(0);
-            $table->integer('exam_med')->default(0);
-            $table->integer('exam_final')->default(0);
+            $table->integer('ponus')->nullable();
+            $table->integer('homework')->nullable();
+            $table->integer('oral')->nullable();
+            $table->integer('test1')->nullable();
+            $table->integer('test2')->nullable();
+            $table->integer('exam_med')->nullable();
+            $table->integer('exam_final')->nullable();
             $table->boolean('state')->default(0);
-            $table->foreignIdFor(Student::class,'student_id');
-            $table->foreignIdFor(Subject::class,'subject_id');
-
-
+            $table->foreignIdFor(Student::class, 'student_id');
+            $table->foreignIdFor(Subject::class, 'subject_id');
             $table->timestamps();
         });
     }

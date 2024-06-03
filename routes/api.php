@@ -86,16 +86,40 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('show_profile_student/{student_id}',[AdminOperationController::class,'show_profile_student']);
     //تعديل معلومات الطالب
     Route::post('update_profile_student/{student_id}',[AdminOperationController::class,'update_profile_student']);
+    //سجل دوام الطالب
+    Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReport']);
+
     //عرض علامات طالب
     route::get('desplay_student_marks/{student_id}',[AdminOperationController::class,'desplay_student_marks']);
+    //عرض الملاحظات المقدمة عن الطالب
+    Route::get('desplay_student_nots/{student_id}',[AdminOperationController::class,'desplay_student_nots']);
+    //ارسال انذارات وملاحظات للطالب
+    route::post('/create_note/{student_id}', [AdminOperationController::class, 'create_note_student']);
+    //التعديل على سجل دوام الطالب يعني اضافة غياب او حذف غياب
+    //اضافة يوم غياب للطالب
+    route::post('/add_student_out_of_work/{student_id}', [AdminOperationController::class, 'addAbsence']);
+    //حذف سجل غياب
+    Route::delete('delete_student_out_of_work/{student_id}/{absence_id}', [AdminOperationController::class, 'deleteAbsence']);
+    //اضافة علامة طالب
+    route::post('/add_mark_to_student/{student_id}', [AdminOperationController::class, 'add_mark_to_student']);
+    //تعديل علامة طالب
+    route::post('/edit_mark_for_student/{student_id}/subject/{subject_id}', [AdminOperationController::class, 'editMark']);
+    //عرض كل مدرسي المعهد
+    Route::get('/all-teatcher',[AdminOperationController::class,'all_teatcher']);
+    // يرجع ايام العطل  مع عدد الاسعات التي غاب فيها  عرض سجل دوام المدرس
+    route::get('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkschedule']);
+    //تعديل برنامج دوام المدرس
+    route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[AdminOperationController::class,'updateWeeklySchedule']);
+    //اضافة يوم غياب للمدرس
+    Route::post('/add_teachers_absence', [AdminOperationController::class, 'addAbsenceForTeacher']);
+
+
     //عرض طلبات التسجيل بالمعهد
     Route::get('/display_order',[AdminOperationController::class,'DisplayOrderNewStudent']);
     //عرض طلبات التسجيل في دورة معينة
     route::get('/display_order_for_course/{course_id}',[AdminOperationController::class,'display_order_for_course']);
     //إعطاء موعد
     route::post('/give_date/{order_id}',[AdminOperationController::class,'GiveDate']);
-    //ارسال انذارات وملاحظات للطالب
-    route::post('/create_note/{student_id}', [AdminOperationController::class, 'create_note_student']);
     //إنشاء حساب للطالب
     Route::post('/register/{order_id}', [AdminOperationController::class, 'registerPost']);
     //حذف طالب
@@ -113,10 +137,6 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
     //ادخال برنامج دوام المدرس
     route::post('/add_Weekly_Schedule_for_teacher/{teacher_id}',[AdminOperationController::class,'addTeacherSchedule']);
-    //تعديل برنامج دوام المدرس
-    route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[AdminOperationController::class,'updateWeeklySchedule']);
-    // يرجع ايام العطل  مع عدد الاسعات التي غاب فيها  عرض سجل دوام المدرس
-    route::get('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkschedule']);
     //عرض ايام دوام المدرس
     route::get('/get_monthly_attendance_teacher/{teacher_id}/{year}/{month}',[AdminOperationController::class,'calculatemonthlyattendance']);
     //عرض غيابات المدرس
@@ -209,7 +229,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //اضافة علامة طالب
     route::post('/add_mark_to_student/{student_id}', [MonetorController::class, 'add_mark_to_student']);
     //تعديل علامة طالب
-    route::post('/{student_id}/marks/{subject_id}/edit', [MonetorController::class, 'editMark']);
+    route::post('/edit_mark_for_student/{student_id}/subject/{subject_id}', [MonetorController::class, 'editMark']);
     //اضافة يوم غياب للطالب
     route::post('/add_student_out_of_work/{student_id}', [MonetorController::class, 'addAbsence']);
     //إنهاء و إعادة تفعيل مناقشة

@@ -13,7 +13,7 @@ use App\Models\Teacher;
 class Out_Of_Work_Employee extends Model
 {
     use HasApiTokens, HasFactory, Notifiable;
-
+    protected $table = 'out_of_work_employees' ;
     protected $fillable = [
         'date',
         'num_hour_out',

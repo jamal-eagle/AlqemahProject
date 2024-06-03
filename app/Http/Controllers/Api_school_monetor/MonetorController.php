@@ -102,7 +102,7 @@ class MonetorController extends Controller
         $holidays = collect([]);
 
         // حساب عدد الأيام في الشهر
-        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth();
+        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
 
         // تهيئة مصفوفة لتخزين تفاصيل الحضور لكل يوم في الشهر
         $attendanceDetails = [];
@@ -523,8 +523,8 @@ public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month
         return response()->json(['sucssscceccs']);
     }
 
-    public function add_mark_to_student(Request $request, $student_id)
-{
+public function add_mark_to_student(Request $request, $student_id)
+    {
     // القيام بالتحقق من وجود الطالب
     $student = Student::find($student_id);
     if(!$student)

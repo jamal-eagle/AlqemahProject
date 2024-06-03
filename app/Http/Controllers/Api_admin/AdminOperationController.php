@@ -25,7 +25,9 @@ use App\Models\Note_Student;
 use App\Models\Publish;
 use Illuminate\Support\Carbon;
 use App\Models\Out_Of_Work_Employee;
+use App\Models\Out_Of_Work_Student;
 use App\Models\Teacher_Schedule;
+use App\Models\Out__Of__Work__Employee;
 
 class AdminOperationController extends BaseController
 {
@@ -89,62 +91,82 @@ if($user){
 
 
 
-    public function register_student(Request $request,$order_id)
-    {
+    public function register_student(Request $request, $order_id)
+{
+    // جلب الطلب حسب المعرف
+    $order = Order::find($order_id);
 
-        $order = Order::find($order_id)->where('id',$order_id)->get;
-        $validator = Validator::make($request->all(),[
-            'user_type' => 'required|default:student',
-        ]);
+    // التحقق من صحة البيانات الأولية
+    $validator = Validator::make($request->all(), [
+        'mother_name' => 'required',    ]);
 
-        if ($validator->fails()) {
-            return $this->responseError(['errors' => $validator->errors()]);
-        }
-        $email = $order->first_name.Str::random(5)."@gmail.com";
-        $password = $order->first_name.Str::random(6);
-        $user = new User();
-
-        $user->first_name = $order->first_name;
-        $user->last_name = $order->last_name;
-        $user->father_name = $order->father_name;
-        $user->mother_name = $order->mother_name;
-        $user->birthday = $order->birthday;
-        $user->gender = $order->gender;
-        $user->phone = $order->phone;
-        $user->address = $order->address;
-        $user->year = $order->year;
-        $user->image = $order->image;
-        $user->email = $email;
-        $user->password = Hash::make($password);
-        $user->conf_password = Hash::make($password);
-        $user->user_type = $request->user_type;
-
-
-        $user->save();
-
-        $validator1 = Validator::make($request->all(),[
-            'calssification' => 'required|string',
-            'school_tuition' => 'required',
-            'class_id'=> 'required',
-            'section_id'=>'required',
-            'parentt_id'=>'required',
-        ]);
-
-        if ($validator1->fails()) {
-            return $this->responseError(['errors' => $validator1->errors()]);
-        }
-
-        $student = new Student;
-        $student->calssification = $request->calssification;
-        $student->school_tuition = $request->school_tuition;
-        $student->user_id = $user->id;
-        $student->class_id =$request->class_id;
-        $student->parentt_id = $request->parentt_id;
-
-        $student->save();
-
-
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
     }
+
+    // إنشاء البريد الإلكتروني وكلمة المرور تلقائيًا
+    $email = $order->first_name . Str::random(5) . "@gmail.com";
+    $password = $order->first_name . Str::random(6);
+
+    // إنشاء المستخدم الجديد
+    $user = new User();
+    $user->first_name = $order->first_name;
+    $user->last_name = $order->last_name;
+    $user->father_name = $order->father_name;
+    $user->mother_name = $request->mother_name;
+    $user->birthday = $order->birthday;
+    $user->gender = $order->gender;
+    $user->phone = $order->phone;
+    $user->address = $order->address;
+    $user->year = $order->year;
+    $user->email = $email;
+    $user->password = Hash::make($password);
+    $user->conf_password = Hash::make($password);
+    $user->user_type = 'student';
+    $user->save();
+
+    // التحقق من صحة البيانات الثانوية
+    $validator1 = Validator::make($request->all(), [
+        'school_tuition' => 'required',
+        'class_id' => 'required',
+        'section_id' => 'required',
+        'parentt_id' => 'required',
+    ]);
+
+    if ($validator1->fails()) {
+        return $this->responseError(['errors' => $validator1->errors()]);
+    }
+
+    // إنشاء سجل الطالب الجديد
+    $student = new Student();
+    $student->school_tuition = $request->school_tuition;
+    $student->user_id = $user->id;
+    $student->class_id = $request->class_id;
+    $student->section_id = $request->section_id;
+    $student->parentt_id = $request->parentt_id;
+    $student->student_type = $order->student_type;
+
+    // تعيين التصنيف إذا كان الطالب من فئة البكالوريا
+    if ($request->student_type == 0 ) {
+        $validator2 = Validator::make($request->all(), [
+            'calssification' => 'required|in:0,1', // 0 للعلمي، 1 للأدبي
+        ]);
+
+        if ($validator2->fails()) {
+            return $this->responseError(['errors' => $validator2->errors()]);
+        }
+
+        $student->calssification = $request->calssification;
+    } else {
+        $student->calssification = null;
+    }
+
+    $student->save();
+
+    // إرجاع بيانات الدخول
+    return response()->json([$user->email, $password]);
+}
+
 
     public function register_parentt(Request $request){
 
@@ -177,60 +199,10 @@ if($user){
 
     }
 
-    public function show_profile_student($student_id)
-    {
-        $student = Student::find($student_id);
-        if(!$student)
-        {
-            return response()->json('the student not found ');
-        }
-        $student->user;
-        return response()->json([$student,'sucsseesss ']);
 
-    }
 
-    public function update_profile_student(Request $request,$student_id)
-    {
-        $student = Student::find($student_id);
-        if(!$student)
-        {
-            return response()->json('the student not found ');
-        }
-        $validator = Validator::make($request->all(),[
-            'calssification' => 'required',
-            'school_tuition'=>'required',
-            'class_id'=>'required',
-            'section_id'=>'required',
-            'parentt_id'=>'required',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()]);
-        }
-        $user = $student->user;
-        $user_id = $user->id;
-        $student->calssification = $request->calssification;
-        $student->school_tuition = $request->school_tuition;
-        $student->user_id = $user_id;
-        $student->class_id =$request->class_id;
-        $student->section_id= $request->section_id;
-        $student->parentt_id = $request->parentt_id;
 
-        $student->update();
-        return response()->json(['sucussssss']);
 
-    }
-
-    public function desplay_student_marks($student_id)
-    {
-        $student = Student::find($student_id);
-        if(!$student)
-        {
-            return response()->json(['student not found ']);
-        }
-        $student->mark;
-        return response()->json([$student,'sucssssss']);
-
-    }
 
 
     public function get_profile_user(){
@@ -297,13 +269,21 @@ if($user){
 
     public function student_classification($calssification)
     {
-        if($calssification = 1){
-        $stud =Student::where('calssification' ,'=', 1)->with('user')->get();
+        if($calssification == 1){
+        $stud =Student::where('calssification' ,'=', 1) ->with('user')
+        ->get()
+        ->map(function ($student) {
+            return $student->user;
+        });
        // $student = User::where($stud->user_id, 'id')->get()->all();
             return response()->json([$stud]);
     }
     else {
-        $stud =Student::where('calssification' ,'=', 0)->with('user')->get();
+        $stud =Student::where('calssification' ,'=', 0) ->with('user')
+        ->get()
+        ->map(function ($student) {
+            return $student->user;
+        });
         //$student = User::where($stud->user_id, 'id')->get()->all();
             return response()->json([$stud]);
     }
@@ -410,8 +390,37 @@ public function updateWeeklySchedule(Request $request, $teacher_id)
 
         // إرجاع رسالة ناجحة
         return response()->json(['message' => 'Teacher weekly schedule updated successfully'], 200);
-    }
+}
 
+public function addAbsenceForTeacher(Request $request)
+    {
+        // التحقق من صحة البيانات المدخلة
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date',
+            'num_hour_out' => 'required|integer',
+            'teacher_id' => 'nullable|exists:teachers,id',
+            'employee_id' => 'nullable|exists:employees,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // التأكد من أن أحدهما فقط تم تقديمه
+        if (!$request->hasAny(['teacher_id', 'employee_id'])) {
+            return response()->json(['message' => 'Either teacher_id or employee_id must be provided'], 422);
+        }
+
+        // إنشاء سجل الغياب
+        $absence = new Out_Of_Work_Employee();
+        $absence->date = $request->date;
+        $absence->num_hour_out = $request->num_hour_out;
+        $absence->teacher_id = $request->teacher_id;
+        $absence->employee_id = $request->employee_id;
+        $absence->save();
+
+        return response()->json(['message' => 'Absence added successfully'], 200);
+    }
 
     public function getTeacherWorkSchedule($teacher_id, $year, $month)
 {
@@ -628,16 +637,7 @@ public function getEmployeeAttendance($employeeId, $year, $month)
 
 
 
-public function desplay_classs_and_section()
-{
-    $classs = Classs::get()->all();
-    if(!$classs)
-    {
-        return response()->json(['you havenot any class']);
-    }
-    $classs1 =  $classs->section;
-    return response()->json([$classs,$classs1,'successsssssss']);
-}
+
 
 
 public function desplay_section_for_classs($class_id)
@@ -654,9 +654,132 @@ public function desplay_section_for_classs($class_id)
 
 public function desplay_all_student_regester($year)
 {
-    $student = User::where('year',$year)->with('student')->get()->all();
+    $student = User::where('year',$year)->where('user_type', 'student')->get();
     return response()->json([$student,'all student regester here']);
 }
+
+public function desplay_classs_and_section()
+{
+
+    $classs = Classs::get()->all();
+    if(!$classs)
+    {
+        return response()->json(['you havenot any class']);
+    }
+    $classs1 =  $classs->section;
+    return response()->json([$classs,$classs1,'successsssssss']);
+}
+
+public function show_profile_student($student_id)
+    {
+        $student = Student::with('user')->find($student_id);
+        if(!$student)
+        {
+            return response()->json('the student not found ');
+        }
+
+        return response()->json(['student' => $student, 'message' => 'Success']);
+    }
+
+
+public function update_profile_student(Request $request,$student_id)
+    {
+        $student = Student::find($student_id);
+        if(!$student)
+        {
+            return response()->json('the student not found ');
+        }
+        $validator = Validator::make($request->all(),[
+            'calssification' => 'required',
+            'school_tuition'=>'required',
+            'class_id'=>'required',
+            'section_id'=>'required',
+            'parentt_id'=>'required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+        $user = $student->user;
+        $user_id = $user->id;
+        $student->calssification = $request->calssification;
+        $student->school_tuition = $request->school_tuition;
+        $student->user_id = $user_id;
+        $student->class_id =$request->class_id;
+        $student->section_id= $request->section_id;
+        $student->parentt_id = $request->parentt_id;
+
+        $student->update();
+        return response()->json(['sucussssss']);
+
+    }
+
+public function generateMonthlyAttendanceReport($student_id, $year, $month)
+    {
+        // استرجاع قائمة الأيام العطل في الشهر
+        $holidays = collect([]);
+
+        // حساب عدد الأيام في الشهر
+        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+
+        // تهيئة مصفوفة لتخزين تفاصيل الحضور لكل يوم في الشهر
+        $attendanceDetails = [];
+
+        // تحديث تفاصيل الحضور لكل يوم في الشهر
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = Carbon::createFromDate($year, $month, $day);
+            $attendanceStatus = 'حاضر';
+
+            if ($date->format('l') !== 'Friday' && $date->format('l') !== 'Saturday') {
+                $absence = Out_Of_Work_Student::where('student_id', $student_id)
+                    ->whereDate('date', $date)
+                    ->first();
+
+                if ($absence) {
+                    $attendanceStatus = 'غائب';
+                }
+            } else {
+                $attendanceStatus = 'عطلة';
+            }
+
+            $attendanceDetails[] = [
+                'date' => $date->toDateString(),
+                'attendance_status' => $attendanceStatus,
+            ];
+        }
+
+        return response()->json([
+            'student_id' => $student_id,
+            'year' => $year,
+            'month' => $month,
+            'attendance_details' => $attendanceDetails,
+        ]);
+    }
+
+
+public function desplay_student_marks($student_id)
+    {
+        $student = Student::find($student_id);
+        if(!$student)
+        {
+            return response()->json(['student not found ']);
+        }
+        $student->mark;
+        return response()->json([$student,'sucssssss']);
+
+    }
+
+public function desplay_student_nots($student_id)
+    {
+        $student = Student::find($student_id);
+        if(!$student)
+        {
+            return response()->json('the student not found ');
+        }
+
+        return response()->json(['student' => $student->note_students, 'message' => 'Success']);
+
+    }
+
 
 public function create_note_student(Request $request , $student_id)
 {
@@ -683,6 +806,149 @@ public function create_note_student(Request $request , $student_id)
         return response()->json(['successssss']);
 
 }
+
+public function addAbsence(Request $request, $student_id)
+{
+    // التحقق من وجود الطالب
+    $student = Student::find($student_id);
+    if (!$student) {
+        return response()->json(['message' => 'Student not found'], 404);
+    }
+
+    // التحقق من صحة البيانات المدخلة
+    $validator = Validator::make($request->all(), [
+        'date' => 'required|date',
+        'justification' => 'nullable|string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // إنشاء سجل الغياب
+    $absence = new Out_Of_Work_Student();
+    $absence->date = $request->date;
+    $absence->justification = $request->justification;
+    $absence->student_id = $student_id;
+    $absence->save();
+
+    return response()->json(['message' => 'Absence added successfully'], 200);
+}
+
+
+public function deleteAbsence($student_id, $absence_id)
+{
+    $student = Student::find($student_id);
+    if (!$student) {
+        return response()->json(['message' => 'Student not found'], 404);
+    }
+
+    $absence = Out_Of_Work_Student::where('student_id', $student_id)->find($absence_id);
+    if (!$absence) {
+        return response()->json(['message' => 'Absence record not found'], 404);
+    }
+
+    // حذف سجل الغياب
+    $absence->delete();
+
+    return response()->json(['message' => 'Absence record deleted successfully'], 200);
+}
+
+
+public function add_mark_to_student(Request $request, $student_id)
+{
+    // القيام بالتحقق من وجود الطالب
+    $student = Student::find($student_id);
+    if (!$student) {
+        return response()->json(['error' => 'The student not found'], 404);
+    }
+
+    // التحقق من صحة البيانات المدخلة
+    $validator = Validator::make($request->all(), [
+        'subject_id' => 'required|integer',
+        'ponus' => 'nullable|numeric',
+        'homework' => 'nullable|numeric',
+        'oral' => 'nullable|numeric',
+        'test1' => 'nullable|numeric',
+        'test2' => 'nullable|numeric',
+        'exam_med' => 'nullable|numeric',
+        'exam_final' => 'nullable|numeric',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // إنشاء وحفظ العلامات
+    $mark = new Mark;
+    $mark->student_id = $student_id;
+    $mark->subject_id = $request->input('subject_id');
+    $mark->ponus = $request->input('ponus');
+    $mark->homework = $request->input('homework');
+    $mark->oral = $request->input('oral');
+    $mark->test1 = $request->input('test1');
+    $mark->test2 = $request->input('test2');
+    $mark->exam_med = $request->input('exam_med');
+    $mark->exam_final = $request->input('exam_final');
+
+    // حساب المجموع
+    $aggregate = ($mark->ponus ?? 0) + ($mark->homework ?? 0) + ($mark->oral ?? 0) + ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) + ($mark->exam_final ?? 0);
+
+    // تحديد حالة الطالب (ناجح/راسب)
+    $mark->state = ($aggregate > 50) ? 1 : 0;
+
+    $mark->save();
+
+    return response()->json(['success' => 'Marks added successfully']);
+}
+
+public function editMark(request $request,$student_id, $subject_id)
+{
+    $student = Student::find($student_id);
+    if(!$student)
+    {
+        return response()->json(['error' => 'The student not found']);
+    }
+
+    // التحقق مما إذا كانت العلامة موجودة بالفعل للطالب لنفس المادة
+    $mark = Mark::where('student_id', $student_id)
+                ->where('subject_id', $subject_id)
+                ->first();
+
+    if(!$mark)
+    {
+        return response()->json(['error' => 'The mark does not exist for this student and subject']);
+    }
+
+    // التحقق من أن العلامة التي تم تعديلها تنتمي لنفس الطالب ونفس المادة
+    if($mark->student_id != $student_id || $mark->subject_id != $subject_id)
+    {
+        return response()->json(['error' => 'The mark does not belong to the same student or subject']);
+    }
+
+    $mark->ponus = $request->ponus ?? $mark->ponus;
+    $mark->homework = $request->homework ?? $mark->homework;
+    $mark->oral = $request->oral ?? $mark->oral;
+    $mark->test1 = $request->test1 ?? $mark->test1;
+    $mark->test2 = $request->test2 ?? $mark->test2;
+    $mark->exam_med = $request->exam_med ?? $mark->exam_med;
+    $mark->exam_final = $request->exam_final ?? $mark->exam_final;
+
+    $aggregate = ($mark->ponus + $mark->homework + $mark->oral +
+        $mark->test1 + $mark->test2 + $mark->exam_med + $mark->exam_final);
+    $mark->state = ($aggregate > 50) ? 1 : 0;
+
+    $mark->save();
+
+    return response()->json(['success' => 'Mark updated successfully']);
+}
+
+public function all_teatcher()
+    {
+        $teatcher = Teacher::with('user')->get();
+        return $teatcher;
+    }
+
 
 public function desplay_publish()
 {
@@ -753,39 +1019,39 @@ public function update_publish(Request $request,$publish_id)
         return response()->json(['sucssscceccs']);
 }
 
-public function add_mark_to_student(request $request,$student_id)
-{
-    $student = Student::find($student_id);
-    if(!$student)
-    {
-        return response()->json(['the student not found']);
-    }
+// public function add_mark_to_student(request $request,$student_id)
+// {
+//     $student = Student::find($student_id);
+//     if(!$student)
+//     {
+//         return response()->json(['the student not found']);
+//     }
 
-    $mark = new Mark;
-    $mark->ponus = $request->ponus  ;
-    $mark->homework = $request->homework || null;
-    $mark->oral = $request->oral || null;
-    $mark->test1 = $request->test1 || null;
-    $mark->test2 = $request->test2 || null;
-    $mark->exam_med = $request->exam_med || null;
-    $mark->exam_final = $request->exam_final || null;
-    $aggregrate = ($request->ponus + $request->homework
-    + $request->oral + $request->test1
-    +$request->test2 + $request->exam_med
-    +$request->exam_final);
-    if ($aggregrate > 50){
-    $mark->state = 1;
-    }
-    else {
-        $mark->state = 0;
-    }
-    $mark->student_id = $student_id;
-    $mark->subject_id = $request->subject_id;
-    $mark->save();
+//     $mark = new Mark;
+//     $mark->ponus = $request->ponus  ;
+//     $mark->homework = $request->homework || null;
+//     $mark->oral = $request->oral || null;
+//     $mark->test1 = $request->test1 || null;
+//     $mark->test2 = $request->test2 || null;
+//     $mark->exam_med = $request->exam_med || null;
+//     $mark->exam_final = $request->exam_final || null;
+//     $aggregrate = ($request->ponus + $request->homework
+//     + $request->oral + $request->test1
+//     +$request->test2 + $request->exam_med
+//     +$request->exam_final);
+//     if ($aggregrate > 50){
+//     $mark->state = 1;
+//     }
+//     else {
+//         $mark->state = 0;
+//     }
+//     $mark->student_id = $student_id;
+//     $mark->subject_id = $request->subject_id;
+//     $mark->save();
 
-    return response()->json(['succusssss']);
+//     return response()->json(['succusssss']);
 
-}
+// }
 
 
 public function calculateMonthlySalary($teacher_id, $year, $month)

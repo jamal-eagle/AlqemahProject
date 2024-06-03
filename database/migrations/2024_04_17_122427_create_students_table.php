@@ -17,7 +17,7 @@ return new class extends Migration
     {
         Schema::create('students', function (Blueprint $table) {
             $table->id();
-
+            $table->tinyInteger('student_type');
             $table->integer('calssification');
             $table->double('school_tuition');
             $table->foreignIdfor(User::class,'user_id');
