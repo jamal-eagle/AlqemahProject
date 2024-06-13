@@ -316,72 +316,6 @@ public function programe_week()
 
     public function publish()
     {
-        // $publish = Publish::with('course')->with('image')->get();
-        // return $publish;
-
-        // $publish = Publish::all();
-        // $result = [];
-        
-        // foreach ($publish as $p) {
-        //     $images = Image::where('publish_id', $p->id)->get();
-            
-        //     foreach ($images as $i) {
-        //         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
-                
-        //         if (file_exists($imagePath)) {
-        //             $result[] = [
-        //                 'path' => $imagePath,
-        //                 'file_info' => $i
-        //             ];
-        //         }
-        //     }
-        // }
-        
-        // if (!empty($result)) {
-        //     return response()->json([
-        //         'status' => 'true',
-        //         'files' => $result
-        //     ]);
-        // } else {
-        //     return response()->json([
-        //         'status' => 'false',
-        //         'message' => 'No images found'
-        //     ]);
-        // }
-
-
-
-//         $publish = Publish::all();
-// $result = [];
-
-// foreach ($publish as $p) {
-//     $images = Image::where('publish_id', $p->id)->get();
-    
-//     foreach ($images as $i) {
-//         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
-        
-//         if (file_exists($imagePath)) {
-//             $result[] = [
-//                 'ad_info' => $p,
-//                 'image_info' => $i,
-//                 'path' => $imagePath
-//             ];
-//         }
-//     }
-// }
-
-// if (!empty($result)) {
-//     return response()->json([
-//         'status' => 'true',
-//         'files' => $result
-//     ]);
-// } else {
-//     return response()->json([
-//         'status' => 'false',
-//         'message' => 'No images found'
-//     ]);
-// }
-
 $publish = Publish::all();
 $result = [];
 
@@ -417,8 +351,8 @@ if (!empty($result)) {
         'message' => 'No images found'
     ]);
 }
-
-
-
-    }        
+    } 
+    
+    
+    
 }
