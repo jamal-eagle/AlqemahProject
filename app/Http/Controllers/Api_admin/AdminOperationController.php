@@ -12,12 +12,14 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Models\Appointment;
+use App\Models\Breake;
 use App\Models\Classs;
 use App\Models\Student;
 use App\Models\Parentt;
 use App\Models\Teacher;
 use App\Models\Course;
 use App\Models\Employee;
+use App\Models\Expenses;
 use App\Models\Mark;
 use Illuminate\Support\Str;
 use App\Models\Note;
@@ -97,12 +99,7 @@ if($user){
     $order = Order::find($order_id);
 
     // التحقق من صحة البيانات الأولية
-    $validator = Validator::make($request->all(), [
-        'mother_name' => 'required',    ]);
 
-    if ($validator->fails()) {
-        return $this->responseError(['errors' => $validator->errors()]);
-    }
 
     // إنشاء البريد الإلكتروني وكلمة المرور تلقائيًا
     $email = $order->first_name . Str::random(5) . "@gmail.com";
@@ -113,7 +110,7 @@ if($user){
     $user->first_name = $order->first_name;
     $user->last_name = $order->last_name;
     $user->father_name = $order->father_name;
-    $user->mother_name = $request->mother_name;
+    $user->mother_name = $order->mother_name;
     $user->birthday = $order->birthday;
     $user->gender = $order->gender;
     $user->phone = $order->phone;
@@ -199,11 +196,157 @@ if($user){
 
     }
 
+public function register_teacher(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'first_name' => 'required',
+        'last_name' => 'required',
+        'father_name' => 'required',
+        'mother_name' => 'required',
+        'birthday' => 'required',
+        'gender' => 'required',
+        'phone' => 'required',
+        'address' => 'required',
+        'year' => 'required',
+        'image' => 'required',
+    ]);
+
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $password = $request->first_name . Str::random(4) ;
+
+    $user = new User();
+    $user->first_name = $request->first_name;
+    $user->last_name = $request->last_name;
+    $user->father_name = $request->father_name;
+    $user->mother_name = $request->mother_name;
+    $user->birthday = $request->birthday;
+    $user->gender = $request->gender;
+    $user->phone = $request->phone;
+    $user->address = $request->address;
+    $user->year = $request->year;
+    $user->image = $request->image;
+    $user->email = $request->first_name . Str::random(5) . "@gmail.com";
+    $user->password = Hash::make($password);
+    $user->conf_password = Hash::make($password);
+    $user->user_type = 'teacher';
 
 
 
+    $user->save();
 
 
+    $validator1 = Validator::make($request->all(), [
+        'cost_hour' => 'required',
+        'num_hour_added' => 'required',
+        'note_hour_added' => 'required',
+    ]);
+
+    if ($validator1->fails()) {
+        return $this->responseError(['errors' => $validator1->errors()]);
+    }
+
+
+    $teacher = new Teacher();
+    $teacher->cost_hour = $request->cost_hour;
+    $teacher->num_hour_added = $request->num_hour_added;
+    $teacher->note_hour_added = $request->note_hour_added;
+    $teacher->user_id = $user->id;
+
+    $teacher->save();
+    return response()->json([$user->email, $password]);
+
+    }
+
+public function register_employee(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'first_name' => 'required',
+        'last_name' => 'required',
+        'phone' => 'required',
+        'address' => 'required',
+        'salary' => 'required',
+        'year' => 'required',
+        'type'=>'required',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $email = $request->first_name . Str::random(5) . "@gmail.com";
+    $password = $request->first_name . Str::random(6);
+
+    $employee = new Employee();
+    $employee->first_name = $request->first_name;
+    $employee->last_name = $request->last_name;
+    $employee->phone = $request->phone;
+    $employee->address = $request->address;
+    $employee->salary = $request->salary;
+    $employee->year = $request->year;
+    $employee->email = $email;
+    $employee->password = Hash::make($password);
+    $employee->type = $request->type;
+
+    $employee->save();
+    return response()->json([$employee->email, $password]);
+
+}
+
+public function delete_student($student_id)
+{
+    $student = Student::find($student_id);
+    if(!$student)
+    return response()->json(['the student not found']);
+    $student = $student->user;
+
+    if($student->status == 0)
+    {
+        return response()->json(['the account was stopped before now']);
+    }
+    $student->update([
+        'status' => 0,
+    ]);
+
+    return response()->json(['the account is stopped']);
+    }
+
+public function delete_parentt($parent_id)
+{
+    $parent = Parentt::find($parent_id);
+    if(!$parent)
+    {
+        return response()->json(['the parent not found']);
+    }
+    if($parent->status == 0){
+    return response()->json(['the account was stopped']);
+    }
+    $parent->update([
+        'status' => 0,
+    ]);
+    return response()->json(['the account is stopped']);
+}
+
+public function delete_teacher($teacher_id)
+{
+    $teacher = Teacher::find($teacher_id);
+    if(!$teacher)
+    return response()->json(['the teacher not found']);
+    $teacher = $teacher->user;
+
+    if($teacher->status == 0)
+    {
+        return response()->json(['the account was stopped before now']);
+    }
+    $teacher->update([
+        'status' => 0,
+    ]);
+
+    return response()->json(['the account is stopped']);
+    }
 
     public function get_profile_user(){
 
@@ -299,30 +442,6 @@ public function disply_all_student_here($year)
     }
 }
 
-public function desplay_teacher_salary($teacher_id)
-{
-    $teacher = Teacher::where('id' , $teacher_id)->get()->first();
-    if(!$teacher)
-    {
-        return response()->json(['teacher not found ']);
-    }
-    $salary = ($teacher->num_hour * $teacher->cost_hour) + ($teacher->num_our_added * $teacher->cost_hour);
-
-    return response()->json([$teacher,$salary,'successsss']);
-}
-
-public function desplay_teacher_course($teacher_id)
-{
-    $teacher = Teacher::find($teacher_id);
-    if(!$teacher)
-    {
-        return response()->json(['teacher not found ']);
-    }
-
-    return  $teacher->course;
-
-}
-
 public function addTeacherSchedule(Request $request,$teacher_id)
 {
     $teacher = Teacher::find($teacher_id);
@@ -392,7 +511,7 @@ public function updateWeeklySchedule(Request $request, $teacher_id)
         return response()->json(['message' => 'Teacher weekly schedule updated successfully'], 200);
 }
 
-public function addAbsenceForTeacher(Request $request)
+public function addAbsenceForTeacherandemployee(Request $request)
     {
         // التحقق من صحة البيانات المدخلة
         $validator = Validator::make($request->all(), [
@@ -422,8 +541,201 @@ public function addAbsenceForTeacher(Request $request)
         return response()->json(['message' => 'Absence added successfully'], 200);
     }
 
+
+
+
+
+
+public function desplay_teacher_salary($teacher_id , $year , $month)
+    {
+    $teacher = Teacher::where('id' , $teacher_id)->get()->first();
+    if(!$teacher)
+    {
+        return response()->json(['teacher not found ']);
+    }
+    $salary = $this->getteacherworkhour($teacher_id , $year , $month) * $teacher->cost_hour;
+
+    return response()->json([$teacher,$salary,'successsss']);
+}
+
+private function getteacherworkhour($teacher_id, $year, $month)
+    {
+        // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
+        $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+
+        // استرجاع قائمة الأيام العطل في الشهر (يمكن تركها فارغة في حال لم يكن لديك بيانات)
+        $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->pluck('date');
+
+        // حساب عدد الأيام في الشهر
+        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+
+        // تهيئة مصفوفة لتخزين تفاصيل سجل الدوام لكل يوم في الشهر
+        $attendanceDetails = [];
+
+        // تحديث تفاصيل سجل الدوام لكل يوم في الشهر
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = Carbon::createFromDate($year, $month, $day);
+            $dayOfWeek = $date->format('l');
+
+            // تحقق مما إذا كان اليوم هو يوم عمل للمعلم وليس عطلة
+            $isHoliday = $holidays->contains($date->format('Y-m-d'));
+            $isWeekend = in_array($date->format('l'), ['Friday', 'Saturday']);
+            $schedule = $teacherSchedule->firstWhere('day_of_week', $dayOfWeek);
+
+            if ($schedule && !$isHoliday && !$isWeekend) {
+                // حساب عدد ساعات العمل بين وقت البداية ووقت النهاية
+                $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
+                $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
+                $workingHours = $endTime->diffInHours($startTime);
+
+                $attendanceDetails[] = [// صيغة التاريخ
+                    'working_hours' => $workingHours,
+                ];
+            } else {
+                $attendanceDetails[] = [// صيغة التاريخ
+                    'working_hours' => 0, // لا يوجد ساعات عمل في أيام العطل أو نهاية الأسبوع
+                ];
+            }
+        }
+
+        $work_hour = 0;
+        for($day = 1; $day <= $daysInMonth; $day++){
+            $work_hour = $work_hour+  $attendanceDetails[$day];
+        }
+
+        return response()->json([
+            'attendance_details' => $attendanceDetails,
+        ]);
+
+
+    }
+
+public function desplay_teacher_course($teacher_id)
+{
+    $teacher = Teacher::find($teacher_id);
+    if(!$teacher)
+    {
+        return response()->json(['teacher not found ']);
+    }
+
+    return  $teacher->course;
+
+    }
+
+
+public function desplay_employee()
+{
+    $employee = Employee::get();
+    if(!$employee)
+    {
+        return response()->json(['you havenot any employee']);
+    }
+    return response()->json([$employee,'all employee']);
+
+    }
+public function desplay_one_employee($employee_id)
+{
+    $employee = Employee::find($employee_id);
+    if(!$employee)
+    {
+        return response()->json(['you havenot any employee']);
+    }
+    return response()->json([$employee]);
+
+    }
+
+public function update_employee_profile(Request $request,$employee_id)
+{
+    $employee = Employee::find($employee_id);
+    if(!$employee)
+    {
+        return response()->json(['you have not any employee']);
+    }
+    $validator = Validator::make($request->all(),[
+        'salary' => 'required',
+        'type' => 'required',
+        'year' => 'required',
+    ]);
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $employee ->update([
+        'salary' => $request->salary,
+        'type' => $request->type,
+        'year' => $request->year,
+    ]);
+
+    }
+
+public function getEmployeeAttendance($employee_id, $year, $month)
+{
+    // انشاء تواريخ البداية والنهاية للشهر المحدد
+    $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+    $endDate = $startDate->copy()->endOfMonth();
+
+    // احتساب عدد الأيام الكاملة
+    $totalWorkDays = $startDate->diffInDaysFiltered(function (Carbon $date) {
+        return !$date->isWeekend();
+    }, $endDate);
+
+    // عدد الأيام في الشهر
+    $daysInMonth = $startDate->daysInMonth;
+
+    return response()->json([
+        'employee_id' => $employee_id,
+        'year' => $year,
+        'month' => $month,
+        'attendance_days' => $daysInMonth, // لأن الموظف يعمل اليوم كاملا
+        'total_work_days' => $totalWorkDays
+    ]);
+    }
+
+
+public function getempoyeesalary($employee_id)
+{
+    $employee = Employee::find($employee_id);
+    if(!$employee)
+    {
+        return response()->json(['the employee not found']);
+    }
+
+    return $employee->salary;
+}
+
+
+
+public function add_absence_for_employee($request)
+{
+    $validator = Validator::make($request->all(), [
+        'date' => 'required|date',
+        'num_hour_out' => 'required|integer',
+        'teacher_id' => 'nullable|exists:teachers,id',
+        'employee_id' => 'nullable|exists:employees,id',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // التأكد من أن أحدهما فقط تم تقديمه
+    if (!$request->hasAny(['teacher_id', 'employee_id'])) {
+        return response()->json(['message' => 'Either teacher_id or employee_id must be provided'], 422);
+    }
+
+
+}
+
+
+
+
     public function getTeacherWorkSchedule($teacher_id, $year, $month)
 {
+
+
     // استرجاع سجل غياب المدرس خلال الشهر المحدد
     $absences = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
         ->whereYear('date', $year)
@@ -565,75 +877,64 @@ public function addAbsenceForTeacher(Request $request)
     }
 
 
-public function desplay_employee()
-{
-    $employee = Employee::get();
-    if(!$employee)
+public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month)
     {
-        return response()->json(['you havenot any employee']);
+        // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
+        $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+
+        // استرجاع قائمة الأيام العطل في الشهر (يمكن تركها فارغة في حال لم يكن لديك بيانات)
+        $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->pluck('date');
+
+        // حساب عدد الأيام في الشهر
+        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+
+        // تهيئة مصفوفة لتخزين تفاصيل سجل الدوام لكل يوم في الشهر
+        $attendanceDetails = [];
+
+        // تحديث تفاصيل سجل الدوام لكل يوم في الشهر
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = Carbon::createFromDate($year, $month, $day);
+            $dayOfWeek = $date->format('l');
+
+            // تحقق مما إذا كان اليوم هو يوم عمل للمعلم وليس عطلة
+            $isHoliday = $holidays->contains($date->format('Y-m-d'));
+            $isWeekend = in_array($date->format('l'), ['Friday', 'Saturday']);
+            $schedule = $teacherSchedule->firstWhere('day_of_week', $dayOfWeek);
+
+            if ($schedule && !$isHoliday && !$isWeekend) {
+                // حساب عدد ساعات العمل بين وقت البداية ووقت النهاية
+                $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
+                $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
+                $workingHours = $endTime->diffInHours($startTime);
+
+                $attendanceDetails[] = [
+                    'date' => $date->format('l d-m-Y'),  // صيغة التاريخ
+                    'working_hours' => $workingHours,
+                ];
+            } else {
+                $attendanceDetails[] = [
+                    'date' => $date->format('l d-m-Y'),  // صيغة التاريخ
+                    'working_hours' => 0, // لا يوجد ساعات عمل في أيام العطل أو نهاية الأسبوع
+                ];
+            }
+        }
+
+        // ترتيب الأيام بترتيب تصاعدي
+        usort($attendanceDetails, function ($a, $b) {
+            return strtotime($a['date']) - strtotime($b['date']);
+        });
+
+        return response()->json([
+            'teacher_id' => $teacher_id,
+            'year' => $year,
+            'month' => $month,
+            'attendance_details' => $attendanceDetails,
+        ]);
     }
-    return response()->json([$employee,'all employee']);
 
-}
-
-public function desplay_one_employee($employee_id)
-{
-    $employee = Employee::find($employee_id);
-    if(!$employee)
-    {
-        return response()->json(['you havenot any employee']);
-    }
-    return response()->json([$employee]);
-
-}
-
-public function update_employee_profile(Request $request,$employee_id)
-{
-    $employee = Employee::find($employee_id);
-    if(!$employee)
-    {
-        return response()->json(['you have not any employee']);
-    }
-    $validator = Validator::make($request->all(),[
-        'salary' => 'required',
-        'type' => 'required',
-        'year' => 'required',
-    ]);
-    if ($validator->fails()) {
-        return $this->responseError(['errors' => $validator->errors()]);
-    }
-
-    $employee ->update([
-        'salary' => $request->salary,
-        'type' => $request->type,
-        'year' => $request->year,
-    ]);
-
-}
-
-
-public function getEmployeeAttendance($employeeId, $year, $month)
-{
-    // انشاء تواريخ البداية والنهاية للشهر المحدد
-    $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
-    $endDate = $startDate->copy()->endOfMonth();
-
-    // احتساب عدد الأيام الكاملة
-    $totalWorkDays = $startDate->diffInDaysFiltered(function (Carbon $date) {
-        return !$date->isWeekend();
-    }, $endDate);
-
-    // عدد الأيام في الشهر
-    $daysInMonth = $startDate->daysInMonth;
-
-    return response()->json([
-        'employee_id' => $employeeId,
-        'year' => $year,
-        'month' => $month,
-        'attendance_days' => $daysInMonth, // لأن الموظف يعمل اليوم كاملا
-        'total_work_days' => $totalWorkDays
-    ]);
-}
 
 
 
@@ -967,6 +1268,48 @@ public function display_order_for_course($course_id)
     return $course;
 }
 
+public function display_details_for_course($course_id)
+{
+    $course = Course::find($course_id);
+    if(!$course)
+    {
+        return response()->json(['the course not found']);
+    }
+
+
+
+    return response()->json([$course]);
+
+}
+public function display_teacher_in_course($course_id)
+{
+    $course = Course::find($course_id);
+    if(!$course)
+    {
+        return response()->json(['the course not found']);
+    }
+    $teacher = $course->teacher;
+    // return $teacher;
+    $teacher1 = $teacher->user;
+    foreach($teacher1 as $teachers){
+    echo $teacher1->first_name ." " .$teacher1->last_name;
+    }
+}
+
+public function display_subject_in_course($course_id)
+{
+    $course = Course::find($course_id);
+    if(!$course)
+    {
+        return response()->json(['the course not found']);
+    }
+    $subject = $course->subject;
+    foreach($subject as $subject)
+    {
+        echo $subject->name;
+    }
+}
+
 public function add_publish(Request $request)
 {
     $validator = Validator::make($request->all(),[
@@ -1018,6 +1361,64 @@ public function update_publish(Request $request,$publish_id)
         $publish->update();
         return response()->json(['sucssscceccs']);
 }
+
+
+
+public function add_to_expensess(Request $request)
+{
+    $validator = Validator::make($request->all(),[
+        'date' => 'required|date',
+        'product'=>'required',
+        'cost_one_piece'=>'required',
+        'num_product'=>'required',
+        'year'=>'required'
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $expenses = new Expenses();
+    $expenses->date = $request->date;
+    $expenses->product = $request->product;
+    $expenses->cost_one_piece = $request->cost_one_piece;
+    $expenses->num_product = $request->num_product;
+    $expenses->total_cost = $request->num_product * $request->cost_one_piece;
+    $expenses->year = $request->year;
+    $expenses->save();
+    return response()->json(['sucsseesss']);
+
+}
+
+
+public function add_to_break(Request $request)
+{
+    $validator = validator::make($request->all(),[
+        'first_name'=>'required',
+        'last_name'=>'required',
+        'phone'=>'required',
+        'address'=>'required',
+        'year'=>'required',
+        'cost_from_breake'=>'required',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $break = new Breake();
+    $break->first_name = $request->first_name;
+    $break->last_name = $request->last_name;
+    $break->phone = $request->phone;
+    $break->address = $request->address;
+    $break->year = $request->year;
+    $break->cost_from_breake = $request->cost_from_breake;
+
+    $break->save();
+
+}
+
+
 
 // public function add_mark_to_student(request $request,$student_id)
 // {

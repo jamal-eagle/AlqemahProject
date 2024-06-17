@@ -76,6 +76,17 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('/register_student/{order_id}',[AdminOperationController::class,'register_student']);
     ///خلق حساب للأهل
     Route::post('/register_parentt',[AdminOperationController::class,'register_parentt']);
+    //خلق حسابات للاستاذ
+    Route::post('/register_teacher',[AdminOperationController::class,'register_teacher']);
+    //خلق حسابات للموظف
+    Route::post('/register_employee',[AdminOperationController::class,'register_employee']);
+    //ايقاف حساب الطالب
+    Route::put('/delete_student/{student_id}',[AdminOperationController::class,'delete_student']);
+    //ايقاف حساب الاهل
+    Route::put('/delete_parentt/{paentt_id}',[AdminOperationController::class,'delete_parentt']);
+    //ايقاف حساب الاستاذ
+    Route::put('/delete_teacher/{teacher_id}',[AdminOperationController::class,'delete_teacher']);
+
     //عرض تصنيف الطلاب
     Route::get('/classification/{calssification}',[AdminOperationController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد
@@ -110,14 +121,45 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkschedule']);
     //تعديل برنامج دوام المدرس
     route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[AdminOperationController::class,'updateWeeklySchedule']);
-    //اضافة يوم غياب للمدرس
-    Route::post('/add_teachers_absence', [AdminOperationController::class, 'addAbsenceForTeacher']);
-
-
+    // اضافة يوم غياب للمدرس و الموظف
+    Route::post('/add_teachers_and_employee_absence', [AdminOperationController::class, 'addAbsenceForTeacherandemployee']);
+    // استعراض راتب المدرس
+    Route::get('/desplay_teacher_salary/{teacher_id}',[AdminOperationController::class,'desplay_teacher_salary']);
+    //عدد ساعات العمل لمدرس
+    //Route::get('/getworkhour/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkhour']);
+    //استعراض الدورات التي يعطي فيها مدرس
+    route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
+    //عرض الموظفين
+    route::get('/desplay_employee',[AdminOperationController::class,'desplay_employee']);
+    //استعراض معلومات موظف
+    route::get('/desplay_employee/{employee_id}',[AdminOperationController::class,'desplay_one_employee']);
+    //تعديل معلومات موظف
+    route::put('/update_employee_profile/{employee_id}',[AdminOperationController::class,'update_employee_profile']);
+    //عرض ايام دوام الموظف
+    route::get('/get_monthly_attendance_employee_and_teacher/{year}/{month}',[AdminOperationController::class,'getEmployeeAttendance']);
+    //عرض راتب الموظف
+    Route::get('/get_employee_salary/{employee_id}',[AdminOperationController::class,'getempoyeesalary']);
     //عرض طلبات التسجيل بالمعهد
     Route::get('/display_order',[AdminOperationController::class,'DisplayOrderNewStudent']);
     //عرض طلبات التسجيل في دورة معينة
     route::get('/display_order_for_course/{course_id}',[AdminOperationController::class,'display_order_for_course']);
+    //عرض تفاصيل ورة معينة
+    Route::get('/display_details_for_course/{course_id}',[AdminOperationController::class,'display_details_for_course']);
+    //عرض الاساتذة في دورة معينة
+    Route::get('/display_teacher_in_course/{course_id}',[AdminOperationController::class,'display_teacher_in_course']);
+    //عرض المواد التي ستعطى في هذه الدورة
+    Route::get('/display_subject_in_course/{course_id}',[AdminOperationController::class,'display_subject_in_course']);
+    //اضافة اعلان
+    route::post('/add_publish', [AdminOperationController::class, 'add_publish']);
+    //حذف اعلان
+    route::delete('/delete_publish/{publish_id}', [AdminOperationController::class, 'delete_publish']);
+    //تعديل اعلان
+    route::post('/update_publish/{publish_id}', [AdminOperationController::class, 'update_publish']);
+    //اضافة للمصاريف
+    route::post('/add_to_expensess', [AdminOperationController::class, 'add_to_expensess']);
+    //اضافة للبوفيه
+    Route::post('/add_to_break', [AdminOperationController::class, 'add_to_break']);
+
     //إعطاء موعد
     route::post('/give_date/{order_id}',[AdminOperationController::class,'GiveDate']);
     //إنشاء حساب للطالب
@@ -131,10 +173,6 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/get_teacher_profile/{teacher_id}',[AuthController::class,'get_teacher_profile']);
     //تعديل معلومات المدرس
     route::post('/update_teacher_profile/{teacher_id}',[AuthController::class,'update_teacher_profile']);
-    //استعراض راتب المدرس
-    route::get('/desplay_teacher_salary/{teacher_id}',[AdminOperationController::class,'desplay_teacher_salary']);
-    //استعراض الدورات التي يعطي فيها مدرس
-    route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
     //ادخال برنامج دوام المدرس
     route::post('/add_Weekly_Schedule_for_teacher/{teacher_id}',[AdminOperationController::class,'addTeacherSchedule']);
     //عرض ايام دوام المدرس
@@ -142,15 +180,9 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //عرض غيابات المدرس
     route::get('/get_out_of_work_employee/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherabsences']);
     //تقرير مفصل عن كامل ايام الشهر
-    route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReportReport']);
-    //عرض الموظفين
-    route::get('/desplay_employee',[AdminOperationController::class,'desplay_employee']);
-    //استعراض معلومات موظف
-    route::get('/desplay_employee/{employee_id}',[AdminOperationController::class,'desplay_one_employee']);
-    //تعديل معلومات موظف
-    route::put('/update_employee_profile/{employee_id}',[AdminOperationController::class,'update_employee_profile']);
-    //عرض ايام دوام المدرس
-    route::get('/get_monthly_attendance_employee/{employee_id}/{year}/{month}',[AdminOperationController::class,'getEmployeeAttendance']);
+    route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReportReport']);
+
+
 
     //
     route::get('/get_monthly_salary_employee/{employee_id}/{year}/{month}',[AdminOperationController::class,'calculateMonthlySalary']);
@@ -158,12 +190,6 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
 
     ////  عرض الاعلانات
     route::get('/desplay_publish', [AdminOperationController::class, 'desplay_publish']);
-    //اضافو اعلان
-    route::post('/add_publish', [AdminOperationController::class, 'add_publish']);
-    //حذف اعلان
-    route::delete('/delete_publish/{publish_id}', [AdminOperationController::class, 'delete_publish']);
-    //تعديل اعلان
-    route::post('/update_publish/{publish_id}', [AdminOperationController::class, 'update_publish']);
     //اضافة علامة طالب
     route::post('/add_mark_to_student/{student_id}', [AdminOperationController::class, 'add_mark_to_student']);
     // //اضافة للارشيف ملفات وصور

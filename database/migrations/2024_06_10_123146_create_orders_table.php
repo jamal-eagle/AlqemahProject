@@ -5,7 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Student;
 use App\Models\Course;
-
 return new class extends Migration
 {
     /**
@@ -15,10 +14,10 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
             $table->string('father_name')->nullable();
+            $table->string('mother_name')->nullable();
             $table->date('birthday')->nullable();
             $table->tinyInteger('gender')->nullable();
             $table->string('phone')->nullable();
@@ -31,8 +30,10 @@ return new class extends Migration
             $table->foreignIdFor(Student::class,'student_id')->nullable();
             $table->foreignIdFor(Course::class,'course_id')->nullable();
 
-
             $table->timestamps();
+
+
+            
         });
     }
 
