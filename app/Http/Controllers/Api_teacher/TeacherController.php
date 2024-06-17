@@ -212,7 +212,7 @@ public function upload_file_image(Request $request, $subject_id)
 
 
 
-
+//
     // $image = new Image;
     // $image->name = $imageName;
     // $image->save();
