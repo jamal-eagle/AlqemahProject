@@ -160,9 +160,69 @@ public function delete_file_image()
 
 }
 
-//zahraa
-public function upload_file_image()
+//رفع ملفات و صور للسنة الحالية
+public function upload_file_image(Request $request, $subject_id)
 {
+    $validator = Validator::make($request->all(),[
+        'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
+
+    $img = $request->name;
+    $ext = $img->getClientOriginalExtension();
+    $imgFileName = time().'.'.$ext;
+    $img->move(public_path().'/upload',$imgFileName);
+
+    if ($ext=="png"||"jpg"||"jpeg"||"gif") {
+        $image = new Image_Archive;
+    $image->name = $imgFileName;
+    $image->description = $request->description;
+    $image->archive_id = $request->archive_id;
+    $image->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'image upload success',
+        'path' => asset('/upload/'.$imgFileName),
+        'data' => $image
+    ]);
+    }
+    
+    elseif ($ext=="pdf"||"docx"||"txt") {
+        $file = new File_Archive;
+    $file->name = $imgFileName;
+    $file->description = $request->description;
+    $file->archive_id = $request->archive_id;
+    $file->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'file upload success',
+        'path' => asset('/upload/'.$imgFileName),
+        'data' => $file
+    ]);
+    }
+
+
+
+
+    // $image = new Image;
+    // $image->name = $imageName;
+    // $image->save();
+
+    // return response()->json([
+    //     'status' => 'true',
+    //     'message' => 'image upload success',
+    //     'path' => asset('/upload/'.$imageName),
+    //     'data' => $image
+    // ]);
 
 }
 
@@ -195,7 +255,7 @@ public function upload_file_image()
         foreach ($file_select_year as $f) {
             $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                         //return response()->file($imagePath);
-                        if (file_exists($imagePath)) {
+                        if (file_exists($filePath)) {
                             $result[] = [
                                 'path' => $filePath,
                                 'file_info' => $f

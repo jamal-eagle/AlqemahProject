@@ -79,15 +79,36 @@ if($user){
         if(Auth::check()){
             $user = User::where("email", auth()->user()->email);
             if($user){
-        $request->user()->currentAccessToken()->delete();
-        return $this->responseError(['the user logged out']);
+                $request->user()->currentAccessToken()->delete();
+                return response()->json(['status' => true, 'message' => 'User logged out successfully'], 200);
+            }
+            elseif ($parentt) {
+                $request->parentt()->currentAccessToken()->delete();
+                return response()->json(['status' => true, 'message' => 'User logged out successfully'], 200);
             }
             else {
-                $request->parentt()->currentAccessToken()->delete();
-                return $this->responseError(['the user logged out']);
+                return response()->json(['status' => false, 'message' => 'User not found'], 404);
             }
     }
+    else {
+                return response()->json(['status' => false, 'message' => 'User not authenticated'], 401);
+            }
     }
+//     public function logout(Request $request)
+// {
+//     if(Auth::check()){
+//         $user = User::where("email", auth()->user()->email)->first();
+//         if($user){
+//             $request->user()->currentAccessToken()->delete();
+//             return response()->json(['status' => true, 'message' => 'User logged out successfully'], 200);
+//         } else {
+//             return response()->json(['status' => false, 'message' => 'User not found'], 404);
+//         }
+//     } else {
+//         return response()->json(['status' => false, 'message' => 'User not authenticated'], 401);
+//     }
+// }
+
 
 
 

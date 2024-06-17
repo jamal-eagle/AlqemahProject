@@ -353,6 +353,9 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     //عرض كل الطلاب الذين أدرسهم
     Route::get('/display_all_students_I_teach',[TeacherController::class,'display_all_students_I_teach']);
     //رفع ملف أو صورة لملفات السنة الحاليةzahraa
+    Route::post('/upload_file_image/{subject_id}',[TeacherController::class,'upload_file_image']);
+
+    
     //رفع ملف أو صورة لملفات الأرشيفzahraa
 });
 
