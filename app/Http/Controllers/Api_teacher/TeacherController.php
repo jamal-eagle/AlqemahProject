@@ -276,6 +276,13 @@ public function display_info_student($student_id)
 {
     $student = Student::where('id', $student_id)->with('user')->first();
     return $student;
+    // $student = Student::with('user')->find($student_id);
+    //     if(!$student)
+    //     {
+    //         return response()->json('the student not found ');
+    //     }
+
+    //     return response()->json(['student' => $student, 'message' => 'Success']);
 }
 
 //عرض علامات طالب لمادة محددة حسب المادة التي يعطيها المدرس
@@ -334,6 +341,35 @@ public function edit_mark(Request $request,$mark_id)
 
 }
 
+
+//عرض جميع الطلاب الذي يدرسهم حسب الترتيب الأبجدي
+public function display_all_students_I_teach()
+{
+    $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    $sections = Teacher_section::where('teacher_id', $teacher->id)->get();
+    $students = collect();
+
+    foreach ($sections as $section) {
+        $students = $students->merge(Student::where('section_id', $section->id)->with('user')->get());
+    }
+
+    $sortedStudents = $students->sortBy(function($student) {
+        return $student->user->first_name;
+    });
+
+    return $sortedStudents->values()->all();
+
+//     عرض جميع الطلاب الذين يدرسهم ولكن دون ترتيب أبجدي
+//     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+//     $sections = Teacher_section::where('teacher_id', $teacher->id)->get();
+//     $students = [];
+
+//     foreach ($sections as $section) {
+//         $students[] = Student::where('section_id', $section->id)->with('user')->get();
+//     }
+
+//     return $students;
+ }
 
 
 

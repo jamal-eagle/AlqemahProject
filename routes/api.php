@@ -297,7 +297,13 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     //عرض علامات المذاكرة علامات الفحص الخ
     Route::get('/my_mark',[MarkController::class,'displayMark']);
     //عرض الإعلانات
+    //استخدمت تبع كل المستخدمين
     route::get('/publish',[Student_operationController::class,'publish']);
+    //عرض كل كورسات المعهد
+    Route::get('/all_course',[DisplayController::class,'all_course']);
+    //عرض معلومات دورة معينة
+    Route::get('/info_course/{id_course}',[DisplayController::class,'info_course']);
+
 });
 
 /*******************************************************parent*******************************************************/
@@ -366,6 +372,12 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     Route::delete('/delete_comment/{comment_id}',[PostController::class,'deleteComment']);
     //إنهاء مناقشة
     Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
+    //عرض غيابات طالب معين
+    Route::get('/all_out_work_student/{student_id}', [OutWorkStudentController::class, 'all_out_work_student']);
+    //سجل دوام الطالب
+    Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReport']);
+    //عرض كل الطلاب الذين أدرسهم
+    Route::get('/display_all_students_I_teach',[TeacherController::class,'display_all_students_I_teach']);
     //رفع ملف أو صورة لملفات السنة الحاليةzahraa
     //رفع ملف أو صورة لملفات الأرشيفzahraa
 });
