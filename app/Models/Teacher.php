@@ -29,6 +29,7 @@ class Teacher extends Model
         'num_hour_added',
         'note_hour_added',
         'user_id',
+        'course_id'
         //'subject_id',
     ];
 

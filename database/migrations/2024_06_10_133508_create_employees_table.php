@@ -20,6 +20,8 @@ return new class extends Migration
             $table->double('salary');
             $table->string('type');
             $table->string('year');
+            $table->string('email');
+            $table->string('password');
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });

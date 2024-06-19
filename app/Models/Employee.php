@@ -19,6 +19,8 @@ class Employee extends Model
         'salary',
         'type',
         'year',
+        'email',
+        'password',
         'status',
     ];
 
