@@ -30,6 +30,7 @@ use App\Models\Out_Of_Work_Employee;
 use App\Models\Out_Of_Work_Student;
 use App\Models\Teacher_Schedule;
 use App\Models\Out__Of__Work__Employee;
+use App\Models\Image;
 
 class AdminOperationController extends BaseController
 {
@@ -976,7 +977,7 @@ public function desplay_section_for_classs($class_id)
 
 public function desplay_all_student_regester($year)
 {
-    $student = User::where('year',$year)->where('user_type', 'student')->get();
+    $student = User::where('year',$year)->where('user_type', 'student')->with('student')->get();
     return response()->json([$student,'all student regester here']);
 }
 
@@ -1272,11 +1273,11 @@ public function all_teatcher()
     }
 
 
-public function desplay_publish()
-{
-    $publish = Publish::get()->all();
-    return response()->json([$publish,'this is all publish']);
-}
+// public function desplay_publish()
+// {
+//     $publish = Publish::get()->all();
+//     return response()->json([$publish,'this is all publish']);
+// }
 
 public function display_order_for_course($course_id)
 {
@@ -1331,11 +1332,28 @@ public function display_subject_in_course($course_id)
     }
 }
 
+// public function add_publish(Request $request)
+// {
+//     $validator = Validator::make($request->all(),[
+//         'description'=>'required|string',
+//         'course_id'=>'required',
+//         ]);
+
+//         if ($validator->fails()) {
+//             return response()->json(['errors' => $validator->errors()]);
+//         }
+
+//         $publish = new Publish();
+//         $publish->description = $request->description;
+//         $publish->course_id = $request->course_id;
+//         $publish->save();
+//         return response()->json(['sucssscceccs']);
+// }
 public function add_publish(Request $request)
 {
     $validator = Validator::make($request->all(),[
         'description'=>'required|string',
-        'course_id'=>'required',
+        //'course_id'=>'required',
         ]);
 
         if ($validator->fails()) {
@@ -1344,11 +1362,62 @@ public function add_publish(Request $request)
 
         $publish = new Publish();
         $publish->description = $request->description;
-        $publish->course_id = $request->course_id;
+        //$publish->course_id = $request->course_id ?? null;
         $publish->save();
-        return response()->json(['sucssscceccs']);
-}
 
+        if ($request->path) {
+            $validator = Validator::make($request->all(),[
+                'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+            ]);
+        
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Please fix the errors',
+                    'errors' => $validator->errors()
+                ]);
+            }
+        
+            $img = $request->path;
+            $ext = $img->getClientOriginalExtension();
+            $imageName = time().'.'.$ext;
+            $img->move(public_path().'/upload',$imageName);
+        
+            $image = new Image;
+            $image->path = $imageName;
+            $image->description = $request->description;
+            $image->publish_id = $publish->id;
+    
+            $image->save();
+        
+            return response()->json([
+                'status' => 'true',
+                'message' => 'image upload success',
+                'path' => asset('/upload/'.$imageName),
+                'data' => $image
+            ]);
+            return response()->json(['sucssscceccs with img']);
+        }
+
+        else {
+            return response()->json(['sucssscceccs']);
+        }
+    }
+
+
+
+
+// public function delete_publish($publish_id)
+// {
+//     $publish = Publish::find($publish_id);
+//     if(!$publish)
+//     {
+//         return response()->json(['the publish not found or was deleted  ']);
+//     }
+//     $publish->delete();
+//     return response()->json(['the publish  deleted  ']);
+
+// }
 public function delete_publish($publish_id)
 {
     $publish = Publish::find($publish_id);
@@ -1357,31 +1426,182 @@ public function delete_publish($publish_id)
         return response()->json(['the publish not found or was deleted  ']);
     }
     $publish->delete();
+    $image = Image::where('publish_id', $publish->id)->delete();
     return response()->json(['the publish  deleted  ']);
 
 }
 
-public function update_publish(Request $request,$publish_id)
+// public function update_publish(Request $request,$publish_id)
+// {
+//     $publish = Publish::find($publish_id);
+//     if(!$publish)
+//     {
+//         return response()->json(['the publish not found']);
+//     }
+//     $validator = Validator::make($request->all(),[
+//         'description'=>'required|string',
+//         //'course_id'=>'required',
+//         ]);
+
+//         if ($validator->fails()) {
+//             return response()->json(['errors' => $validator->errors()]);
+//         }
+
+//         if ($request->has('description')) {
+//             $publish->description = $request->description;
+//         }
+
+//         $image = Image::where('publish_id', $publish_id)->first();
+
+//         if (!$image) {
+//             $validator = Validator::make($request->all(),[
+//                 'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+//             ]);
+        
+//             if ($validator->fails()) {
+//                 return response()->json([
+//                     'status' => 'false',
+//                     'message' => 'Please fix the errors',
+//                     'errors' => $validator->errors()
+//                 ]);
+//             }
+        
+//             $img = $request->path;
+//             $ext = $img->getClientOriginalExtension();
+//             $imageName = time().'.'.$ext;
+//             $img->move(public_path().'/upload',$imageName);
+        
+//             $image = new Image;
+//             $image->path = $imageName;
+//             $image->publish_id = $publish_id;
+//             $image->description = $request->description ?? $publish->description;
+//             $image->save();
+        
+//             return response()->json([
+//                 'status' => 'true',
+//                 'message' => 'image upload success',
+//                 'path' => asset('/upload/'.$imageName),
+//                 'data' => $image
+//             ]);
+//         }
+    
+//         // حذف الصورة القديمة من المجلد إذا كانت موجودة
+//         $oldImagePath = public_path().'/upload/'.$image->path;
+//         if (file_exists($oldImagePath)) {
+//             unlink($oldImagePath);
+//         }
+    
+//         // رفع الصورة الجديدة
+//         $img = $request->path;
+//         $ext = $img->getClientOriginalExtension();
+//         $imageName = time().'.'.$ext;
+//         $img->move(public_path().'/upload', $imageName);
+    
+//         // تحديث مسار الصورة في قاعدة البيانات
+//         $image->path = $imageName;
+
+//         if ($request->has('description')) {
+//             $image->description = $request->description;
+//         }
+//         $image->save();
+    
+//         return response()->json([
+//             'status' => 'true',
+//             'message' => 'Image updated successfully',
+//             'path' => asset('/upload/'.$imageName),
+//             'data' => $image
+//         ]);
+
+       
+//         // $publish->course_id = $request->course_id;
+//         $publish->save();
+//         return response()->json(['sucssscceccs']);
+// }
+
+public function update_publish(Request $request, $publish_id)
 {
+    // البحث عن الكائن المحدد
     $publish = Publish::find($publish_id);
-    if(!$publish)
-    {
-        return response()->json(['the publish not found']);
+    if (!$publish) {
+        return response()->json(['message' => 'The publish not found']);
     }
-    $validator = Validator::make($request->all(),[
-        'description'=>'required|string',
-        'course_id'=>'required',
+
+    // التحقق من صحة المدخلات
+    $validator = Validator::make($request->all(), [
+        'description' => 'nullable|string',
+        //'course_id' => 'required',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()]);
+    }
+
+    // تحديث الوصف في الكائن Publish إذا كان موجودًا في الطلب
+    if ($request->has('description')) {
+        $publish->description = $request->description;
+    }
+
+    // البحث عن الصورة المرتبطة بالكائن
+    $image = Image::where('publish_id', $publish_id)->first();
+
+    if ($request->hasFile('path')) {
+        // التحقق من صحة الصورة المرفوعة
+        $validator = Validator::make($request->all(), [
+            'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()]);
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Please fix the errors',
+                'errors' => $validator->errors()
+            ]);
         }
 
-        $publish->description = $request->description;
-        $publish->course_id = $request->course_id;
-        $publish->update();
-        return response()->json(['sucssscceccs']);
+        if ($image) {
+            // حذف الصورة القديمة من المجلد إذا كانت موجودة
+            $oldImagePath = public_path() . '/upload/' . $image->path;
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+        } else {
+            // إنشاء كائن جديد للصورة إذا لم يكن موجودًا
+            $image = new Image;
+            $image->publish_id = $publish_id;
+        }
+
+        // رفع الصورة الجديدة
+        $img = $request->file('path');
+        $ext = $img->getClientOriginalExtension();
+        $imageName = time() . '.' . $ext;
+        $img->move(public_path('/upload'), $imageName);
+
+        // تحديث مسار الصورة في قاعدة البيانات
+        $image->path = $imageName;
+    }
+
+    // تحديث الوصف في كائن Image إذا كان موجودًا في الطلب
+    if ($request->has('description')) {
+        $image->description = $request->description;
+    }
+    
+    // حفظ التغييرات في كائن Image
+    if ($image) {
+        $image->save();
+    }
+
+    // حفظ التحديثات في الكائن Publish
+    $publish->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'Publish and image updated successfully',
+        'publish' => $publish,
+        'image' => $image,
+        'path' => isset($imageName) ? asset('/upload/' . $imageName) : null
+    ]);
 }
+
 
 
 

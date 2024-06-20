@@ -61,13 +61,13 @@ class OrderController extends BaseController
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'father_name' => 'required|string',
-            'mother_name'=>'required|string',
+            //'mother_name'=>'required|string',
             'birthday' => 'required|date_format:Y-m-d',
             'gender' => 'required|in:0,1',
             'phone' => 'required|string',
             'address' => 'required|string',
             'email' => 'required|email',
-            'classification' => 'required|in:0,1',
+            //'classification' => 'required|in:0,1',
             //'class' => 'required|string',
             //'year' => 'required|integer',
         ]);
@@ -81,13 +81,14 @@ class OrderController extends BaseController
             $new->first_name = $request->first_name;
             $new->last_name = $request->last_name;
             $new->father_name = $request->father_name;
-            $new->mother_name = $request->mother_name;
+            //$new->mother_name = $request->mother_name;
             $new->birthday = $request->birthday;
             $new->gender = $request->gender;
             $new->phone = $request->phone;
             $new->address = $request->address;
             $new->email = $request->email;
-            $new->classification = $request->classification;
+            $new->student_type = $request->student_type ?? "0";
+            //$new->classification = $request->classification;
             //$new->class = $request->class;
             //$new->year = $request->year;
             $new->course_id = $course_id;

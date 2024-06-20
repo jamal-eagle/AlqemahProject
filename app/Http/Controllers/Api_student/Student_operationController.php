@@ -273,7 +273,8 @@ public function programe_week()
                         if (file_exists($imagePath)) {
                             $result[] = [
                                 'path' => $imagePath,
-                                'image_info' => $i
+                                'image_info' => $i,
+                                'program' => $p
                             ];
                         }
                     }
@@ -397,7 +398,50 @@ if (!empty($result)) {
     ]);
 }
     } 
+
+
+    // public function show_my_profile()
+    // {
+    //     $user = User::where('id',auth()->user()->id)->with('student')->first();
+    //     if ($user->image != null) {
+    //         $i = public_path().'/upload/'.$user->image;
+
+    // if (file_exists($i)) {
+    //     return response()->file($i);
+    // } else {
+    //     return response()->json([
+    //         'status' => 'false',
+    //         'message' => 'Image not found'
+    //     ]);
+    // }
+    //     }
+    //     return $user;
+    // }
     
-    
+    public function show_my_profile()
+{
+    $user = User::where('id', auth()->user()->id)->with('student')->first();
+
+    if ($user && $user->image != null) {
+        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$user->image);
+        // public_path() . '/upload/' . $user->image;
+        if (file_exists($imagePath)) {
+            // إضافة رابط الصورة إلى الكائن
+            $user->image_url = asset('/upload/' . $user->image);
+        } else {
+            // إذا كانت الصورة غير موجودة في المجلد
+            $user->image_url = null;
+        }
+    } else {
+        // إذا لم يكن هناك صورة للمستخدم
+        $user->image_url = null;
+    }
+
+    return response()->json([
+        'status' => 'true',
+        'user' => $user
+    ]);
+}
+
     
 }

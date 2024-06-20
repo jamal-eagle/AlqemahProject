@@ -20,6 +20,9 @@ use App\Models\Out_Of_Work_Employee;
 use App\Models\Out_Of_Work_Student;
 use Illuminate\Support\Carbon;
 use App\Models\Teacher_Schedule;
+use App\Models\Program_Student;
+use App\Models\Image;
+
 class MonetorController extends Controller
 {
     public function student_classification($classification)
@@ -460,11 +463,11 @@ public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month
         return $course;
     }
 
-    public function desplay_publish()
-    {
-        $publish = Publish::get()->all();
-        return response()->json([$publish,'this is all publish']);
-    }
+    // public function desplay_publish()
+    // {
+    //     $publish = Publish::get()->all();
+    //     return response()->json([$publish,'this is all publish']);
+    // }
     public function DisplayOrderNewStudent()
     {
         $order = DB::table('orders')->where('student_id','=',null)->where('course_id','=',null)->get();
@@ -472,56 +475,105 @@ public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month
         return $order;
     }
 
+    // public function add_publish(Request $request)
+    // {
+    // $validator = Validator::make($request->all(),[
+    //     'description'=>'required|string',
+    //     'course_id'=>'required',
+    //     ]);
+
+    // if ($validator->fails()) {
+    //     return response()->json(['errors' => $validator->errors()]);
+    // }
+
+    // $publish = new Publish();
+    // $publish->description = $request->description;
+    // $publish->course_id = $request->course_id;
+    // $publish->save();
+    // return response()->json(['sucssscceccs']);
+    // }
+
+    // public function delete_publish($publish_id)
+    // {
+    //     $publish = Publish::find($publish_id);
+    //     if(!$publish)
+    //     {
+    //         return response()->json(['the publish not found or was deleted  ']);
+    //     }
+    //     $publish->delete();
+    //     return response()->json(['the publish  deleted  ']);
+
+    // }
+
     public function add_publish(Request $request)
-    {
+{
     $validator = Validator::make($request->all(),[
         'description'=>'required|string',
-        'course_id'=>'required',
+        //'course_id'=>'required',
         ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()]);
-    }
-
-    $publish = new Publish();
-    $publish->description = $request->description;
-    $publish->course_id = $request->course_id;
-    $publish->save();
-    return response()->json(['sucssscceccs']);
-    }
-
-    public function delete_publish($publish_id)
-    {
-        $publish = Publish::find($publish_id);
-        if(!$publish)
-        {
-            return response()->json(['the publish not found or was deleted  ']);
-        }
-        $publish->delete();
-        return response()->json(['the publish  deleted  ']);
-
-    }
-        public function update_publish(Request $request,$publish_id)
-    {
-        $publish = Publish::find($publish_id);
-        if(!$publish)
-        {
-            return response()->json(['the publish not found']);
-        }
-        $validator = Validator::make($request->all(),[
-            'description'=>'required|string',
-            'course_id'=>'required',
-            ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()]);
         }
 
+        $publish = new Publish();
         $publish->description = $request->description;
-        $publish->course_id = $request->course_id;
-        $publish->update();
-        return response()->json(['sucssscceccs']);
+        //$publish->course_id = $request->course_id ?? null;
+        $publish->save();
+
+        if ($request->path) {
+            $validator = Validator::make($request->all(),[
+                'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+            ]);
+        
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Please fix the errors',
+                    'errors' => $validator->errors()
+                ]);
+            }
+        
+            $img = $request->path;
+            $ext = $img->getClientOriginalExtension();
+            $imageName = time().'.'.$ext;
+            $img->move(public_path().'/upload',$imageName);
+        
+            $image = new Image;
+            $image->path = $imageName;
+            $image->description = $request->description;
+            $image->publish_id = $publish->id;
+    
+            $image->save();
+        
+            return response()->json([
+                'status' => 'true',
+                'message' => 'image upload success',
+                'path' => asset('/upload/'.$imageName),
+                'data' => $image
+            ]);
+            return response()->json(['sucssscceccs with img']);
+        }
+
+        else {
+            return response()->json(['sucssscceccs']);
+        }
+        
+        
+}
+
+public function delete_publish($publish_id)
+{
+    $publish = Publish::find($publish_id);
+    if(!$publish)
+    {
+        return response()->json(['the publish not found or was deleted  ']);
     }
+    $publish->delete();
+    $image = Image::where('publish_id', $publish->id)->delete();
+    return response()->json(['the publish  deleted  ']);
+
+}
 
 public function add_mark_to_student(Request $request, $student_id)
     {
@@ -639,6 +691,136 @@ public function order_on_course($cousre_id)
 }
 
 
+
+
+public function upload_program_section(Request $request, $section_id)
+{
+    $program = new Program_Student;
+    $program->type = $request->type;
+    $program->section_id = $section_id;
+
+    $program->save();
+
+    $validator = Validator::make($request->all(),[
+        'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
+
+    $img = $request->path;
+    $ext = $img->getClientOriginalExtension();
+    $imageName = time().'.'.$ext;
+    $img->move(public_path().'/upload',$imageName);
+
+    $image = new Image;
+    $image->path = $imageName;
+    $image->description = $request->description ?? null;
+    $image->program_student_id = $program->id;
+    $image->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'image upload success',
+        'path' => asset('/upload/'.$imageName),
+        'data' => $image
+    ]);
+
+}
+
+//حذف برنامج محدد لشعبة
+public function delete_program($id)
+{
+    $image = Image::where('program_student_id', $id)->first();
+    $program = Program_Student::find($id)->delete();
+
+    // حذفت الملف من المجلد يلي خزنتو في
+    $imagePath = public_path().'/upload/'.$image->path;
+    if(file_exists($imagePath)) {
+        unlink($imagePath);
+    }
+
+    // حذفت الملف من الداتا عندي
+    $image->delete();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'Image deleted successfully'
+    ]);
+}
+
+//تعديل برنامج لشعبة
+public function update_program_section(Request $request, $program_id)
+{
+    $program = Program_Student::find($program_id);
+    // $program->type = $request->type ?? $program->type;
+    if ($request->has('type')) {
+        $program->type = $request->type;
+        $program->save();
+    }
+
+    $image = Image::where('program_student_id', $program_id)->first();
+
+    if ($request->has('description')) {
+        $image->description = $request->description;
+        $image->save();
+    }
+
+    if ($request->has('path')) {
+        $validator = Validator::make($request->all(),[
+            'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Please fix the errors',
+                'errors' => $validator->errors()
+            ]);
+        }
+    
+        // استرجاع الصورة القديمة بناءً على الـ ID
+        // $image = Image::find($id);
+    
+        if (!$image) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Image not found'
+            ]);
+        }
+    
+        // حذف الصورة القديمة من المجلد إذا كانت موجودة
+        $oldImagePath = public_path().'/upload/'.$image->path;
+        if (file_exists($oldImagePath)) {
+            unlink($oldImagePath);
+        }
+    
+        // رفع الصورة الجديدة
+        $img = $request->path;
+        $ext = $img->getClientOriginalExtension();
+        $imageName = time().'.'.$ext;
+        $img->move(public_path().'/upload', $imageName);
+    
+        // تحديث مسار الصورة في قاعدة البيانات
+        $image->path = $imageName;
+        $image->save();
+    
+        return response()->json([
+            'status' => 'true',
+            'message' => 'Image updated successfully',
+            'path' => asset('/upload/'.$imageName),
+            'data' => $image
+        ]);
+    }    
+    
+
+
+}
 
 
 }

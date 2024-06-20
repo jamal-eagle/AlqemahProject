@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Image;
 use App\Models\Image_Archive;
 use App\Models\File_Archive;
+use Illuminate\Http\UploadedFile;
 
 class TeacherController extends Controller
 {
@@ -97,7 +98,7 @@ class TeacherController extends Controller
 
     }
 
-    //عرض صور و ملفات المادة التي يعطيها للسنة الحاليةzahraa
+    //عرض صور و ملفات المادة التي يعطيها للسنة الحالية
 public function display_file_subject($subject_id)
 {
     // $user= User::where('id',auth()->user()->id)->first();
@@ -154,13 +155,54 @@ public function display_file_subject($subject_id)
 
 }
 
-//حذف ملف أو صورة من ملفات السنة الحاليةzahraa
-public function delete_file_image()
+//حذف ملف أو صورة من ملفات السنة الحالية أو الأرشيفzahraa
+public function delete_file_image($file_img_id, $imgFileName)
 {
+    $img = Image_Archive::find($file_img_id);
+    $file = File_Archive::find($file_img_id);
+
+    if ($img->name == $imgFileName) {
+        // $img->delete();
+        // return "delete image";
+
+        // $image = Image::findOrFail($id);
+
+    // حذفت الملف من المجلد يلي خزنتو في
+    $imagePath = public_path().'/upload/'.$img->name;
+    if(file_exists($imagePath)) {
+        unlink($imagePath);
+    }
+
+    // حذفت الملف من الداتا عندي
+    $img->delete();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'Image deleted successfully'
+    ]);
+    }
+    elseif ($file->name == $imgFileName) {
+        // $file->delete();
+        // return "delete file";
+        // حذفت الملف من المجلد يلي خزنتو في
+    $filePath = public_path().'/upload/'.$file->name;
+    if(file_exists($filePath)) {
+        unlink($filePath);
+    }
+
+    // حذفت الملف من الداتا عندي
+    $file->delete();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'File deleted successfully'
+    ]);
+    } 
+        return "you do not have";
 
 }
 
-//رفع ملفات و صور للسنة الحالية
+//رفع ملفات و صور للسنة الحاليةzahraa
 public function upload_file_image(Request $request, $subject_id)
 {
     $validator = Validator::make($request->all(),[
@@ -180,7 +222,7 @@ public function upload_file_image(Request $request, $subject_id)
     $imgFileName = time().'.'.$ext;
     $img->move(public_path().'/upload',$imgFileName);
 
-    if ($ext=="png"||"jpg"||"jpeg"||"gif") {
+    if ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif") {
         $image = new Image_Archive;
     $image->name = $imgFileName;
     $image->description = $request->description;
@@ -195,7 +237,7 @@ public function upload_file_image(Request $request, $subject_id)
     ]);
     }
     
-    elseif ($ext=="pdf"||"docx"||"txt") {
+    elseif ($ext=="pdf" || $ext=="docx" || $ext=="txt") {
         $file = new File_Archive;
     $file->name = $imgFileName;
     $file->description = $request->description;
@@ -210,21 +252,257 @@ public function upload_file_image(Request $request, $subject_id)
     ]);
     }
 
-
-
-
-    // $image = new Image;
-    // $image->name = $imageName;
-    // $image->save();
-
-    // return response()->json([
-    //     'status' => 'true',
-    //     'message' => 'image upload success',
-    //     'path' => asset('/upload/'.$imageName),
-    //     'data' => $image
-    // ]);
-
 }
+
+public function update_file_image(Request $request, $id)
+{
+    // التحقق من صحة البيانات المدخلة
+    $validator = Validator::make($request->all(), [
+        'name' => 'sometimes|mimes:png,jpg,jpeg,gif,pdf,docx,txt',
+        'description' => 'sometimes|string',
+        'archive_id' => 'sometimes|integer'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
+
+    // البحث عن الملف أو الصورة في قاعدة البيانات
+    $image = Image_Archive::find($id);
+    $file = File_Archive::find($id);
+    
+    
+
+    if (!$image && !$file) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'File or image not found'
+        ]);
+    }
+
+    // إذا تم تقديم ملف جديد
+if ($request->hasFile('name')) {
+    $img = $request->name;
+    $ext = $img->getClientOriginalExtension();
+    $imgFileName = time() . '.' . $ext;
+    $img->move(public_path() . '/upload', $imgFileName);
+
+    // تحديث السجل بناءً على النوع (صورة أو ملف)
+    if ($image) {
+        $extension = $image->getClientOriginalExtension();
+        if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
+                    if ($request->has('description')) {
+            $image->description = $request->description;
+        }
+        if ($request->has('archive_id')) {
+            $image->archive_id = $request->archive_id;
+        }
+        
+        $image->save();
+
+        return response()->json([
+            'status' => 'true',
+            'message' => 'Image updated successfully',
+            'data' => $image
+        ]);
+    }
+} elseif ($file) {
+    $extension = $file->getClientOriginalExtension();
+    if (in_array($extension, ['pdf', 'doc', 'docx', 'txt'])) {
+        if ($request->has('description')) {
+            $file->description = $request->description;
+        }
+        if ($request->has('archive_id')) {
+            $file->archive_id = $request->archive_id;
+        }
+        $file->save();
+        
+        return response()->json([
+            'status' => 'true',
+            'message' => 'File updated successfully',
+            'data' => $file
+        ]);
+    }
+}
+}
+//     if ($image) {
+//         // تحديث السجل في جدول الصور
+//         $image->name = $imgFileName;
+//         $image->save();
+//     } elseif ($file) {
+//         // تحديث السجل في جدول الملفات
+//         $file->name = $imgFileName;
+//         $file->save();
+//     }
+// }
+
+// // تحديث السجل بناءً على النوع (صورة أو ملف)
+// if ($image) {
+//     $ext_img = pathinfo($image->name, PATHINFO_EXTENSION);
+//     if (in_array($ext_img, ['png', 'jpg', 'jpeg', 'gif'])) {
+//         $ext_img = pathinfo($image->name, PATHINFO_EXTENSION);
+//         if (($ext_img=="png" || $ext_img=="jpg" || $ext_img=="jpeg" || $ext_img=="gif") || ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif")) {
+//             if ($request->has('description')) {
+//                 $image->description = $request->description;
+//             }
+//             if ($request->has('archive_id')) {
+//                 $image->archive_id = $request->archive_id;
+//             }
+            
+//             $image->save();
+    
+//             return response()->json([
+//                 'status' => 'true',
+//                 'message' => 'Image updated successfully',
+//                 'data' => $image
+//             ]);
+//         }
+//     }
+// } elseif ($file) {
+//     $ext_file = pathinfo($file->name, PATHINFO_EXTENSION);
+//     if (in_array($ext_file, ['pdf', 'docx', 'txt'])) {
+//         $ext_file = pathinfo($file->name, PATHINFO_EXTENSION);
+//             if (($ext_file=="pdf" || $ext_file=="docx" || $ext_file=="txt") || ($ext=="pdf" || $ext=="docx" || $ext=="txt")) {
+//                 if ($request->has('description')) {
+//                     $file->description = $request->description;
+//                 }
+//                 if ($request->has('archive_id')) {
+//                     $file->archive_id = $request->archive_id;
+//                 }
+//                 $file->save();
+        
+//                 return response()->json([
+//                     'status' => 'true',
+//                     'message' => 'File updated successfully',
+//                     'data' => $file
+//                 ]);
+//             }
+//     }
+// }
+
+
+    // // إذا تم تقديم ملف جديد
+    // if ($request->hasFile('name')) {
+    //     $img = $request->name;
+    //     $ext = $img->getClientOriginalExtension();
+    //     $imgFileName = time() . '.' . $ext;
+    //     $img->move(public_path() . '/upload', $imgFileName);
+
+    //     if ($image) {
+    //         $image->name = $imgFileName;
+    //     } elseif ($file) {
+    //         $file->name = $imgFileName;
+    //     }
+    // }
+
+    // // تحديث السجل بناءً على النوع (صورة أو ملف)
+    // if ($image) {
+    //     $ext_img = pathinfo($image->name, PATHINFO_EXTENSION);
+    //     if (($ext_img=="png" || $ext_img=="jpg" || $ext_img=="jpeg" || $ext_img=="gif") || ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif")) {
+    //         if ($request->has('description')) {
+    //             $image->description = $request->description;
+    //         }
+    //         if ($request->has('archive_id')) {
+    //             $image->archive_id = $request->archive_id;
+    //         }
+            
+    //         $image->save();
+    
+    //         return response()->json([
+    //             'status' => 'true',
+    //             'message' => 'Image updated successfully',
+    //             'data' => $image
+    //         ]);
+    //     }
+    //     elseif ($file) {
+    //         $ext_file = pathinfo($file->name, PATHINFO_EXTENSION);
+    //         if (($ext_file=="pdf" || $ext_file=="docx" || $ext_file=="txt") || ($ext=="pdf" || $ext=="docx" || $ext=="txt")) {
+    //             if ($request->has('description')) {
+    //                 $file->description = $request->description;
+    //             }
+    //             if ($request->has('archive_id')) {
+    //                 $file->archive_id = $request->archive_id;
+    //             }
+    //             $file->save();
+        
+    //             return response()->json([
+    //                 'status' => 'true',
+    //                 'message' => 'File updated successfully',
+    //                 'data' => $file
+    //             ]);
+            // }
+            
+            
+        // } 
+    // } 
+}
+
+// public function update_file_image(Request $request, $id)
+// {
+//     // التحقق من صحة البيانات المدخلة
+//     $validator = Validator::make($request->all(),[
+//         'description' => 'sometimes|string',
+//         'archive_id' => 'sometimes|integer'
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'Please fix the errors',
+//             'errors' => $validator->errors()
+//         ]);
+//     }
+
+//     // البحث عن الملف أو الصورة في قاعدة البيانات
+//     $image = Image_Archive::find($id);
+//     $file = File_Archive::find($id);
+//     pathinfo($image->name, PATHINFO_EXTENSION);
+
+//     if (!$image && !$file) {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'File or image not found'
+//         ]);
+//     }
+
+//     // تحديث السجل بناءً على النوع (صورة أو ملف)
+//     if ($image) {
+//         if ($request->has('description')) {
+//             $image->description = $request->description;
+//         }
+//         if ($request->has('archive_id')) {
+//             $image->archive_id = $request->archive_id;
+//         }
+//         $image->save();
+
+//         return response()->json([
+//             'status' => 'true',
+//             'message' => 'Image updated successfully',
+//             'data' => $image
+//         ]);
+//     } elseif ($file) {
+//         if ($request->has('description')) {
+//             $file->description = $request->description;
+//         }
+//         if ($request->has('archive_id')) {
+//             $file->archive_id = $request->archive_id;
+//         }
+//         $file->save();
+
+//         return response()->json([
+//             'status' => 'true',
+//             'message' => 'File updated successfully',
+//             'data' => $file
+//         ]);
+//     }
+// }
+
+
+
 
     //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
     public function display_year_archive($subject_id)
@@ -276,16 +554,57 @@ public function upload_file_image(Request $request, $subject_id)
         }
     }
 
-//حذف ملف أو صورة من ملفات الأرشيفzahraa
-public function delete_file_image_archive()
+//رفع ملف أو صورة من ملفات الأرشيف
+public function upload_file_image_archive(Request $request,$subject_id, $archive_id)
 {
+    // public function upload_file_image(Request $request, $subject_id)
+    $validator = Validator::make($request->all(),[
+        'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+    ]);
 
-}
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
 
-//رفع ملف أو صورة من ملفات الأرشيفzahraa
-public function upload_file_image_archive()
-{
+    $img = $request->name;
+    $ext = $img->getClientOriginalExtension();
+    $imgFileName = time().'.'.$ext;
+    $img->move(public_path().'/upload',$imgFileName);
+
+    if ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif") {
+        $image = new Image_Archive;
+    $image->name = $imgFileName;
+    $image->description = $request->description;
+    $image->archive_id = $archive_id;
+    $image->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'image upload success',
+        'path' => asset('/upload/'.$imgFileName),
+        'data' => $image
+    ]);
+    }
     
+    elseif ($ext=="pdf" || $ext=="docx" || $ext=="txt") {
+        $file = new File_Archive;
+    $file->name = $imgFileName;
+    $file->description = $request->description;
+    $file->archive_id = $archive_id;
+    $file->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'file upload success',
+        'path' => asset('/upload/'.$imgFileName),
+        'data' => $file
+    ]);
+    
+}
 }
 
 //الصفوف الذي يعطيه المدرس
@@ -521,6 +840,55 @@ public function delete($id)
     ]);
 }
 
+//تابع تعديل
+public function update_image(Request $request, $id)
+{
+    // التحقق من المدخلات
+    $validator = Validator::make($request->all(),[
+        'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
+
+    // استرجاع الصورة القديمة بناءً على الـ ID
+    $image = Image::find($id);
+
+    if (!$image) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Image not found'
+        ]);
+    }
+
+    // حذف الصورة القديمة من المجلد إذا كانت موجودة
+    $oldImagePath = public_path().'/upload/'.$image->path;
+    if (file_exists($oldImagePath)) {
+        unlink($oldImagePath);
+    }
+
+    // رفع الصورة الجديدة
+    $img = $request->path;
+    $ext = $img->getClientOriginalExtension();
+    $imageName = time().'.'.$ext;
+    $img->move(public_path().'/upload', $imageName);
+
+    // تحديث مسار الصورة في قاعدة البيانات
+    $image->path = $imageName;
+    $image->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'Image updated successfully',
+        'path' => asset('/upload/'.$imageName),
+        'data' => $image
+    ]);
+}
 
 
 
