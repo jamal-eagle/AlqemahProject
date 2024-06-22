@@ -126,32 +126,71 @@ class ParenttController extends Controller
     // }
 
 
-    public function homework_subject_my_sun($student_id,$subject_id)
+//     public function homework_subject_my_sun($student_id,$subject_id)
+// {
+//     $student = Student::where('id', $student_id)->first();
+//     $year = $student->user->year;
+//     $homework = Homework::where('year',$year)->where('subject_id', $subject_id)->get();
+//     $result = [];
+//     foreach ($homework as $h) {
+//         $accessori = Accessories::where('home_work_id',$h->id)->get();
+//         $homework_info = [
+//             'homework_info' => $h,
+//             'file_image_info' => []
+//         ];
+//         foreach ($accessori as $a) {
+//             $homework_path = str_replace('\\', '/', public_path().'/upload/'.$a->path);
+//             if (file_exists($homework_path)) {
+//                 $homework_info['file_image_info'][] = [
+//                     'path' => $homework_path,
+//                     'file_image_info' => $a
+//                 ];    
+//             }
+//         }
+//         if (!empty($homework_info['file_image_info'])) {
+//             $result[] = $homework_info;
+//         }
+//     }
+    
+//     if (!empty($result)) {
+//         return $result;
+//     } else {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'No images found'
+//         ]);
+//     }
+// }
+
+public function homework_subject_my_sun($student_id,$subject_id)
 {
     $student = Student::where('id', $student_id)->first();
     $year = $student->user->year;
-    $homework = Homework::where('year',$year)->where('subject_id', $subject_id)->get();
+
+    $homework = Homework::where('year', $year)->where('subject_id', $subject_id)->get();
     $result = [];
+
     foreach ($homework as $h) {
-        $accessori = Accessories::where('home_work_id',$h->id)->get();
+        $accessories = Accessories::where('home_work_id', $h->id)->get();
         $homework_info = [
             'homework_info' => $h,
             'file_image_info' => []
         ];
-        foreach ($accessori as $a) {
-            $homework_path = str_replace('\\', '/', public_path().'/upload/'.$a->path);
+
+        foreach ($accessories as $a) {
+            $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
+
             if (file_exists($homework_path)) {
                 $homework_info['file_image_info'][] = [
                     'path' => $homework_path,
                     'file_image_info' => $a
-                ];    
+                ];
             }
         }
-        if (!empty($homework_info['file_image_info'])) {
-            $result[] = $homework_info;
-        }
+
+        $result[] = $homework_info;
     }
-    
+
     if (!empty($result)) {
         return $result;
     } else {

@@ -202,6 +202,13 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
 
     route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReportReport']);
 
+    //رفع برنامج لشعبة محددة
+    Route::post('upload_program_section/{section_id}',[MonetorController::class,'upload_program_section']);
+    //حذف برنامج
+    Route::delete('delete_program_section/{id}',[MonetorController::class,'delete_program']);
+    //تعديل برنامج
+    Route::post('update_program_section/{program_id}',[MonetorController::class,'update_program_section']);
+
 });
 
 Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){
@@ -242,7 +249,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //عرض معلومات دورة معينة
     Route::get('/info_course/{id_course}',[MonetorController::class,'info_course']);
     ////  عرض الاعلانات
-    route::get('/desplay_publish', [MonetorController::class, 'desplay_publish']);
+    //route::get('/desplay_publish', [MonetorController::class, 'desplay_publish']);//استخدم بدل عنه تبع كل المستخدمين
     //عرض طلبات التسجيل بالمعهد
     Route::get('/display_order',[MonetorController::class,'DisplayOrderNewStudent']);
     // //عرض طلبات التسجيل في دورة معينة
@@ -252,7 +259,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //حذف اعلان
     route::delete('/delete_publish/{publish_id}', [MonetorController::class, 'delete_publish']);
     //تعديل اعلان
-    route::post('/update_publish/{publish_id}', [MonetorController::class, 'update_publish']);
+    route::post('/update_publish/{publish_id}', [AdminOperationController::class, 'update_publish']);
     //اضافة علامة طالب
     route::post('/add_mark_to_student/{student_id}', [MonetorController::class, 'add_mark_to_student']);
     //تعديل علامة طالب
@@ -263,6 +270,15 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
+    //رفع برنامج لشعبة محددة
+    Route::post('upload_program_section/{section_id}',[MonetorController::class,'upload_program_section']);
+    //حذف برنامج
+    Route::delete('delete_program_section/{id}',[MonetorController::class,'delete_program']);
+    //تعديل برنامج
+    Route::post('update_program_section/{program_id}',[MonetorController::class,'update_program_section']);
+    
+    
+    
 });
 
 /*******************************************************student*******************************************************/
@@ -304,6 +320,10 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     Route::get('/all_course',[DisplayController::class,'all_course']);
     //عرض معلومات دورة معينة
     Route::get('/info_course/{id_course}',[DisplayController::class,'info_course']);
+    //عرض معلومات الطالب و صورته
+    Route::get('/show_my_profile',[Student_operationController::class,'show_my_profile']);
+
+    
 
 });
 
@@ -380,7 +400,12 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     //عرض كل الطلاب الذين أدرسهم
     Route::get('/display_all_students_I_teach',[TeacherController::class,'display_all_students_I_teach']);
     //رفع ملف أو صورة لملفات السنة الحاليةzahraa
+    Route::post('/upload_file_image/{subject_id}',[TeacherController::class,'upload_file_image']);
     //رفع ملف أو صورة لملفات الأرشيفzahraa
+    Route::post('/upload_file_image_archive/{subject_id}/{archive_id}',[TeacherController::class,'upload_file_image_archive']);
+    Route::delete('/delete_file_image/{file_img_id}/{imgFileName}',[TeacherController::class,'delete_file_image']);
+    Route::post('/update-file-image/{id}', [TeacherController::class,'update_file_image']);
+
 });
 
 

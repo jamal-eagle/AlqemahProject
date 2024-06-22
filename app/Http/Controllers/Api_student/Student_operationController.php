@@ -90,6 +90,7 @@ class Student_operationController extends BaseController
     public function orderCourse($course_id)
     {
         $user = User::where('id',auth()->user()->id)->first();
+        $student = Student::where('user_id', auth()->user()->id)->first();
         $new = new Order;
 
         $new->first_name = $user->first_name;
@@ -104,6 +105,8 @@ class Student_operationController extends BaseController
         $new->classification = $user->classification;
         //$new->class = $request->class;
         //$new->year = $request->year;
+        $new->student_type = $student->student_type;
+        $new->student_id = $student->id;
         $new->course_id = $course_id;
         $new->save();
         return $this->responseData("success",$new);
@@ -162,35 +165,76 @@ class Student_operationController extends BaseController
         
     //     // return $homework;
     // }
-    public function homework_subject($subject_id)
+//     public function homework_subject($subject_id)
+// {
+//     $user= User::where('id',auth()->user()->id)->first();
+//     if (!$user) {
+//         return response()->json(['error' => 'user not found'], 404);
+//     }
+
+//     $homework = Homework::where('year',$user->year)->where('subject_id', $subject_id)->get();
+//     $result = [];
+//     foreach ($homework as $h) {
+//         $accessori = Accessories::where('home_work_id',$h->id)->get();
+//         $homework_info = [
+//             'homework_info' => $h,
+//             'file_image_info' => []
+//         ];
+//         foreach ($accessori as $a) {
+//             $homework_path = str_replace('\\', '/', public_path().'/upload/'.$a->path);
+//             if (file_exists($homework_path)) {
+//                 $homework_info['file_image_info'][] = [
+//                     'path' => $homework_path,
+//                     'file_image_info' => $a
+//                 ];    
+//             }
+//         }
+//         if (!empty($homework_info['file_image_info'])) {
+//             $result[] = $homework_info;
+//         }
+//     }
+    
+//     if (!empty($result)) {
+//         return $result;
+//     } else {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'No images found'
+//         ]);
+//     }
+// }
+public function homework_subject($subject_id)
 {
-    $user= User::where('id',auth()->user()->id)->first();
+    $user = User::where('id', auth()->user()->id)->first();
+
     if (!$user) {
         return response()->json(['error' => 'user not found'], 404);
     }
 
-    $homework = Homework::where('year',$user->year)->where('subject_id', $subject_id)->get();
+    $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->get();
     $result = [];
+
     foreach ($homework as $h) {
-        $accessori = Accessories::where('home_work_id',$h->id)->get();
+        $accessories = Accessories::where('home_work_id', $h->id)->get();
         $homework_info = [
             'homework_info' => $h,
             'file_image_info' => []
         ];
-        foreach ($accessori as $a) {
-            $homework_path = str_replace('\\', '/', public_path().'/upload/'.$a->path);
+
+        foreach ($accessories as $a) {
+            $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
+
             if (file_exists($homework_path)) {
                 $homework_info['file_image_info'][] = [
                     'path' => $homework_path,
                     'file_image_info' => $a
-                ];    
+                ];
             }
         }
-        if (!empty($homework_info['file_image_info'])) {
-            $result[] = $homework_info;
-        }
+
+        $result[] = $homework_info;
     }
-    
+
     if (!empty($result)) {
         return $result;
     } else {
@@ -200,6 +244,7 @@ class Student_operationController extends BaseController
         ]);
     }
 }
+
 
 
     // public function Read_File($accessori_id)
@@ -228,7 +273,8 @@ public function programe_week()
                         if (file_exists($imagePath)) {
                             $result[] = [
                                 'path' => $imagePath,
-                                'image_info' => $i
+                                'image_info' => $i,
+                                'program' => $p
                             ];
                         }
                     }
@@ -352,7 +398,50 @@ if (!empty($result)) {
     ]);
 }
     } 
+
+
+    // public function show_my_profile()
+    // {
+    //     $user = User::where('id',auth()->user()->id)->with('student')->first();
+    //     if ($user->image != null) {
+    //         $i = public_path().'/upload/'.$user->image;
+
+    // if (file_exists($i)) {
+    //     return response()->file($i);
+    // } else {
+    //     return response()->json([
+    //         'status' => 'false',
+    //         'message' => 'Image not found'
+    //     ]);
+    // }
+    //     }
+    //     return $user;
+    // }
     
-    
+    public function show_my_profile()
+{
+    $user = User::where('id', auth()->user()->id)->with('student')->first();
+
+    if ($user && $user->image != null) {
+        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$user->image);
+        // public_path() . '/upload/' . $user->image;
+        if (file_exists($imagePath)) {
+            // إضافة رابط الصورة إلى الكائن
+            $user->image_url = asset('/upload/' . $user->image);
+        } else {
+            // إذا كانت الصورة غير موجودة في المجلد
+            $user->image_url = null;
+        }
+    } else {
+        // إذا لم يكن هناك صورة للمستخدم
+        $user->image_url = null;
+    }
+
+    return response()->json([
+        'status' => 'true',
+        'user' => $user
+    ]);
+}
+
     
 }
