@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('phone');
             $table->string('address');
             $table->string('image')->nullable();
+            $table->string('year');
             $table->string('email')->unique();
             $table->string('password');
             $table->string('conf_password');

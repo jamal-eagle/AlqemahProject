@@ -42,9 +42,10 @@ class AdminOperationController extends BaseController
         ]);
 
         // check email
-        $user = User::where("email", "=", $request->email);
+        $user = User::where("email", "=", $request->email)->where('status' , 1);
 if($user){
     $user = User::where("email", "=", $request->email)->first();
+    if($user->status == 0){
     if(isset($user->id)){
         if(Hash::check($request->password, $user->password)){
             // create a token
@@ -55,7 +56,9 @@ if($user){
         'token'=>$token,
     ]);
         }
-    }else{
+    }
+}
+    else{
         $parent = Parentt::where("email", "=", $request->email)->first();
     if(isset($parent->id)){
         if(Hash::check($request->password, $parent->password)){
@@ -95,32 +98,35 @@ if($user){
 
     public function register_student(Request $request, $order_id)
 {
+
     // جلب الطلب حسب المعرف
     $order = Order::find($order_id);
-
     // التحقق من صحة البيانات الأولية
+    $user = new User();
+        $email = $order->first_name . Str::random(5) . "@gmail.com";
+        $password = $order->first_name . Str::random(6);
+        $user->first_name = $order->first_name;
+        $user->last_name = $order->last_name;
+        $user->father_name = $order->father_name;
+        $user->mother_name = $order->mother_name;
+        $user->birthday = $order->birthday;
+        $user->gender = $order->gender;
+        $user->phone = $order->phone;
+        $user->address = $order->address;
+        $user->year = $order->year;
+        $user->email = $email;
+        $user->password = Hash::make($password);
+        $user->conf_password = Hash::make($password);
+        $user->user_type = 'student';
+        $user->save();
 
 
     // إنشاء البريد الإلكتروني وكلمة المرور تلقائيًا
-    $email = $order->first_name . Str::random(5) . "@gmail.com";
-    $password = $order->first_name . Str::random(6);
+
 
     // إنشاء المستخدم الجديد
-    $user = new User();
-    $user->first_name = $order->first_name;
-    $user->last_name = $order->last_name;
-    $user->father_name = $order->father_name;
-    $user->mother_name = $order->mother_name;
-    $user->birthday = $order->birthday;
-    $user->gender = $order->gender;
-    $user->phone = $order->phone;
-    $user->address = $order->address;
-    $user->year = $order->year;
-    $user->email = $email;
-    $user->password = Hash::make($password);
-    $user->conf_password = Hash::make($password);
-    $user->user_type = 'student';
-    $user->save();
+
+
 
     // التحقق من صحة البيانات الثانوية
     $validator1 = Validator::make($request->all(), [
@@ -141,7 +147,7 @@ if($user){
     $student->class_id = $request->class_id;
     $student->section_id = $request->section_id;
     $student->parentt_id = $request->parentt_id;
-    $student->student_type = $order->student_type;
+    $student->student_type = $order->student_type ?: $request->student_type;
 
     // تعيين التصنيف إذا كان الطالب من فئة البكالوريا
     if ($request->student_type == 0 ) {
@@ -163,6 +169,94 @@ if($user){
     // إرجاع بيانات الدخول
     return response()->json([$user->email, $password]);
 }
+
+
+public function register_student1(Request $request){
+
+
+        $validator3 = Validator::make($request->all(), [
+            'first_name' => 'required',
+            'last_name' => 'required|string',
+            'father_name' => 'required|string',
+            'mother_name' => 'required|string',
+            'birthday' => 'required|date',
+            'gender'=>'required',
+            'year'=>'required',
+            'phone' => 'required',
+            'address' => 'required',
+            'email'=>'required|email',
+            'password' => 'required|min:8',
+            'conf_password' => 'required|min:8',
+        ]);
+
+        if ($validator3->fails()) {
+            return $this->responseError(['errors' => $validator3->errors()]);
+        }
+
+        $user = new User();
+
+        $password  = $request->password;
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->father_name = $request->father_name;
+        $user->mother_name = $request->mother_name;
+        $user->birthday = $request->birthday;
+        $user->gender = $request->gender;
+        $user->phone = $request->phone;
+        $user->address = $request->address;
+        $user->year = $request->year;
+        $user->email = $request->email;
+        $user->password = Hash::make($password);
+        $user->conf_password = Hash::make($password);
+        $user->user_type = 'student';
+        $user->save();
+
+        $validator1 = Validator::make($request->all(), [
+            'school_tuition' => 'required',
+            'class_id' => 'required',
+            'section_id' => 'required',
+            'parentt_id' => 'required',
+            'student_type'=>'required',
+        ]);
+
+        if ($validator1->fails()) {
+            return $this->responseError(['errors' => $validator1->errors()]);
+        }
+
+        // إنشاء سجل الطالب الجديد
+        $student = new Student();
+        $student->school_tuition = $request->school_tuition;
+        $student->user_id = $user->id;
+        $student->class_id = $request->class_id;
+        $student->section_id = $request->section_id;
+        $student->parentt_id = $request->parentt_id;
+        $student->student_type = $request->student_type;
+
+        // تعيين التصنيف إذا كان الطالب من فئة البكالوريا
+        if ($request->student_type == 0 ) {
+            $validator2 = Validator::make($request->all(), [
+                'calssification' => 'required|in:0,1', // 0 للعلمي، 1 للأدبي
+            ]);
+
+            if ($validator2->fails()) {
+                return $this->responseError(['errors' => $validator2->errors()]);
+            }
+
+            $student->calssification = $request->calssification;
+        } else {
+            $student->calssification = null;
+        }
+
+        $student->save();
+
+        // إرجاع بيانات الدخول
+        return response()->json([$user->email, $password]);
+    }
+
+
+
+
+
 
 
     public function register_parentt(Request $request){
@@ -191,7 +285,7 @@ if($user){
         $parentt->conf_password = Hash::make($request->conf_password);
 
         $parentt->save();
-
+        return response()->json([$parentt->email, $parentt->password]);
 
 
     }
@@ -410,27 +504,29 @@ public function delete_teacher($teacher_id)
         $new->save();
     }
 
-    public function student_classification($calssification)
-    {
-        if($calssification == 1){
-        $stud =Student::where('calssification' ,'=', 1) ->with('user')
-        ->get()
-        ->map(function ($student) {
-            return $student->user;
-        });
-       // $student = User::where($stud->user_id, 'id')->get()->all();
-            return response()->json([$stud]);
+public function student_classification($calssification,$year)
+{
+    if($calssification == 1){
+        $stud =Student::where('calssification' ,'=', 1)->where('year',$year)
+        ->get();
+        foreach($stud as $stud)
+        {
+            echo $stud->user->first_name ."  " .$stud->user->last_name;
+            echo $stud->classs->name;
+            echo $stud->section->num_section;
+        }
+
     }
     else {
-        $stud =Student::where('calssification' ,'=', 0) ->with('user')
-        ->get()
-        ->map(function ($student) {
-            return $student->user;
-        });
-        //$student = User::where($stud->user_id, 'id')->get()->all();
-            return response()->json([$stud]);
+        $stud =Student::where('calssification' ,'=', 0)->where('year',$year)->get();
+        foreach($stud as $stud)
+        {
+            echo $stud->user->first_name ."  " .$stud->user->last_name;
+            echo $stud->classs->name;
+            echo $stud->section->num_section;
+        }
     }
-    }
+}
 
 public function disply_all_student_here($year)
 {
@@ -941,7 +1037,7 @@ public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month
 
 
 
-public function desplay_section_for_classs($class_id)
+public function desplay_section_for_classs($class_id,$year)
 {
     $classs = Classs::find($class_id);
     if(!$classs)
@@ -955,8 +1051,9 @@ public function desplay_section_for_classs($class_id)
 
 public function desplay_all_student_regester($year)
 {
-    $student = User::where('year',$year)->where('user_type', 'student')->get();
-    return response()->json([$student,'all student regester here']);
+    $student = User::where('year',$year)->where('status',1)
+    ->where('user_type', 'student')->get();
+    return $student;
 }
 
 public function desplay_classs_and_section()
@@ -991,25 +1088,38 @@ public function update_profile_student(Request $request,$student_id)
             return response()->json('the student not found ');
         }
         $validator = Validator::make($request->all(),[
+            'first_name' => 'required',
+            'last_name' => 'required|string',
+            'father_name' => 'required|string',
+            'mother_name' => 'required|string',
+            'phone' => 'required',
+            'address' => 'required',
             'calssification' => 'required',
             'school_tuition'=>'required',
             'class_id'=>'required',
             'section_id'=>'required',
-            'parentt_id'=>'required',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()]);
         }
         $user = $student->user;
+
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->father_name = $request->father_name;
+        $user->mother_name = $request->mother_name;
+        $user->phone = $request->phone;
+        $user->address = $request->address;
         $user_id = $user->id;
         $student->calssification = $request->calssification;
         $student->school_tuition = $request->school_tuition;
         $student->user_id = $user_id;
         $student->class_id =$request->class_id;
         $student->section_id= $request->section_id;
-        $student->parentt_id = $request->parentt_id;
+
 
         $student->update();
+        $user->update();
         return response()->json(['sucussssss']);
 
     }

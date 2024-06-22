@@ -74,6 +74,8 @@ Route::group(['middleware'=>'auth:sanctum'], function(){
 Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(function () {
     ///خلق حسابات الطلاب
     Route::post('/register_student/{order_id}',[AdminOperationController::class,'register_student']);
+    //تسجيل بدون طلب تسجيل
+    Route::post('/register_student',[AdminOperationController::class,'register_student1']);
     ///خلق حساب للأهل
     Route::post('/register_parentt',[AdminOperationController::class,'register_parentt']);
     //خلق حسابات للاستاذ
@@ -99,7 +101,6 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('update_profile_student/{student_id}',[AdminOperationController::class,'update_profile_student']);
     //سجل دوام الطالب
     Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReport']);
-
     //عرض علامات طالب
     route::get('desplay_student_marks/{student_id}',[AdminOperationController::class,'desplay_student_marks']);
     //عرض الملاحظات المقدمة عن الطالب

@@ -162,16 +162,15 @@ class AuthController extends Controller
 
     public function get_teacher_profile($teacher_id)
     {
-        $user = User::find($teacher_id);
-        if(!$user){
-            return response()->json(['user not found ']);
-        }
-        $teacher = Teacher::where( 'user_id',$user->id );
+        $teacher = Teacher::find($teacher_id);
         if(!$teacher)
         {
-            return response()->json(['this user not teacher']);
+            return response()->json(['the teacher not found']);
         }
-        return response()->json([$user,$teacher,'this is our teacher']);
+
+        $teacher1 = $teacher->user;
+        $section = $teacher->section;
+        return response()->json([$teacher,$section]);
     }
 
 

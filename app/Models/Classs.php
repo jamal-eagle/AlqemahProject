@@ -19,7 +19,6 @@ class Classs extends Model
 
     protected $fillable = [
         'name',
-        //'fee_school_id',
     ];
 
     public function student()
