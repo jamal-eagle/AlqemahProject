@@ -221,7 +221,10 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('edit_year/{id}',[AdminOperationController::class,'edit_year']);
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
-
+    //تسجيل طلب للتسجيل بدورة معينة
+    Route::post('/add-order-course/{course_id}',[OrderController::class,'CreateOrderForCourse']);
+    //عرض طلبات التسجيل في دورة معينة
+    Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
 });
 
 Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){
@@ -417,7 +420,7 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     //رفع ملف أو صورة لملفات السنة الحاليةzahraa
     Route::post('/upload_file_image/{subject_id}',[TeacherController::class,'upload_file_image']);
     //رفع ملف أو صورة لملفات الأرشيفzahraa
-    Route::post('/upload_file_image_archive/{subject_id}/{archive_id}',[TeacherController::class,'upload_file_image_archive']);
+    Route::post('/upload_file_image_archive/{archive_id}',[TeacherController::class,'upload_file_image_archive']);
     Route::delete('/delete_file_image/{file_img_id}/{imgFileName}',[TeacherController::class,'delete_file_image']);
     Route::post('/update-file-image/{id}', [TeacherController::class,'update_file_image']);
 

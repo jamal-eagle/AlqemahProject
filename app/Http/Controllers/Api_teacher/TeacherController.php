@@ -21,6 +21,7 @@ use App\Models\Image;
 use App\Models\Image_Archive;
 use App\Models\File_Archive;
 use Illuminate\Http\UploadedFile;
+use App\Models\Academy;
 
 class TeacherController extends Controller
 {
@@ -56,9 +57,14 @@ class TeacherController extends Controller
 
         $note = new Note_Student;
 
+        $note->type = $request->type;
         $note->text = $request->text;
         $note->student_id = $student_id;
         $note->user_id = auth()->user()->id;
+
+        $note->save();
+
+        return $note;
     }
 
     //غيابات المدرس
@@ -205,6 +211,8 @@ public function delete_file_image($file_img_id, $imgFileName)
 //رفع ملفات و صور للسنة الحاليةzahraa
 public function upload_file_image(Request $request, $subject_id)
 {
+    $year_study = Academy::find(1);
+    $archive = Archive::where('year',$year_study->year)->where('subject_id', $subject_id)->first();
     $validator = Validator::make($request->all(),[
         'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
     ]);
@@ -226,7 +234,7 @@ public function upload_file_image(Request $request, $subject_id)
         $image = new Image_Archive;
     $image->name = $imgFileName;
     $image->description = $request->description;
-    $image->archive_id = $request->archive_id;
+    $image->archive_id = $archive->id;
     $image->save();
 
     return response()->json([
@@ -241,7 +249,7 @@ public function upload_file_image(Request $request, $subject_id)
         $file = new File_Archive;
     $file->name = $imgFileName;
     $file->description = $request->description;
-    $file->archive_id = $request->archive_id;
+    $file->archive_id = $archive->id;
     $file->save();
 
     return response()->json([
@@ -555,7 +563,7 @@ if ($request->hasFile('name')) {
     }
 
 //رفع ملف أو صورة من ملفات الأرشيف
-public function upload_file_image_archive(Request $request,$subject_id, $archive_id)
+public function upload_file_image_archive(Request $request, $archive_id)
 {
     // public function upload_file_image(Request $request, $subject_id)
     $validator = Validator::make($request->all(),[

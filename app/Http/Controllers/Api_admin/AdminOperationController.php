@@ -1234,14 +1234,15 @@ public function generateMonthlyAttendanceReport($student_id, $year, $month)
 
 public function desplay_student_marks($student_id)
     {
-        $student = Student::find($student_id);
-        if(!$student)
-        {
-            return response()->json(['student not found ']);
-        }
-        $student->mark;
-        return response()->json([$student,'sucssssss']);
-
+        // $student = Student::find($student_id);
+        // if(!$student)
+        // {
+        //     return response()->json(['student not found ']);
+        // }
+        // $student->mark;
+        // return response()->json([$student,'sucssssss']);
+        $student = Student::where('id', $student_id)->with('mark.subject')->first();
+        return $student;
     }
 
 public function desplay_student_nots($student_id)
@@ -1266,6 +1267,7 @@ public function create_note_student(Request $request , $student_id)
     }
     $validator = Validator::make($request->all(),[
         'text'=>'required|string',
+        'type'=>'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -1273,6 +1275,8 @@ public function create_note_student(Request $request , $student_id)
         }
 
         $note_student = new Note_Student();
+
+        $note_student->type = $request->type;
         $note_student->text = $request->text;
         $note_student->student_id = $student_id;
         $note_student->user_id = auth()->user()->id;

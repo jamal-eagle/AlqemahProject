@@ -120,7 +120,7 @@ class Student_operationController extends BaseController
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
         }
-        $order = Order::where('student_id', $student->id)->with('course')->get();
+        $order = Order::where('student_id', $student->id)->with('course.subject')->with('course.teacher.user')->get();
 
         return $order;
     }
