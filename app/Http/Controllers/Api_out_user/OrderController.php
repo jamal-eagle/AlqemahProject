@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Order;
+use App\Models\Academy;
 //use App\Models\User;
 //use App\Models\Appointment;
 //use Carbon\Carbon;
@@ -16,6 +17,7 @@ class OrderController extends BaseController
 {
     public function CreateOrderForJoinToSchool(Request $request)
     {
+        $year = Academy::find('1');
 
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string',
@@ -28,7 +30,8 @@ class OrderController extends BaseController
             'email' => 'required|email',
             'classification' => 'required|in:0,1',
             'class' => 'required|string',
-            'year' => 'required|integer',
+            //'year' => 'required|integer',
+            'student_type' => 'required|in:0,1',
         ]);
 
         if ($validator->fails()) {
@@ -48,7 +51,8 @@ class OrderController extends BaseController
             $new->email = $request->email;
             $new->classification = $request->classification;
             $new->class = $request->class;
-            $new->year = $request->year;
+            $new->year = $year->year ;
+            $new->student_type = $request->student_type;
             $new->save();
 
             return $this->responseData("success",$new);

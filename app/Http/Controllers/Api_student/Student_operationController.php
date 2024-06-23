@@ -20,6 +20,7 @@ use App\Models\Image;
 use App\Models\Image_Archive;
 use App\Models\File_Archive;
 use App\Models\Accessories;
+use App\Models\Academy;
 
 class Student_operationController extends BaseController
 {
@@ -203,6 +204,51 @@ class Student_operationController extends BaseController
 //         ]);
 //     }
 // }
+
+//good
+// public function homework_subject($subject_id)
+// {
+//     $user = User::where('id', auth()->user()->id)->first();
+
+//     if (!$user) {
+//         return response()->json(['error' => 'user not found'], 404);
+//     }
+
+//     $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->get();
+//     $result = [];
+
+//     foreach ($homework as $h) {
+//         $accessories = Accessories::where('home_work_id', $h->id)->get();
+//         $homework_info = [
+//             'homework_info' => $h,
+//             'file_image_info' => []
+//         ];
+
+//         foreach ($accessories as $a) {
+//             $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
+
+//             if (file_exists($homework_path)) {
+//                 $homework_info['file_image_info'][] = [
+//                     'path' => $homework_path,
+//                     'file_image_info' => $a
+//                 ];
+//             }
+//         }
+
+//         $result[] = $homework_info;
+//     }
+
+//     if (!empty($result)) {
+//         return $result;
+//     } else {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'No images found'
+//         ]);
+//     }
+// }
+
+
 public function homework_subject($subject_id)
 {
     $user = User::where('id', auth()->user()->id)->first();
@@ -212,39 +258,36 @@ public function homework_subject($subject_id)
     }
 
     $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->get();
-    $result = [];
-
-    foreach ($homework as $h) {
-        $accessories = Accessories::where('home_work_id', $h->id)->get();
-        $homework_info = [
-            'homework_info' => $h,
-            'file_image_info' => []
-        ];
-
-        foreach ($accessories as $a) {
-            $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
-
-            if (file_exists($homework_path)) {
-                $homework_info['file_image_info'][] = [
-                    'path' => $homework_path,
-                    'file_image_info' => $a
-                ];
-            }
-        }
-
-        $result[] = $homework_info;
-    }
-
-    if (!empty($result)) {
-        return $result;
-    } else {
-        return response()->json([
-            'status' => 'false',
-            'message' => 'No images found'
-        ]);
-    }
+    return $homework;
 }
 
+//عرض ملحقات وظيفة محددة
+public function file_image_homework($homework_id)
+    {
+        $image_select_year = Accessories::where('home_work_id',$homework_id)->get();
+        foreach ($image_select_year as $i) {
+            $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+                        //return response()->file($imagePath);
+                        if (file_exists($imagePath)) {
+                            $result[] = [
+                                'path' => $imagePath,
+                                'image_info' => $i
+                            ];    
+                        }
+        }
+        //عم نشوف إذا في نتائج أو لاء
+        if (!empty($result)) {
+            return response()->json([
+                'status' => 'true',
+                'images' => $result
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No images found'
+            ]);
+        }
+    }
 
 
     // public function Read_File($accessori_id)
@@ -443,5 +486,11 @@ if (!empty($result)) {
     ]);
 }
 
+//عرض معلومات المعهد
+public function display_info_academy()
+{
+    $info = Academy::all();
+    return $info;
+}
     
 }

@@ -8,17 +8,13 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Course;
 
-class Expenses extends Model
+class File_course extends Model
 {
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'date',
-        'product',
-        'cost_one_piece',
-        'num_product',
-        'total_cost',
-        'year',
+        'name',
+        'description',
         'course_id',
     ];
 

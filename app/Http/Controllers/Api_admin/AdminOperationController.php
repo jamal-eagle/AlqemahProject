@@ -31,11 +31,57 @@ use App\Models\Out_Of_Work_Student;
 use App\Models\Teacher_Schedule;
 use App\Models\Out__Of__Work__Employee;
 use App\Models\Image;
+use App\Models\Academy;
+
 
 class AdminOperationController extends BaseController
 {
 
-    public function login(Request $request)
+//     public function login(Request $request)
+//     {
+//         $request->validate([
+//             "email" => "required|email",
+//             "password" => "required"
+//         ]);
+
+//         // check email
+//         $user = User::where("email", "=", $request->email)->where('status' , 1);
+// if($user){
+//     $user = User::where("email", "=", $request->email)->first();
+//     if($user->status == 0){
+//     if(isset($user->id)){
+//         if(Hash::check($request->password, $user->password)){
+//             // create a token
+//             $token = $user->createToken("auth_token")->plainTextToken;
+//             /// send a response
+//             return response()->json([
+//         'User login successfully',
+//         'token'=>$token,
+//     ]);
+//         }
+//     }
+// }
+//     else{
+//         $parent = Parentt::where("email", "=", $request->email)->first();
+//     if(isset($parent->id)){
+//         if(Hash::check($request->password, $parent->password)){
+//             // create a token
+//             $token = $parent->createToken("auth_token")->plainTextToken;
+//             /// send a response
+//             return response()->json([
+//         'User login successfully',
+//         'token'=>$token,
+//     ]);
+//         }
+//     }else{
+//         return $this->responseError(['please  check your Auth','auth error']);
+//     }
+
+//     }
+//     return $this->responseError(['please  check your Auth','auth error']);
+// }
+//     }
+public function login(Request $request)
     {
         $request->validate([
             "email" => "required|email",
@@ -43,10 +89,9 @@ class AdminOperationController extends BaseController
         ]);
 
         // check email
-        $user = User::where("email", "=", $request->email)->where('status' , 1);
+        $user = User::where("email", "=", $request->email);
 if($user){
     $user = User::where("email", "=", $request->email)->first();
-    if($user->status == 0){
     if(isset($user->id)){
         if(Hash::check($request->password, $user->password)){
             // create a token
@@ -57,9 +102,7 @@ if($user){
         'token'=>$token,
     ]);
         }
-    }
-}
-    else{
+    }else{
         $parent = Parentt::where("email", "=", $request->email)->first();
     if(isset($parent->id)){
         if(Hash::check($request->password, $parent->password)){
@@ -84,6 +127,7 @@ if($user){
     {
         if(Auth::check()){
             $user = User::where("email", auth()->user()->email);
+            //$parentt = Parentt::where("email", auth()->parentt()->email);
             if($user){
                 $request->user()->currentAccessToken()->delete();
                 return response()->json(['status' => true, 'message' => 'User logged out successfully'], 200);
@@ -1864,6 +1908,83 @@ private function getWorkingHoursForDays($schedule)
     $workingHours = $endTime->diffInHours($startTime);
     return $workingHours;
 }
+
+//تعديل معلومات المعهد
+public function edit_info_academy(Request $request,$id)
+{
+    $info = Academy::find($id);
+
+    $info->name = $request->name ?? $info->name;
+    $info->phone = $request->phone ?? $info->phone;
+    $info->address = $request->address ?? $info->address;
+    $info->facebook_link = $request->facebook_link ?? $info->facebook_link;
+    $info->description = $request->description ?? $info->description;
+    $info->year = $request->year ?? $info->year;
+
+    $info->save();
+
+    return $info;
+}
+
+//تعديل السنة الدراسية
+// public function edit_year(Request $request,$id)
+// {
+//     // $info = Academy::find($id);
+
+//     // $info->year = $request->year ?? $info->year;
+
+//     // $info->name = $info->name;
+//     // $info->phone = $info->phone;
+//     // $info->address = $info->address;
+//     // $info->facebook_link = $info->facebook_link;
+//     // $info->description = $info->description;
+
+//     // // if ($request->has('year')) {
+//     // //     $info->year = $request->year ;
+//     // // }
+//     // $info->save();
+
+//     // return $info;
+//     $info = Academy::find($id);
+
+//     // $info->name = $request->name ?? $info->name;
+//     // $info->phone = $request->phone ?? $info->phone;
+//     // $info->address = $request->address ?? $info->address;
+//     // $info->facebook_link = $request->facebook_link ?? $info->facebook_link;
+//     $info->year = $request->year ?? $info->year;
+
+//     $info->save();
+
+//     return $info;
+// }
+
+public function edit_year(Request $request,$id)
+{
+    $info = Academy::find($id);
+
+    // $info->name = $request->name ?? $info->name;
+    // $info->phone = $request->phone ?? $info->phone;
+    // $info->address = $request->address ?? $info->address;
+    // $info->facebook_link = $request->facebook_link ?? $info->facebook_link;
+    // $info->description = $request->description ?? $info->description;
+    $info->year = $request->year ?? $info->year;
+
+    $info->save();
+
+    return $info;
+    
+}
+
+public function student_course($student_id)
+    {
+        // $student = Student::where('user_id', auth()->user()->id)->first();
+        // if (!$student) {
+        //     return response()->json(['error' => 'Student not found'], 404);
+        // }
+        $order = Order::where('student_id', $student_id)->with('course.teacher.user')->get();
+
+        return $order;
+    }
 
 
 

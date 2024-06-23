@@ -56,6 +56,9 @@ Route::prefix('out_user')->group(function () {
     Route::get('/info_course/{id_course}',[DisplayController::class,'info_course']);
     //تعديل طلب تسجيل في دورة
     Route::put('/update/{id}',[OrderController::class,'update']);
+    //عرض معلومات المعهد
+    Route::get('/display_info_academy',[Student_operationController::class,'display_info_academy']);
+
 
 });
 
@@ -68,6 +71,8 @@ Route::group(['middleware'=>'auth:sanctum'], function(){
         Route::post('/edit_profile{id}',[AuthController::class,'update_profile']);
         //إعلانات المعهد
         Route::get('all_publish', [Student_operationController::class, 'publish']);
+        //عرض معلومات المعهد
+        Route::get('/display_info_academy',[Student_operationController::class,'display_info_academy']);
 });
 
 /*******************************************************admin*******************************************************/
@@ -208,6 +213,14 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::delete('delete_program_section/{id}',[MonetorController::class,'delete_program']);
     //تعديل برنامج
     Route::post('update_program_section/{program_id}',[MonetorController::class,'update_program_section']);
+    //تعديل معلومات المعهد
+    route::post('/edit_info_academy/{id}',[AdminOperationController::class,'edit_info_academy']);
+    //الدورات التي سجل فيها الطالب
+    route::get('/student_course/{student_id}',[AdminOperationController::class,'student_course']);
+    //تعديل السنة الدراسية
+    Route::post('edit_year/{id}',[AdminOperationController::class,'edit_year']);
+    //عرض طلبات التسجيل في دورة معينة
+    Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
 
 });
 
@@ -293,6 +306,8 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     Route::get('/my_course',[Student_operationController::class,'my_course']);
     //عرض وظائف الطالب لمادة محددة
     Route::get('/my_homework/{subject_id}',[Student_operationController::class,'homework_subject']);
+    //عرض ملحقات وظيفة محددة
+    Route::get('/file_image_homework/{homework_id}',[Student_operationController::class,'file_image_homework']);
     //عرض برنامج الدوام للطالب
     Route::get('/my_programe',[Student_operationController::class,'programe_week']);
     //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة

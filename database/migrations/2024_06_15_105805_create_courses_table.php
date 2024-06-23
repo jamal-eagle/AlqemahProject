@@ -24,6 +24,7 @@ return new class extends Migration
             $table->date('finish_date');
             $table->time('start_time');
             $table->time('finish_time');
+            $table->double('percent_teacher');
             $table->string('year');
             //$table->foreignIdFor(Publish::class,'publish_id');
             $table->foreignIdFor(Subject::class,'subject_id');

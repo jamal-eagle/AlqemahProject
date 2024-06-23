@@ -11,6 +11,8 @@ use App\Models\Subject;
 use App\Models\Classs;
 use App\Models\Teacher;
 use App\Models\Order;
+use App\Models\Expenses;
+use App\Models\File_course;
 
 class Course extends Model
 {
@@ -25,6 +27,7 @@ class Course extends Model
         'start_time',
         'finish_time',
         'year',
+        'percent_teacher',
         //'publish_id',
         'subject_id',
         'class_id',
@@ -50,5 +53,15 @@ class Course extends Model
 
     public function order(){
         return $this->hasMany('App\Models\Order',foreignKey:'course_id',localKey:'id');
+    }
+
+    public function expens()
+    {
+        return $this->hasOne('App\Models\Expenses',foreignKey:'course_id');
+    }
+
+    public function file_courses()
+    {
+        return $this->hasMany('App\Models\File_course',foreignKey:'course_id',localKey:'id');
     }
 }

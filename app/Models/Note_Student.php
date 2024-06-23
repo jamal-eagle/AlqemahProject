@@ -14,6 +14,7 @@ class Note_Student extends Model
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
+        'type',
         'text',
         'student_id',
         'user_id',
