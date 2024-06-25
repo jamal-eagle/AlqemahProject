@@ -2218,6 +2218,7 @@ public function add_course(Request $request)
         'finish_date' => 'required|date|after:start_date',
         'start_time' => 'required|date_format:H:i',
         'finish_time' => 'required|date_format:H:i|after:start_time',
+        'Minimum_win' => 'required|integer|min:0',
         'percent_teacher' => 'required|numeric|between:0,100',
         'class_id' => 'required|exists:classses,id',
         'teacher_id' => 'required|exists:teachers,id',
@@ -2260,6 +2261,7 @@ public function add_course(Request $request)
     $course->start_time = $request->start_time;
     $course->finish_time = $request->finish_time;
     $course->percent_teacher = $request->percent_teacher;
+    $course->Minimum_win = $request->Minimum_win;
     $course->year = $academy->year;
     $course->class_id = $request->class_id;
 
