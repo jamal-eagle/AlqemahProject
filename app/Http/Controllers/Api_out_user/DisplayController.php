@@ -10,14 +10,26 @@ use App\Models\Teacher;
 use App\Models\Course;
 use App\Models\Teacher_subject;
 use App\Models\Subject;
+use App\Models\User;
+use App\Models\Academy;
 
 class DisplayController extends BaseController
 {
     /*------------------------teacher------------------------*/
     public function all_teatcher()
     {
-        $teatcher = Teacher::with('user')->get();
-        return $teatcher;
+        // $teatcher = Teacher::with('user')->get();
+        // return $teatcher;
+
+        $academy = Academy::find(1);
+        $teachers = User::where('user_type', 'teacher')->where('year',$academy->year)
+                    ->with('teacher')
+                    ->orderBy('first_name')
+                    ->orderBy('last_name')
+                    ->orderBy('father_name')
+                    ->get();
+    return $teachers;
+
     }
 
     public function info_teatcher($teatcher_id)

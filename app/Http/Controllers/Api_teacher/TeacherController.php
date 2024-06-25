@@ -53,7 +53,19 @@ class TeacherController extends Controller
     //إضافة ملاحظات لطالب معين
     public function add_note_about_student(Request $request ,$student_id)
     {
-        $student = Student::where('id', $student_id)->first();
+        $student = Student::find($student_id);
+    if(!$student)
+    {
+        return response()->json(['the student not found']);
+    }
+    $validator = Validator::make($request->all(),[
+        'text'=>'required|string',
+        'type'=>'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
 
         $note = new Note_Student;
 
@@ -898,6 +910,11 @@ public function update_image(Request $request, $id)
     ]);
 }
 
+
+public function add_course()
+{
+    
+}
 
 
 }

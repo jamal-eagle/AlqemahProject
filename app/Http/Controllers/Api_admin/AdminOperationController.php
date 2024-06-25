@@ -32,6 +32,7 @@ use App\Models\Teacher_Schedule;
 use App\Models\Out__Of__Work__Employee;
 use App\Models\Image;
 use App\Models\Academy;
+use App\Models\Subject;
 
 
 class AdminOperationController extends BaseController
@@ -1117,7 +1118,7 @@ public function desplay_section_for_classs($class_id,$year)
 
 public function desplay_all_student_regester($year)
 {
-    $student = User::where('year',$year)->where('user_type', 'student')->get();
+    $student = User::where('year',$year)->where('user_type', 'student')->with('student')->get();
     return response()->json([$student,'all student regester here']);
 }
 
@@ -1247,14 +1248,9 @@ public function desplay_student_marks($student_id)
 
 public function desplay_student_nots($student_id)
     {
-        $student = Student::find($student_id);
-        if(!$student)
-        {
-            return response()->json('the student not found ');
-        }
-
-        return response()->json(['student' => $student->note_students, 'message' => 'Success']);
-
+    
+        $note = Note_Student::where('student_id',$student_id)->with('user')->get();
+        return $note;
     }
 
 
@@ -1966,11 +1962,6 @@ public function edit_year(Request $request,$id)
 {
     $info = Academy::find($id);
 
-    // $info->name = $request->name ?? $info->name;
-    // $info->phone = $request->phone ?? $info->phone;
-    // $info->address = $request->address ?? $info->address;
-    // $info->facebook_link = $request->facebook_link ?? $info->facebook_link;
-    // $info->description = $request->description ?? $info->description;
     $info->year = $request->year ?? $info->year;
 
     $info->save();
@@ -1985,10 +1976,370 @@ public function student_course($student_id)
         // if (!$student) {
         //     return response()->json(['error' => 'Student not found'], 404);
         // }
+        
         $order = Order::where('student_id', $student_id)->with('course.teacher.user')->get();
 
         return $order;
     }
+
+//إضافة دورة مع إمكانية إضافة إعلان إن أردنا أو عدم إضافة    
+// public function add_course(Request $request)
+// {
+//     $academy = Academy::find(1);
+
+//     $course = new Course;
+
+//     $course->name_course = $request->name_course;
+//     $course->description = $request->description;
+//     $course->cost_course = $request->cost_course;
+//     $course->num_day = $request->num_day;
+//     $course->start_date= $request->start_date;
+//     $course->finish_date= $request->finish_date;
+//     $course->start_time= $request->start_time;
+//     $course->finish_time= $request->finish_time;
+//     $course->percent_teacher= $request->percent_teacher;
+//     $course->year= $academy->year;
+//     $course->class_id= $request->class_id;
+
+//     //تحديد المادة للدورة
+//     $name_subject = $request->name_subject;//لازم يكون اسم المادة يلي بدي دخلو نفس كتابة أسماء المواد يلي بالداتا عندي
+//     $subject= Subject::where('name',$name_subject)->where('class_id',$course->class_id)->first();
+//     $subject_id = $subject->id;
+//     $course->subject_id= $subject_id;
+
+//     //تحديد المدرس للدورة
+//     // $name_teacher = $request->name_teacher;//لازم يكون اسم الأستاذ يلي بدي دخلو نفس كتابة أسماء المستخدم الأستاذ يلي بالداتا عندي
+//     // $user_teacher= User::where('first_name',$name_teacher)->where('user_type','teacher')->first();
+//     // $teacher = Teacher::where('user_id', $user_teacher->id)->first();
+//     // $teacher_id = $teacher->id;
+//     // $course->teacher_id= $teacher_id;
+//     $course->teacher_id= $request->teacher_id;
+
+//     $course->save();
+
+
+//     //إضافة إعلان للدورة ،ممكن يضيف و ممكن لا
+//     // $validator = Validator::make($request->all(),[
+//     //     'description'=>'required|string',
+//     //     'course_id'=>'required',
+//     //     ]);
+
+//         // if ($validator->fails()) {
+//         //     return response()->json(['errors' => $validator->errors()]);
+//         // }
+
+//         if ($request->description_publish) {
+//             $publish = new Publish();
+//         $publish->description = $request->description_publish;
+//         $publish->course_id = $course->id;
+//         $publish->save();
+
+//         if ($request->path) {
+//             $validator = Validator::make($request->all(),[
+//                 'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+//             ]);
+
+//             if ($validator->fails()) {
+//                 return response()->json([
+//                     'status' => 'false',
+//                     'message' => 'Please fix the errors',
+//                     'errors' => $validator->errors()
+//                 ]);
+//             }
+
+//             $img = $request->path;
+//             $ext = $img->getClientOriginalExtension();
+//             $imageName = time().'.'.$ext;
+//             $img->move(public_path().'/upload',$imageName);
+
+//             $image = new Image;
+//             $image->path = $imageName;
+//             $image->description = $request->description_publish;
+//             $image->publish_id = $publish->id;
+
+//             $image->save();
+
+//             return response()->json([
+//                 'status' => 'true',
+//                 'message' => 'course with publish text and image upload success',
+//                 'course' => $course,
+//                 'path' => asset('/upload/'.$imageName),
+//                 'data_image' => $image
+//             ]);
+//             return response()->json(['sucssscceccs with img']);
+//         }
+
+//         else {
+//             return response()->json(['sucssscceccs']);
+//         }
+//         }
+        
+
+
+//     return $course;
+// }
+// public function add_course(Request $request)
+// {
+//     $academy = Academy::find(1);
+
+//     $validator = Validator::make($request->all(), [
+//         'name_course' => 'required|string',
+//         'description' => 'required|string',
+//         'cost_course' => 'required|numeric',
+//         'num_day' => 'required|integer|min:1',
+//         'start_date' => 'required|date',
+//         'finish_date' => 'required|date|after:start_date',
+//         'start_time' => 'required|date_format:H:i',
+//         'finish_time' => 'required|date_format:H:i|after:start_time',
+//         'percent_teacher' => 'required|numeric|between:0,100',
+//         'class_id' => 'required|exists:classses,id',
+//         'teacher_id' => 'required|exists:teachers,id',
+//         'name_subject' => 'required|string|exists:subjects,name',
+//         'description_publish' => 'nullable|string',
+//         'path' => 'nullable|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'Please fix the errors',
+//             'errors' => $validator->errors()
+//         ]);
+//     }
+
+//     // التحقق من فرق الأيام بين start_date و finish_date
+//     $start_date = \Carbon\Carbon::parse($request->start_date);
+//     $finish_date = \Carbon\Carbon::parse($request->finish_date);
+//     $diffInDays = $start_date->diffInDays($finish_date)+2;
+
+//     if ($request->num_day > $diffInDays) {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'The num_day should not be greater than the difference in days between start_date and finish_date',
+//         ]);
+//     }
+
+//     $course = new Course;
+//     $course->name_course = $request->name_course;
+//     $course->description = $request->description;
+//     $course->cost_course = $request->cost_course;
+//     $course->num_day = $request->num_day;
+//     $course->start_date = $request->start_date;
+//     $course->finish_date = $request->finish_date;
+//     $course->start_time = $request->start_time;
+//     $course->finish_time = $request->finish_time;
+//     $course->percent_teacher = $request->percent_teacher;
+//     $course->year = $academy->year;
+//     $course->class_id = $request->class_id;
+
+//     // تحديد المادة للدورة
+//     $subject = Subject::where('name', $request->name_subject)->where('class_id', $course->class_id)->first();
+//     if (!$subject) {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'Subject not found for the specified class_id',
+//         ]);
+//     }
+//     $course->subject_id = $subject->id;
+
+//     // تحديد المدرس للدورة
+//     $course->teacher_id = $request->teacher_id;
+
+//     $course->save();
+// if ($request->product) {
+//      //مصاريف الدورة
+//      $expenses = new Expenses;
+
+//      $expenses->date = $request->date;
+//      $expenses->product = $request->product;
+//      $expenses->cost_one_piece = $request->cost_one_piece;
+//      $expenses->num_product = $request->num_product;
+//      $expenses->total_cost = $expenses->cost_one_piece * $expenses->num_product;
+//      $expenses->year = $academy->year;
+//      $expenses->course_id = $course->id;
+ 
+//      $expenses->save();
+ 
+// }
+   
+//     // إضافة إعلان للدورة، يمكن أن يضيف ويمكن لا
+//     if ($request->description_publish) {
+//         $publish = new Publish();
+//         $publish->description = $request->description_publish;
+//         $publish->course_id = $course->id;
+//         $publish->save();
+
+//         if ($request->path) {
+//             $img = $request->file('path');
+//             $ext = $img->getClientOriginalExtension();
+//             $imageName = time().'.'.$ext;
+//             $img->move(public_path().'/upload', $imageName);
+
+//             $image = new Image;
+//             $image->path = $imageName;
+//             $image->description = $request->description_publish;
+//             $image->publish_id = $publish->id;
+//             $image->save();
+
+//             return response()->json([
+//                 'status' => 'true',
+//                 'message' => 'Course with publish text and image upload success',
+//                 'course' => $course,
+//                 'path' => asset('/upload/'.$imageName),
+//                 'data_image' => $image
+//             ]);
+//         }
+
+//         return response()->json([
+//             'status' => 'true',
+//             'message' => 'Course with publish text success',
+//             'course' => $course,
+//         ]);
+//     }
+
+//     return response()->json([
+//         'status' => 'true',
+//         'message' => 'Course created successfully',
+//         'course' => $course
+//     ]);
+// }
+
+
+public function add_course(Request $request)
+{
+    $academy = Academy::find(1);
+
+    $validator = Validator::make($request->all(), [
+        'name_course' => 'required|string',
+        'description' => 'required|string',
+        'cost_course' => 'required|numeric',
+        'num_day' => 'required|integer|min:1',
+        'start_date' => 'required|date',
+        'finish_date' => 'required|date|after:start_date',
+        'start_time' => 'required|date_format:H:i',
+        'finish_time' => 'required|date_format:H:i|after:start_time',
+        'percent_teacher' => 'required|numeric|between:0,100',
+        'class_id' => 'required|exists:classses,id',
+        'teacher_id' => 'required|exists:teachers,id',
+        'name_subject' => 'required|string|exists:subjects,name',
+        'description_publish' => 'nullable|string',
+        'path' => 'nullable|mimes:png,jpg,jpeg,gif,pdf,docx,txt',
+        'expenses.*.date' => 'required|date',
+        'expenses.*.product' => 'required|string',
+        'expenses.*.cost_one_piece' => 'required|numeric',
+        'expenses.*.num_product' => 'required|integer|min:1',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
+
+    // التحقق من فرق الأيام بين start_date و finish_date
+    $start_date = \Carbon\Carbon::parse($request->start_date);
+    $finish_date = \Carbon\Carbon::parse($request->finish_date);
+    $diffInDays = $start_date->diffInDays($finish_date) + 2;
+
+    if ($request->num_day > $diffInDays) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'The num_day should not be greater than the difference in days between start_date and finish_date',
+        ]);
+    }
+
+    $course = new Course;
+    $course->name_course = $request->name_course;
+    $course->description = $request->description;
+    $course->cost_course = $request->cost_course;
+    $course->num_day = $request->num_day;
+    $course->start_date = $request->start_date;
+    $course->finish_date = $request->finish_date;
+    $course->start_time = $request->start_time;
+    $course->finish_time = $request->finish_time;
+    $course->percent_teacher = $request->percent_teacher;
+    $course->year = $academy->year;
+    $course->class_id = $request->class_id;
+
+    // تحديد المادة للدورة
+    $subject = Subject::where('name', $request->name_subject)->where('class_id', $course->class_id)->first();
+    if (!$subject) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Subject not found for the specified class_id',
+        ]);
+    }
+    $course->subject_id = $subject->id;
+
+    // تحديد المدرس للدورة
+    $course->teacher_id = $request->teacher_id;
+
+    $course->save();
+
+    // إضافة المصاريف المتعددة
+    if ($request->has('expenses')) {
+        foreach ($request->expenses as $expenseData) {
+            $expenses = new Expenses;
+            $expenses->date = $expenseData['date'];
+            $expenses->product = $expenseData['product'];
+            $expenses->cost_one_piece = $expenseData['cost_one_piece'];
+            $expenses->num_product = $expenseData['num_product'];
+            $expenses->total_cost = $expenses->cost_one_piece * $expenses->num_product;
+            $expenses->year = $academy->year;
+            $expenses->course_id = $course->id;
+            $expenses->save();
+        }
+    }
+
+    // إضافة إعلان للدورة، يمكن أن يضيف ويمكن لا
+    if ($request->description_publish) {
+        $publish = new Publish();
+        $publish->description = $request->description_publish;
+        $publish->course_id = $course->id;
+        $publish->save();
+
+        if ($request->path) {
+            $img = $request->file('path');
+            $ext = $img->getClientOriginalExtension();
+            $imageName = time().'.'.$ext;
+            $img->move(public_path().'/upload', $imageName);
+
+            $image = new Image;
+            $image->path = $imageName;
+            $image->description = $request->description_publish;
+            $image->publish_id = $publish->id;
+            $image->save();
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Course with publish text and image upload success',
+                'course' => $course,
+                'path' => asset('/upload/'.$imageName),
+                'data_image' => $image,
+                'expenses' => $expenses
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'true',
+            'message' => 'Course with publish text success',
+            'course' => $course,
+        ]);
+    }
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'Course created successfully',
+        'course' => $course
+    ]);
+}
+
+public function update_course(Request $request, $course_id)
+{
+
+}
 
 
 

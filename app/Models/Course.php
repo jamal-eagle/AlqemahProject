@@ -19,6 +19,7 @@ class Course extends Model
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
+        'Course_status',
         'name_course',
         'description',
         'cost_course',
@@ -26,6 +27,7 @@ class Course extends Model
         'finish_date',
         'start_time',
         'finish_time',
+        'num_day',
         'year',
         'percent_teacher',
         //'publish_id',

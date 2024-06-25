@@ -225,6 +225,11 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('/add-order-course/{course_id}',[OrderController::class,'CreateOrderForCourse']);
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
+    //عرض كل مدرسي المعهد
+    Route::get('/all-teatcher-for-course',[DisplayController::class,'all_teatcher']);
+    //إضافة دورة مع إمكانية إضافة إعلان إن أردنا أو عدم إضافة    
+    Route::post('/add_course',[AdminOperationController::class,'add_course']);
+    
 });
 
 Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){

@@ -40,10 +40,10 @@ class MonetorController extends Controller
     }
 
     public function desplay_all_student_regester($year)
-    {
-        $student = User::where('year',$year)->with('student')->get()->all();
-        return response()->json([$student,'all student regester here']);
-    }
+{
+    $student = User::where('year',$year)->where('user_type', 'student')->with('student')->get();
+    return response()->json([$student,'all student regester here']);
+}
 
     public function desplay_classs_and_section()
     {
@@ -166,30 +166,33 @@ class MonetorController extends Controller
     }
 
     public function create_note_student(Request $request , $student_id)
+{
+    $student = Student::find($student_id);
+    if(!$student)
     {
-        $student = Student::find($student_id);
-        if(!$student)
-        {
-            return response()->json(['the student not found']);
-        }
-        $validator = Validator::make($request->all(),[
-            'text'=>'required|string',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()]);
-            }
-
-            $note_student = new Note_Student();
-            $note_student->text = $request->text;
-            $note_student->student_id = $student_id;
-            $note_student->user_id = auth()->user()->id;
-
-            $note_student->save();
-
-            return response()->json(['successssss']);
-
+        return response()->json(['the student not found']);
     }
+    $validator = Validator::make($request->all(),[
+        'text'=>'required|string',
+        'type'=>'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+
+        $note_student = new Note_Student();
+
+        $note_student->type = $request->type;
+        $note_student->text = $request->text;
+        $note_student->student_id = $student_id;
+        $note_student->user_id = auth()->user()->id;
+
+        $note_student->save();
+
+        return response()->json(['successssss']);
+
+}
 
     public function all_teatcher()
     {

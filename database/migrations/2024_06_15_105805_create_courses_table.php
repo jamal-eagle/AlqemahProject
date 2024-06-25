@@ -17,6 +17,7 @@ return new class extends Migration
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
 
+            $table->tinyInteger('Course_status')->default(2);
             $table->string('name_course');
             $table->string('description')->nullable();
             $table->double('cost_course');
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('finish_time');
             $table->double('percent_teacher');
+            $table->double('num_day');
             $table->string('year');
             //$table->foreignIdFor(Publish::class,'publish_id');
             $table->foreignIdFor(Subject::class,'subject_id');
