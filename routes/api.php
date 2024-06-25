@@ -58,6 +58,8 @@ Route::prefix('out_user')->group(function () {
     Route::put('/update/{id}',[OrderController::class,'update']);
     //عرض معلومات المعهد
     Route::get('/display_info_academy',[Student_operationController::class,'display_info_academy']);
+    //إعلانات المعهد
+    Route::get('all_publish', [Student_operationController::class, 'publish']);
 
 
 });
@@ -233,6 +235,9 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
     //عرض معلومات الكورس
     Route::get('/display_info_course/{course_id}',[AdminOperationController::class,'display_info_course']);
+    //إضافة موجه
+    Route::post('/add_monetor',[AdminOperationController::class,'add_monetor']);
+
     
     
 });
@@ -311,7 +316,9 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
 Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(function () {
     //عرض مواد الطالب
     Route::get('/my_subject',[Student_operationController::class,'display_subject']);
-    //عرض الملفات و الصور للمادة المختارة
+    //عرض صور مواد الطالب
+    Route::get('/img_subject/{subject_id}',[Student_operationController::class,'display_img_subject']);
+    //عرض الملفات للمادة المختارة
     Route::get('/file_subject/{subject_id}',[Student_operationController::class,'display_file_subject']);
     //تسجيل طالب في دورة
     Route::post('/create-order-course/{course_id}',[Student_operationController::class,'orderCourse']);

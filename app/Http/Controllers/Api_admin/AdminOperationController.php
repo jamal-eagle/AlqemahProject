@@ -2457,6 +2457,85 @@ public function display_info_course($course_id)
     ]);
 }
 
+    //إضافة موجه
+public function add_monetor(Request $request)
+{
+    $academy = Academy::find(1);
+    
+    $validator = Validator::make($request->all(), [
+        'first_name' => 'required',
+        'last_name' => 'required|string',
+        'father_name' => 'required|string',
+        'mother_name' => 'required|string',
+        'birthday' => 'required|date',
+        'gender'=>'required',
+        // 'year'=>'required',
+        'phone' => 'required',
+        'address' => 'required',
+        'email'=>'required|email',
+        'password' => 'required|min:8',
+        'conf_password' => 'required|min:8',
+        'salary' => 'required',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $monetor = new User;
+
+    $password  = $request->password;
+    $monetor->first_name = $request->first_name;
+    $monetor->last_name = $request->last_name;
+    $monetor->father_name = $request->father_name;
+    $monetor->mother_name = $request->mother_name;
+    $monetor->birthday = $request->birthday;
+    $monetor->gender = $request->gender;
+    $monetor->phone = $request->phone;
+    $monetor->address = $request->address;
+    $monetor->year = $academy->year;
+    $monetor->email = $request->email;
+    $monetor->password = Hash::make($password);
+    $monetor->conf_password = Hash::make($password);
+    $monetor->user_type = 'monetor';
+    $monetor->save();
+
+    // $validator = Validator::make($request->all(), [
+    //     // 'first_name' => 'required',
+    //     // 'last_name' => 'required',
+    //     // 'phone' => 'required',
+    //     // 'address' => 'required',
+    //     'salary' => 'required',
+    //     // 'year' => 'required',
+    //     // 'type'=>'required',
+    // ]);
+
+    // if ($validator->fails()) {
+    //     return $this->responseError(['errors' => $validator->errors()]);
+    // }
+
+    // $email = $request->first_name . Str::random(5) . "@gmail.com";
+    // $password = $request->first_name . Str::random(6);
+
+    $employee = new Employee();
+
+    $employee->first_name = $monetor->first_name;
+    $employee->last_name = $monetor->last_name;
+    $employee->phone = $monetor->phone;
+    $employee->address = $monetor->address;
+    $employee->salary = $request->salary;
+    $employee->year = $academy->year;
+    $employee->email = $monetor->email;
+    $employee->password = Hash::make($password);
+    $employee->type = $monetor->user_type;
+
+    $employee->save();
+    return 'good';
+    // return response()->json([$employee->email, $password]);
+
+
+}
+
 
 
 

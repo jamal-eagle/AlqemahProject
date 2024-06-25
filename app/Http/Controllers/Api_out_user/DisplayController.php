@@ -57,45 +57,45 @@ class DisplayController extends BaseController
         return $course;
     }
 
-    //عرض الإعلانات
-    public function publish()
-    {
-    //     //عرض إعلانات
-    // Route::get('/publish',[DisplayController::class,'publish']);
-$publish = Publish::all();
-$result = [];
+//     //عرض الإعلانات
+//     public function publish()
+//     {
+//     //     //عرض إعلانات
+//     // Route::get('/publish',[DisplayController::class,'publish']);
+// $publish = Publish::all();
+// $result = [];
 
-foreach ($publish as $p) {
-    $images = Image::where('publish_id', $p->id)->get();
-    $imageData = [];
+// foreach ($publish as $p) {
+//     $images = Image::where('publish_id', $p->id)->get();
+//     $imageData = [];
 
-    foreach ($images as $i) {
-        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+//     foreach ($images as $i) {
+//         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
         
-        if (file_exists($imagePath)) {
-            $imageData[] = [
-                'path' => $imagePath,
-                'file_info' => $i
-            ];
-        }
-    }
+//         if (file_exists($imagePath)) {
+//             $imageData[] = [
+//                 'path' => $imagePath,
+//                 'file_info' => $i
+//             ];
+//         }
+//     }
     
-    $result[] = [
-        'ad_info' => $p,
-        'images' => $imageData
-    ];
-}
+//     $result[] = [
+//         'ad_info' => $p,
+//         'images' => $imageData
+//     ];
+// }
 
-if (!empty($result)) {
-    return response()->json([
-        'status' => 'true',
-        'ads' => $result
-    ]);
-} else {
-    return response()->json([
-        'status' => 'false',
-        'message' => 'No images found'
-    ]);
-}
-    } 
+// if (!empty($result)) {
+//     return response()->json([
+//         'status' => 'true',
+//         'ads' => $result
+//     ]);
+// } else {
+//     return response()->json([
+//         'status' => 'false',
+//         'message' => 'No images found'
+//     ]);
+// }
+//     } 
 }

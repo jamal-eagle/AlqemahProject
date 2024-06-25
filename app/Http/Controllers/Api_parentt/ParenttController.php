@@ -41,8 +41,9 @@ class ParenttController extends Controller
                     if ($p->id == $i->program_student_id) {
                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
                         if (file_exists($imagePath)) {
+                            $i->image_url = asset('/upload/' . $i->path);
                             $result[] = [
-                                'path' => $imagePath,
+                                'info_program' => $p,
                                 'image_info' => $i
                             ];
                         }
@@ -181,8 +182,9 @@ public function homework_subject_my_sun($student_id,$subject_id)
             $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
 
             if (file_exists($homework_path)) {
+                $a->image_url = asset('/upload/' . $a->path);
                 $homework_info['file_image_info'][] = [
-                    'path' => $homework_path,
+                    // 'path' => $homework_path,
                     'file_image_info' => $a
                 ];
             }

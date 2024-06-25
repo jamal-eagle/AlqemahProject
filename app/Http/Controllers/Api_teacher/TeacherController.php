@@ -37,8 +37,9 @@ class TeacherController extends Controller
                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$img->path);
                         //return response()->file($imagePath);
                         if (file_exists($imagePath)) {
+                            $img->image_url = asset('/upload/' . $img->path);
                             return response()->json([
-                                'path' => $imagePath,
+                                // 'path' => $imagePath,
                                 'image_info' => $img
                             ]);    
                         }
@@ -139,8 +140,9 @@ public function display_file_subject($subject_id)
         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
                     //return response()->file($imagePath);
                     if (file_exists($imagePath)) {
+                        $i->image_url = asset('/upload/' . $i->name);
                         $result[] = [
-                            'path' => $imagePath,
+                            // 'path' => $imagePath,
                             'image_info' => $i
                         ];    
                     }
@@ -152,18 +154,21 @@ public function display_file_subject($subject_id)
         $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                     //return response()->file($imagePath);
                     if (file_exists($imagePath)) {
+                        $f->file_url = asset('/upload/' . $f->name);
                         $result[] = [
-                            'path' => $filePath,
+                            // 'path' => $filePath,
                             'file_info' => $f
                         ];    
                     }
     }
     //عم نشوف إذا في نتائج أو لاء
     if (!empty($result)) {
-        return response()->json([
-            'status' => 'true',
-            'images_files' => $result
-        ]);
+        // return response()->json([
+        //     'status' => 'true',
+        //     'images_files' => $result
+        // ]);
+        
+        return $result;
     } else {
         return response()->json([
             'status' => 'false',
@@ -541,8 +546,9 @@ if ($request->hasFile('name')) {
             $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
                         //return response()->file($imagePath);
                         if (file_exists($imagePath)) {
+                            $i->image_url = asset('/upload/' . $i->name);
                             $result[] = [
-                                'path' => $imagePath,
+                                // 'path' => $imagePath,
                                 'image_info' => $i
                             ];    
                         }
@@ -554,8 +560,9 @@ if ($request->hasFile('name')) {
             $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                         //return response()->file($imagePath);
                         if (file_exists($filePath)) {
+                            $f->image_url = asset('/upload/' . $f->name);
                             $result[] = [
-                                'path' => $filePath,
+                                // 'path' => $filePath,
                                 'file_info' => $f
                             ];    
                         }
@@ -913,7 +920,7 @@ public function update_image(Request $request, $id)
 
 public function add_course()
 {
-    
+
 }
 
 

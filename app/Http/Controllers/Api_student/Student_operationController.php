@@ -42,8 +42,8 @@ class Student_operationController extends BaseController
 
     }
 
-    //عرض صور و ملفات مواد الطالب
-    public function display_file_subject($subject_id)
+    //عرض صور مواد الطالب
+    public function display_img_subject($subject_id)
     {
         $user= User::where('id',auth()->user()->id)->first();
         if (!$user) {
@@ -57,12 +57,65 @@ class Student_operationController extends BaseController
             $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
                         //return response()->file($imagePath);
                         if (file_exists($imagePath)) {
+                            $i->image_url = asset('/upload/' . $i->name);
                             $result[] = [
-                                'path' => $imagePath,
+                                // 'path' => $imagePath,
                                 'image_info' => $i
                             ];    
                         }
         }
+
+        // //صور السنة الحالية للمادة المحددة
+        // $file_select_year = File_Archive::where('archive_id',$archive->id)->get();
+        // foreach ($file_select_year as $f) {
+        //     $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
+        //                 //return response()->file($imagePath);
+        //                 if (file_exists($filePath)) {
+        //                     $f->file_url = asset('/upload/' . $f->name);
+        //                     $result[] = [
+        //                         // 'path' => $filePath,
+        //                         'file_info' => $f
+        //                     ];    
+        //                 }
+        // }
+        //عم نشوف إذا في نتائج أو لاء
+        if (!empty($result)) {
+            // return response()->json([
+            //     'status' => 'true',
+            //     'images' => $result
+            // ]);
+
+            return $result;
+        } else {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No images found'
+            ]);
+        }
+    }
+
+    //عرض ملفات مواد الطالب
+    public function display_file_subject($subject_id)
+    {
+        $user= User::where('id',auth()->user()->id)->first();
+        if (!$user) {
+            return response()->json(['error' => 'user not found'], 404);
+        }
+
+        $archive = Archive::where('year',$user->year)->where('subject_id', $subject_id)->first();
+        // //صور السنة الحالية للمادة المحددة
+        // $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
+        // foreach ($image_select_year as $i) {
+        //     $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+        //                 //return response()->file($imagePath);
+        //                 if (file_exists($imagePath)) {
+        //                     $i->image_url = asset('/upload/' . $i->name);
+        //                     $result[] = [
+        //                         // 'path' => $imagePath,
+        //                         'image_info' => $i
+        //                     ];    
+        //                 }
+        // }
 
         //صور السنة الحالية للمادة المحددة
         $file_select_year = File_Archive::where('archive_id',$archive->id)->get();
@@ -70,22 +123,25 @@ class Student_operationController extends BaseController
             $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                         //return response()->file($imagePath);
                         if (file_exists($filePath)) {
+                            $f->file_url = asset('/upload/' . $f->name);
                             $result[] = [
-                                'path' => $filePath,
+                                // 'path' => $filePath,
                                 'file_info' => $f
                             ];    
                         }
         }
         //عم نشوف إذا في نتائج أو لاء
         if (!empty($result)) {
-            return response()->json([
-                'status' => 'true',
-                'images' => $result
-            ]);
+            // return response()->json([
+            //     'status' => 'true',
+            //     'images' => $result
+            // ]);
+
+            return $result;
         } else {
             return response()->json([
                 'status' => 'false',
-                'message' => 'No images found'
+                'message' => 'No file found'
             ]);
         }
     }
@@ -296,9 +352,10 @@ public function file_image_homework($homework_id)
             $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
                         //return response()->file($imagePath);
                         if (file_exists($imagePath)) {
+                            $i->image_file_url = asset('/upload/' . $i->name);
                             $result[] = [
-                                'path' => $imagePath,
-                                'image_info' => $i
+                                // 'path' => $imagePath,
+                                'image_file_info' => $i
                             ];    
                         }
         }
@@ -341,8 +398,9 @@ public function programe_week()
                     if ($p->id == $i->program_student_id) {
                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
                         if (file_exists($imagePath)) {
+                            $i->image_file_url = asset('/upload/' . $i->path);
                             $result[] = [
-                                'path' => $imagePath,
+                                // 'path' => $imagePath,
                                 'image_info' => $i,
                                 'program' => $p
                             ];
@@ -387,8 +445,9 @@ public function programe_week()
             $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
                         //return response()->file($imagePath);
                         if (file_exists($imagePath)) {
+                            $i->image_url = asset('/upload/' . $i->name);
                             $result[] = [
-                                'path' => $imagePath,
+                                // 'path' => $imagePath,
                                 'image_info' => $i
                             ];    
                         }
@@ -400,18 +459,20 @@ public function programe_week()
             $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                         //return response()->file($imagePath);
                         if (file_exists($filePath)) {
+                            $f->file_url = asset('/upload/' . $f->name);
                             $result[] = [
-                                'path' => $filePath,
+                                // 'path' => $filePath,
                                 'file_info' => $f
                             ];    
                         }
         }
         //عم نشوف إذا في نتائج أو لاء
         if (!empty($result)) {
-            return response()->json([
-                'status' => 'true',
-                'files' => $result
-            ]);
+            // return response()->json([
+            //     'status' => 'true',
+            //     'files' => $result
+            // ]);
+            return $result;
         } else {
             return response()->json([
                 'status' => 'false',
@@ -529,7 +590,7 @@ public function publish()
     
     public function show_my_profile()
 {
-    $user = User::where('id', auth()->user()->id)->with('student')->first();
+    $user = User::where('id', auth()->user()->id)->with('student.section.classs')->first();
 
     if ($user && $user->image != null) {
         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$user->image);
