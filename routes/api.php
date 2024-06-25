@@ -229,6 +229,11 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/all-teatcher-for-course',[DisplayController::class,'all_teatcher']);
     //إضافة دورة مع إمكانية إضافة إعلان إن أردنا أو عدم إضافة    
     Route::post('/add_course',[AdminOperationController::class,'add_course']);
+    //القسط و الدفعات و المتبقي
+    Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
+    //عرض معلومات الكورس
+    Route::get('/display_info_course/{course_id}',[AdminOperationController::class,'display_info_course']);
+    
     
 });
 

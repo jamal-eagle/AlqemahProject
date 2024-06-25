@@ -21,6 +21,8 @@ use App\Models\Image_Archive;
 use App\Models\File_Archive;
 use App\Models\Accessories;
 use App\Models\Academy;
+use App\Models\Course;
+use App\Models\Expenses;
 
 class Student_operationController extends BaseController
 {
@@ -110,6 +112,31 @@ class Student_operationController extends BaseController
         $new->student_id = $student->id;
         $new->course_id = $course_id;
         $new->save();
+
+        //كلشي تحت لتغير حالة الدورة من قيد الدراسة إلى مفتوحة
+        //عدد الطلاب المسجلين في الدورة
+        $num_order_for_course = Order::where('course_id',$course_id)->count();
+
+        $course = Course::find($course_id);
+
+        //المبلغ الذي جمعه المعهد من الطلاب المسجلين
+        $Money = $num_order_for_course * $course->cost_course;
+
+        // المبلغ الذي جمعه المعهد بعد إعطاء المدرس نسبته
+        $Money_without_teacher = $Money * ($course->percent_teacher) / 100;
+
+        //مصاريف الدورة الكلية
+        $expenses = Expenses::where('course_id',$course_id)->sum('total_cost') ?? 0;
+
+        //مربح المعهد من الدورة
+        $Money_win =  $Money_without_teacher - $expenses ;
+
+        if ($Money_win >= 500000) {
+            $course->Course_status = 1;
+            $course->save();
+        }
+
+        // return $Money_win; 
         return $this->responseData("success",$new);
     } 
 

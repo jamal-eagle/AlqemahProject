@@ -12,8 +12,8 @@ class FeeAndPayController extends Controller
 
     public function fee($student_id)
     {
-      $pay = Pay_Fee::where('student_id', $student_id)->with('student')->get();
-    
+      // $pay = Pay_Fee::where('student_id', $student_id)->with('student')->get();
+      $pay = Pay_Fee::where('student_id', $student_id)->get();
       // حساب المبلغ المتبقي للطالب
       $total_paid = $pay->sum('amount_money');
       //$total_fee1 = Student::where('id', $student_id)->first('school_tuition');

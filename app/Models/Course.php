@@ -30,6 +30,7 @@ class Course extends Model
         'num_day',
         'year',
         'percent_teacher',
+        'Minimum_win',
         //'publish_id',
         'subject_id',
         'class_id',
@@ -57,13 +58,22 @@ class Course extends Model
         return $this->hasMany('App\Models\Order',foreignKey:'course_id',localKey:'id');
     }
 
+    // public function expens()
+    // {
+    //     return $this->hasOne('App\Models\Expenses',foreignKey:'course_id');
+    // }
     public function expens()
     {
-        return $this->hasOne('App\Models\Expenses',foreignKey:'course_id');
+        return $this->hasMany('App\Models\Expenses',foreignKey:'course_id',localKey:'id');
     }
 
     public function file_courses()
     {
         return $this->hasMany('App\Models\File_course',foreignKey:'course_id',localKey:'id');
+    }
+
+    public function pay_fees()
+    {
+        return $this->hasMany('App\Models\Pay_Fee',foreignKey:'course_id',localKey:'id');
     }
 }

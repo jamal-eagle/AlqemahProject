@@ -2341,6 +2341,120 @@ public function update_course(Request $request, $course_id)
 
 }
 
+// public function display_info_course($course_id)
+// {
+//     $course = Course::where('id', $course_id)->with('publish.image')->with('expens')->first();
+
+//     //كلشي تحت لتغير حالة الدورة من قيد الدراسة إلى مفتوحة
+//         //عدد الطلاب المسجلين في الدورة
+//         $num_order_for_course = Order::where('course_id',$course_id)->count();
+
+//         // $course = Course::find($course_id);
+
+//         //المبلغ الذي جمعه المعهد من الطلاب المسجلين
+//         $Money = $num_order_for_course * $course->cost_course;
+
+//         // المبلغ الذي جمعه المعهد بعد إعطاء المدرس نسبته
+//         $Money_without_teacher = $Money * (100 - $course->percent_teacher) / 100;
+//         // return (100 - $course->percent_teacher);
+
+//         //مبلغ دفعو المعهد كرمال الدورة
+//         $expenses = Expenses::where('course_id',$course_id)->sum('total_cost') ?? 0;
+
+//         //مربح المعهد من الدورة إذا تم فتحها
+//         $Money_win_ =  $Money_without_teacher - $expenses ;
+
+//         // حساب عدد الطلاب اللازمين لفتح الدورة
+//     $required_money_to_open = $expenses / ((100 - $course->percent_teacher) / 100);
+//     $num_students_required = ceil($required_money_to_open / $course->cost_course);
+
+//     // حساب عدد الطلاب المتبقي لتغطية التكاليف
+//     $num_students_remaining = $num_students_required - $num_order_for_course;
+
+//     return $num_students_required;
+//         if ($Money_win >= 500000) {
+//             $course->Course_status = 1;
+//             $course->save();
+//         }
+//         else {
+//             // المبلغ المتبقي لفتح الدورة ليكون المعهد أخذ ربحه الأدنى
+//             $x= 500000-$Money_win;
+
+//             $s = $x / $course->cost_course;
+
+//             $num_order_for_course + $s 
+
+
+//         }
+
+//         // $num_student_to_open_course = 
+    
+
+//     // عدد الطلاب اللازم لحتى تنفتح الدور
+//     //مجموع المصلريف و نسبة الأستاذ
+//     //
+//     return $Money_win;
+
+
+// }
+
+
+public function display_info_course($course_id)
+{
+    $course = Course::where('id', $course_id)
+        ->with('publish.image')
+        ->with('expens')
+        ->first();
+
+    if (!$course) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Course not found'
+        ]);
+    }
+
+    // عدد الطلاب المسجلين في الدورة
+    $num_order_for_course = Order::where('course_id', $course_id)->count();
+
+    // المبلغ الذي جمعه المعهد من الطلاب المسجلين
+    $Money = $num_order_for_course * $course->cost_course;
+
+    // مصاريف الدورة الكلية
+    $expenses = Expenses::where('course_id', $course_id)->sum('total_cost') ?? 0;
+
+    // النسبة التي يحصل عليها المعهد بعد خصم نسبة المدرس
+    $institute_percentage = 100 - $course->percent_teacher;
+
+    // المبلغ الذي يجب جمعه ليغطي المصاريف ويحقق الربح المطلوب
+    $required_money_to_open = $expenses + 500000;  // إضافة الربح المطلوب 500000 إلى المصاريف
+
+    // المبلغ الذي يجب جمعه من الطلاب ليغطي المطلوب بعد خصم نسبة المدرس
+    $required_total_money = $required_money_to_open / ($institute_percentage / 100);
+
+    // حساب عدد الطلاب اللازمين لجمع هذا المبلغ
+    $num_students_required = ceil($required_total_money / $course->cost_course);
+
+    // حساب عدد الطلاب المتبقيين لتغطية التكاليف
+    $num_students_remaining = $num_students_required - $num_order_for_course;
+
+    // تغيير حالة الدورة إذا كانت الشروط مستوفاة
+    if ($Money >= $required_money_to_open) {
+        $course->Course_status = 1;
+        $course->save();
+    }
+
+    return response()->json([
+        'status' => 'true',
+        'course' => $course,
+        'num_students_registered_in_course' => $num_order_for_course,
+        'total_money_collected' => $Money,
+        'total_expenses' => $expenses,
+        'num_students_required_shoud' => $num_students_required,
+        'num_students_remaining' => $num_students_remaining
+    ]);
+}
+
+
 
 
 

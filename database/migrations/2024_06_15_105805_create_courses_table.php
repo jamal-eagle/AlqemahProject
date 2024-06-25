@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('name_course');
             $table->string('description')->nullable();
             $table->double('cost_course');
+            $table->double('Minimum_win');
             $table->date('start_date');
             $table->date('finish_date');
             $table->time('start_time');
