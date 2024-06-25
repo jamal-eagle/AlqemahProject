@@ -131,7 +131,7 @@ class Student_operationController extends BaseController
         //مربح المعهد من الدورة
         $Money_win =  $Money_without_teacher - $expenses ;
 
-        if ($Money_win >= 500000) {
+        if ($Money_win >= $course->Minimum_win) {
             $course->Course_status = 1;
             $course->save();
         }

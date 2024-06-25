@@ -2404,6 +2404,7 @@ public function update_course(Request $request, $course_id)
 public function display_info_course($course_id)
 {
     $course = Course::where('id', $course_id)
+        ->with('teacher.user')
         ->with('publish.image')
         ->with('expens')
         ->first();
@@ -2428,7 +2429,7 @@ public function display_info_course($course_id)
     $institute_percentage = 100 - $course->percent_teacher;
 
     // المبلغ الذي يجب جمعه ليغطي المصاريف ويحقق الربح المطلوب
-    $required_money_to_open = $expenses + 500000;  // إضافة الربح المطلوب 500000 إلى المصاريف
+    $required_money_to_open = $expenses + $course->Minimum_win;  // إضافة الربح المطلوب 500000 إلى المصاريف
 
     // المبلغ الذي يجب جمعه من الطلاب ليغطي المطلوب بعد خصم نسبة المدرس
     $required_total_money = $required_money_to_open / ($institute_percentage / 100);
