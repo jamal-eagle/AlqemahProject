@@ -105,6 +105,7 @@ if($user){
             return response()->json([
         'User login successfully',
         'token'=>$token,
+        'user' => $user,
     ]);
         }
     }else{
@@ -1956,22 +1957,7 @@ public function edit_info_academy(Request $request,$id)
 //     return $info;
 // }
 
-public function edit_year(Request $request,$id)
-{
-    $info = Academy::find($id);
 
-    // $info->name = $request->name ?? $info->name;
-    // $info->phone = $request->phone ?? $info->phone;
-    // $info->address = $request->address ?? $info->address;
-    // $info->facebook_link = $request->facebook_link ?? $info->facebook_link;
-    // $info->description = $request->description ?? $info->description;
-    $info->year = $request->year ?? $info->year;
-
-    $info->save();
-
-    return $info;
-
-}
 
 
 
@@ -2217,6 +2203,8 @@ public function desplay_section_and_student($class_id)
     return response()->json([$classs,$student,$user]);
 
 }
+
+
 
 
 

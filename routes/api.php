@@ -16,6 +16,7 @@ use App\Http\Controllers\Api_parentt\FeeAndPayController;
 use App\Http\Controllers\Api_school_monetor\MonetorController;
 use App\Http\Controllers\Api_teacher\TeacherController;
 use App\Http\Controllers\Api_teacher\PostController;
+use App\Http\Controllers\Api_admin\AdminZaController;
 
 
 /*
@@ -99,7 +100,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //عرض تصنيف الطلاب
     Route::get('/classification/{calssification}',[AdminOperationController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد
-    route::get('/desplay_all_student/{year}', [AdminOperationController::class, 'desplay_all_student_regester']);
+    route::get('/desplay_all_student/{year}', [AdminZaController::class, 'desplay_all_student_regester']);
     //عرض الصفوف والشعب
     route::get('/desplay_classs_and_section',[AdminOperationController::class,'desplay_classs_and_section']);
     /// عرض البروفايل للطالب
@@ -109,9 +110,9 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //سجل دوام الطالب
     Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReport']);
     //عرض علامات طالب
-    route::get('desplay_student_marks/{student_id}',[AdminOperationController::class,'desplay_student_marks']);
+    route::get('desplay_student_marks/{student_id}',[AdminZaController::class,'desplay_student_marks']);
     //عرض الملاحظات المقدمة عن الطالب
-    Route::get('desplay_student_nots/{student_id}',[AdminOperationController::class,'desplay_student_nots']);
+    Route::get('desplay_student_nots/{student_id}',[AdminZaController::class,'desplay_student_nots']);
     //ارسال انذارات وملاحظات للطالب
     route::post('/create_note/{student_id}', [AdminOperationController::class, 'create_note_student']);
     //التعديل على سجل دوام الطالب يعني اضافة غياب او حذف غياب
@@ -220,7 +221,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //الدورات التي سجل فيها الطالب
     route::get('/student_course/{student_id}',[AdminOperationController::class,'student_course']);
     //تعديل السنة الدراسية
-    Route::post('edit_year/{id}',[AdminOperationController::class,'edit_year']);
+    Route::post('edit_year/{id}',[AdminZaController::class,'edit_year']);
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
 
@@ -241,6 +242,19 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
     //عرض الشعب لصف معين وعرض الطلاب لكل شعبة
     route::get('desplay_section_and_student/{class_id}', [AdminOperationController::class, 'desplay_section_and_student']);
+    //إضافة دورة za
+    Route::post('add_course' ,[AdminZaController::class,'add_course']);
+    //عرض تفاصيل دورة za
+    route::get('display_info_course/{course_id}', [AdminZaController::class, 'display_info_course']);
+    //إضافة موجه za
+    Route::post('/add_monetor' ,[AdminZaController::class,'add_monetor']);
+    //إضافة محاسب za
+    Route::post('/add_accounting',[AdminZaController::class,'add_accounting']);
+    
+
+    
+
+    
 });
 
 Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){
@@ -257,7 +271,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //عرض سجل دوام الطالب
     Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReport']);
     //عرض علامات طالب
-    route::get('desplay_student_marks/{student_id}',[MonetorController::class,'desplay_student_marks']);
+    route::get('desplay_student_marks/{student_id}',[AdminZaController::class,'desplay_student_marks']);
     //عرض الملاحظات تجاه الطال
     route::get('desplay_student_note/{student_id}',[MonetorController::class,'desplay_student_note']);
     //ارسال انذارات وملاحظات للطالب
@@ -358,7 +372,8 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     Route::get('/info_course/{id_course}',[DisplayController::class,'info_course']);
     //عرض معلومات الطالب و صورته
     Route::get('/show_my_profile',[Student_operationController::class,'show_my_profile']);
-
+    //تعديل معلومات الطالب الرقم العنوان و كلمة السر
+    Route::post('/edit_some_info_profile',[Student_operationController::class,'edit_some_info_profile']);
 
 
 });
