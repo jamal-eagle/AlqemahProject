@@ -68,6 +68,35 @@ public function desplay_student_marks($student_id)
         return $note;
     }
 
+    public function create_note_student(Request $request , $student_id)
+{
+    $student = Student::find($student_id);
+    if(!$student)
+    {
+        return response()->json(['the student not found']);
+    }
+    $validator = Validator::make($request->all(),[
+        'text'=>'required|string',
+        'type'=>'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+
+        $note_student = new Note_Student();
+
+        $note_student->type = $request->type;
+        $note_student->text = $request->text;
+        $note_student->student_id = $student_id;
+        $note_student->user_id = auth()->user()->id;
+
+        $note_student->save();
+
+        return response()->json(['successssss']);
+
+}
+
     public function edit_year(Request $request,$id)
 {
     $info = Academy::find($id);
@@ -457,6 +486,61 @@ public function add_accounting(Request $request)
     return 'good add';
 
 }
+
+public function add_publish(Request $request)
+{
+    $validator = Validator::make($request->all(),[
+        'description'=>'required|string',
+        //'course_id'=>'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+
+        $publish = new Publish();
+        $publish->description = $request->description;
+        //$publish->course_id = $request->course_id ?? null;
+        $publish->save();
+
+        if ($request->path) {
+            $validator = Validator::make($request->all(),[
+                'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Please fix the errors',
+                    'errors' => $validator->errors()
+                ]);
+            }
+
+            $img = $request->path;
+            $ext = $img->getClientOriginalExtension();
+            $imageName = time().'.'.$ext;
+            $img->move(public_path().'/upload',$imageName);
+
+            $image = new Image;
+            $image->path = $imageName;
+            $image->description = $request->description;
+            $image->publish_id = $publish->id;
+
+            $image->save();
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'image upload success',
+                'path' => asset('/upload/'.$imageName),
+                'data' => $image
+            ]);
+            return response()->json(['sucssscceccs with img']);
+        }
+
+        else {
+            return response()->json(['sucssscceccs']);
+        }
+    }
 
 
 

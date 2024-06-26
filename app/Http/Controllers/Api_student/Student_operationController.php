@@ -19,7 +19,7 @@ use App\Models\Publish;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Image;
 use App\Models\Image_Archive;
-use App\Models\File_Archive;
+use App\Models\chFile_Arive;
 use App\Models\Accessories;
 use App\Models\Academy;
 use App\Models\Course;
@@ -436,23 +436,23 @@ public function programe_week()
         return $archive;
     }
 
-    //عرض ملفات و صور مادة محددة حسب سنة محددة
-    public function file_image_subject_year($subject_id,$year)
+    //عرض ملفات مادة محددة حسب سنة محددة
+    public function file_subject_year($subject_id,$year)
     {
         $archive = Archive::where('subject_id',$subject_id)->where('year', $year)->first();
-        //صور السنة الحالية للمادة المحددة
-        $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
-        foreach ($image_select_year as $i) {
-            $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
-                        //return response()->file($imagePath);
-                        if (file_exists($imagePath)) {
-                            $i->image_url = asset('/upload/' . $i->name);
-                            $result[] = [
-                                // 'path' => $imagePath,
-                                'image_info' => $i
-                            ];    
-                        }
-        }
+        // //صور السنة الحالية للمادة المحددة
+        // $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
+        // foreach ($image_select_year as $i) {
+        //     $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+        //                 //return response()->file($imagePath);
+        //                 if (file_exists($imagePath)) {
+        //                     $i->image_url = asset('/upload/' . $i->name);
+        //                     $result[] = [
+        //                         // 'path' => $imagePath,
+        //                         'image_info' => $i
+        //                     ];    
+        //                 }
+        // }
 
         //ملفات السنة الحالية للمادة المحددة
         $file_select_year = File_Archive::where('archive_id',$archive->id)->get();
@@ -480,6 +480,40 @@ public function programe_week()
                 'message' => 'No images found'
             ]);
         }
+    }
+
+    //عرض صور مادة محددة حسب سنة محددة
+    public function img_subject_year($subject_id,$year)
+    {
+        $archive = Archive::where('subject_id',$subject_id)->where('year', $year)->first();
+        //صور السنة الحالية للمادة المحددة
+        $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
+        foreach ($image_select_year as $i) {
+            $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+                        //return response()->file($imagePath);
+                        if (file_exists($imagePath)) {
+                            $i->image_url = asset('/upload/' . $i->name);
+                            $result[] = [
+                                // 'path' => $imagePath,
+                                'image_info' => $i
+                            ];    
+                        }
+        }
+
+        //عم نشوف إذا في نتائج أو لاء
+        if (!empty($result)) {
+            // return response()->json([
+            //     'status' => 'true',
+            //     'files' => $result
+            // ]);
+            return $result;
+        } else {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No images found'
+            ]);
+        }
+
     }
 
     //عرض الملاحظات التي بحق الطالب

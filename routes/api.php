@@ -114,7 +114,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //عرض الملاحظات المقدمة عن الطالب
     Route::get('desplay_student_nots/{student_id}',[AdminZaController::class,'desplay_student_nots']);
     //ارسال انذارات وملاحظات للطالب
-    route::post('/create_note/{student_id}', [AdminOperationController::class, 'create_note_student']);
+    route::post('/create_note/{student_id}', [AdminZaController::class, 'create_note_student']);
     //التعديل على سجل دوام الطالب يعني اضافة غياب او حذف غياب
     //اضافة يوم غياب للطالب
     route::post('/add_student_out_of_work/{student_id}', [AdminOperationController::class, 'addAbsence']);
@@ -159,7 +159,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //عرض المواد التي ستعطى في هذه الدورة
     Route::get('/display_subject_in_course/{course_id}',[AdminOperationController::class,'display_subject_in_course']);
     //اضافة اعلان
-    route::post('/add_publish', [AdminOperationController::class, 'add_publish']);
+    route::post('/add_publish', [AdminZaController::class, 'add_publish']);
     //حذف اعلان
     route::delete('/delete_publish/{publish_id}', [AdminOperationController::class, 'delete_publish']);
     //تعديل اعلان
@@ -250,7 +250,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('/add_monetor' ,[AdminZaController::class,'add_monetor']);
     //إضافة محاسب za
     Route::post('/add_accounting',[AdminZaController::class,'add_accounting']);
-    
+    //القسط و الدفعات و المتبقي
+    Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
 
     
 
@@ -275,7 +276,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //عرض الملاحظات تجاه الطال
     route::get('desplay_student_note/{student_id}',[MonetorController::class,'desplay_student_note']);
     //ارسال انذارات وملاحظات للطالب
-    route::post('/create_note/{student_id}', [MonetorController::class, 'create_note_student']);
+    route::post('/create_note/{student_id}', [AdminZaController::class, 'create_note_student']);
     //عرض كل مدرسي المعهد
     Route::get('/all-teatcher',[MonetorController::class,'all_teatcher']);
     //عرض معلومات مدرس معين
@@ -301,7 +302,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     // //عرض طلبات التسجيل في دورة معينة
     // route::get('/display_order_for_course/{course_id}',[MonetorController::class,'display_order_for_course']);
     //اضافو اعلان
-    route::post('/add_publish', [MonetorController::class, 'add_publish']);
+    route::post('/add_publish', [AdminZaController::class, 'add_publish']);
     //حذف اعلان
     route::delete('/delete_publish/{publish_id}', [MonetorController::class, 'delete_publish']);
     //تعديل اعلان
@@ -347,8 +348,10 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     Route::get('/my_programe',[Student_operationController::class,'programe_week']);
     //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
     Route::get('/display_year_archive/{subject_id}',[Student_operationController::class,'display_year_archive']);
-    //عرض ملفات و صور مادة محددة حسب سنة محددة
-    Route::get('/file_image_subject_year/{subject_id}/{year}',[Student_operationController::class,'file_image_subject_year']);
+    //عرض ملفات مادة محددة حسب سنة محددة
+    Route::get('/file_subject_year/{subject_id}/{year}',[Student_operationController::class,'file_subject_year']);
+    //عرض صور مادة محددة حسب سنة محددة
+    Route::get('/img_subject_year/{subject_id}/{year}',[Student_operationController::class,'img_subject_year']);
     //عرض الملاحظات الموجهة تجاه الطالب
     Route::get('/my_note',[Student_operationController::class,'display_note']);
     //عرض جميع المناقشات الخاصة بشعبة الطالب فقط عنوان و اسم المدرس
@@ -414,10 +417,14 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     Route::get('/display_supject_with_class',[TeacherController::class,'display_supject_with_class']);
     //عرض ملفات المواد التي أدرسها
     Route::get('/display_file_subject_teacher/{subject_id}',[TeacherController::class,'display_file_subject']);
+    //عرض صور المواد التي أدرسها
+    Route::get('/display_img_subject_teacher/{subject_id}',[TeacherController::class,'display_img_subject']);
     //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
     Route::get('/display_year_archive/{subject_id}',[TeacherController::class,'display_year_archive']);
-    //عرض ملفات و صور مادة محددة حسب سنة محددة
-    Route::get('/file_image_subject_year/{subject_id}/{year}',[TeacherController::class,'file_image_subject_year']);
+    //عرض ملفات مادة محددة حسب سنة محددة
+    Route::get('/file_subject_year/{subject_id}/{year}',[TeacherController::class,'file_subject_year']);
+    //عرض ملفات مادة محددة حسب سنة محددة
+    Route::get('/img_subject_year/{subject_id}/{year}',[TeacherController::class,'img_subject_year']);
     //المواد و الصف الذي يعطيها المدرس
     Route::get('/classs',[TeacherController::class,'classs']);
     //الشعب التي يعطيها المدرس حسب الصف

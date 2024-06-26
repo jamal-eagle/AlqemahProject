@@ -117,47 +117,40 @@ class TeacherController extends Controller
 
     }
 
-    //عرض صور و ملفات المادة التي يعطيها للسنة الحالية
+    //عرض ملفات المادة التي يعطيها للسنة الحالية
 public function display_file_subject($subject_id)
 {
-    // $user= User::where('id',auth()->user()->id)->first();
-    // if (!$user) {
-    //     return response()->json(['error' => 'user not found'], 404);
-    // }
-
-    // $archive = Archive::where('year',$user->year)->where('subject_id', $subject_id)->with('image_Archives')->with('file_Archive')->get();
-
-    // return $archive;
     $user= User::where('id',auth()->user()->id)->first();
     if (!$user) {
         return response()->json(['error' => 'user not found'], 404);
     }
 
     $archive = Archive::where('year',$user->year)->where('subject_id', $subject_id)->first();
-    //صور السنة الحالية للمادة المحددة
-    $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
-    foreach ($image_select_year as $i) {
-        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
-                    //return response()->file($imagePath);
-                    if (file_exists($imagePath)) {
-                        $i->image_url = asset('/upload/' . $i->name);
-                        $result[] = [
-                            // 'path' => $imagePath,
-                            'image_info' => $i
-                        ];    
-                    }
-    }
+    // //صور السنة الحالية للمادة المحددة
+    // $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
+    // foreach ($image_select_year as $i) {
+    //     $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+    //                 //return response()->file($imagePath);
+    //                 if (file_exists($imagePath)) {
+    //                     $i->image_url = asset('/upload/' . $i->name);
+    //                     $result[] = [
+    //                         // 'path' => $imagePath,
+    //                         'image_info' => $i
+    //                     ];    
+    //                 }
+    // }
 
     //صور السنة الحالية للمادة المحددة
     $file_select_year = File_Archive::where('archive_id',$archive->id)->get();
     foreach ($file_select_year as $f) {
         $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                     //return response()->file($imagePath);
-                    if (file_exists($imagePath)) {
+                    if (file_exists($filePath)) {
                         $f->file_url = asset('/upload/' . $f->name);
                         $result[] = [
                             // 'path' => $filePath,
-                            'file_info' => $f
+                            // 'file_info' => $f
+                            $f
                         ];    
                     }
     }
@@ -177,6 +170,48 @@ public function display_file_subject($subject_id)
     }
 
 }
+
+public function display_img_subject($subject_id)
+{
+    $user= User::where('id',auth()->user()->id)->first();
+    if (!$user) {
+        return response()->json(['error' => 'user not found'], 404);
+    }
+
+    $archive = Archive::where('year',$user->year)->where('subject_id', $subject_id)->first();
+    //صور السنة الحالية للمادة المحددة
+    $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
+    foreach ($image_select_year as $i) {
+        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+                    //return response()->file($imagePath);
+                    if (file_exists($imagePath)) {
+                        $i->image_url = asset('/upload/' . $i->name);
+                        $result[] = [
+                            // 'path' => $imagePath,
+                            // 'image_info' => $i
+                            $i
+                        ];    
+                    }
+    }
+
+    //عم نشوف إذا في نتائج أو لاء
+    if (!empty($result)) {
+        // return response()->json([
+        //     'status' => 'true',
+        //     'images_files' => $result
+        // ]);
+        
+        return $result;
+    } else {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'No images found'
+        ]);
+    }
+
+}
+
+
 
 //حذف ملف أو صورة من ملفات السنة الحالية أو الأرشيفzahraa
 public function delete_file_image($file_img_id, $imgFileName)
@@ -536,23 +571,23 @@ if ($request->hasFile('name')) {
         return $archive;
     }
 
-    //عرض ملفات و صور مادة محددة حسب سنة محددة
-    public function file_image_subject_year($subject_id,$year)
+    //عرض ملفات مادة محددة حسب سنة محددة
+    public function file_subject_year($subject_id,$year)
     {
         $archive = Archive::where('subject_id',$subject_id)->where('year', $year)->first();
-        //صور السنة الحالية للمادة المحددة
-        $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
-        foreach ($image_select_year as $i) {
-            $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
-                        //return response()->file($imagePath);
-                        if (file_exists($imagePath)) {
-                            $i->image_url = asset('/upload/' . $i->name);
-                            $result[] = [
-                                // 'path' => $imagePath,
-                                'image_info' => $i
-                            ];    
-                        }
-        }
+        // //صور السنة الحالية للمادة المحددة
+        // $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
+        // foreach ($image_select_year as $i) {
+        //     $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+        //                 //return response()->file($imagePath);
+        //                 if (file_exists($imagePath)) {
+        //                     $i->image_url = asset('/upload/' . $i->name);
+        //                     $result[] = [
+        //                         // 'path' => $imagePath,
+        //                         'image_info' => $i
+        //                     ];    
+        //                 }
+        // }
 
         //صور السنة الحالية للمادة المحددة
         $file_select_year = File_Archive::where('archive_id',$archive->id)->get();
@@ -563,23 +598,60 @@ if ($request->hasFile('name')) {
                             $f->image_url = asset('/upload/' . $f->name);
                             $result[] = [
                                 // 'path' => $filePath,
-                                'file_info' => $f
+                                // 'file_info' => $f
+                                $f
                             ];    
                         }
         }
         //عم نشوف إذا في نتائج أو لاء
         if (!empty($result)) {
-            return response()->json([
-                'status' => 'true',
-                'files' => $result
-            ]);
+            // return response()->json([
+            //     'status' => 'true',
+            //     'files' => $result
+            // ]);
+            return $result;
         } else {
             return response()->json([
                 'status' => 'false',
-                'message' => 'No images found'
+                'message' => 'No files found'
             ]);
         }
     }
+
+        //عرض صور مادة محددة حسب سنة محددة
+        public function img_subject_year($subject_id,$year)
+        {
+            $archive = Archive::where('subject_id',$subject_id)->where('year', $year)->first();
+            //صور السنة الحالية للمادة المحددة
+            $image_select_year = Image_Archive::where('archive_id',$archive->id)->get();
+            foreach ($image_select_year as $i) {
+                $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
+                            //return response()->file($imagePath);
+                            if (file_exists($imagePath)) {
+                                $i->image_url = asset('/upload/' . $i->name);
+                                $result[] = [
+                                    // 'path' => $imagePath,
+                                    // 'image_info' => $i
+                                    $i
+                                ];    
+                            }
+            }
+    
+            //عم نشوف إذا في نتائج أو لاء
+            if (!empty($result)) {
+                // return response()->json([
+                //     'status' => 'true',
+                //     'files' => $result
+                // ]);
+                return $result;
+            } else {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No images found'
+                ]);
+            }
+        }
+    
 
 //رفع ملف أو صورة من ملفات الأرشيف
 public function upload_file_image_archive(Request $request, $archive_id)

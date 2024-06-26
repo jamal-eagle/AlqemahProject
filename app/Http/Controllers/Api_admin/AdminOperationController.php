@@ -1689,7 +1689,7 @@ public function update_publish(Request $request, $publish_id)
     }
 
     // تحديث الوصف في الكائن Publish إذا كان موجودًا في الطلب
-    if ($request->has('description')) {
+    if ($request->has('description') && !empty($request->description)) {
         $publish->description = $request->description;
     }
 
