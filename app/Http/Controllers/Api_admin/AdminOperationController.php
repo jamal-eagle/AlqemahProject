@@ -32,11 +32,6 @@ use App\Models\Teacher_Schedule;
 use App\Models\Out__Of__Work__Employee;
 use App\Models\Image;
 use App\Models\Academy;
-use App\Models\File_Archive;
-use App\Models\File_course;
-use App\Models\Image_Archive;
-use App\Models\Maturitie;
-use App\Models\Section;
 
 
 class AdminOperationController extends BaseController
@@ -1115,7 +1110,7 @@ public function desplay_section_for_classs($class_id,$year)
 
 public function desplay_all_student_regester($year)
 {
-    $student = User::where('year',$year)->where('user_type', 'student')->get();
+    $student = User::where('year',$year)->where('user_type', 'student')->with('student')->get();
     return response()->json([$student,'all student regester here']);
 }
 
@@ -1232,26 +1227,22 @@ public function generateMonthlyAttendanceReport($student_id, $year, $month)
 
 public function desplay_student_marks($student_id)
     {
-        $student = Student::find($student_id);
-        if(!$student)
-        {
-            return response()->json(['student not found ']);
-        }
-        $student->mark;
-        return response()->json([$student,'sucssssss']);
-
+        // $student = Student::find($student_id);
+        // if(!$student)
+        // {
+        //     return response()->json(['student not found ']);
+        // }
+        // $student->mark;
+        // return response()->json([$student,'sucssssss']);
+        $student = Student::where('id', $student_id)->with('mark.subject')->first();
+        return $student;
     }
 
 public function desplay_student_nots($student_id)
     {
-        $student = Student::find($student_id);
-        if(!$student)
-        {
-            return response()->json('the student not found ');
-        }
 
-        return response()->json(['student' => $student->note_students, 'message' => 'Success']);
-
+        $note = Note_Student::where('student_id',$student_id)->with('user')->get();
+        return $note;
     }
 
 
@@ -1264,6 +1255,7 @@ public function create_note_student(Request $request , $student_id)
     }
     $validator = Validator::make($request->all(),[
         'text'=>'required|string',
+        'type'=>'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -1271,6 +1263,8 @@ public function create_note_student(Request $request , $student_id)
         }
 
         $note_student = new Note_Student();
+
+        $note_student->type = $request->type;
         $note_student->text = $request->text;
         $note_student->student_id = $student_id;
         $note_student->user_id = auth()->user()->id;
@@ -1960,11 +1954,6 @@ public function edit_year(Request $request,$id)
 {
     $info = Academy::find($id);
 
-    // $info->name = $request->name ?? $info->name;
-    // $info->phone = $request->phone ?? $info->phone;
-    // $info->address = $request->address ?? $info->address;
-    // $info->facebook_link = $request->facebook_link ?? $info->facebook_link;
-    // $info->description = $request->description ?? $info->description;
     $info->year = $request->year ?? $info->year;
 
     $info->save();
@@ -1981,242 +1970,11 @@ public function student_course($student_id)
         // if (!$student) {
         //     return response()->json(['error' => 'Student not found'], 404);
         // }
+
         $order = Order::where('student_id', $student_id)->with('course.teacher.user')->get();
 
         return $order;
     }
-
-
-
-public function addMaturitie(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'amount'=>'required',
-        'teacher_id' => 'nullable|exists:teachers,id',
-        'employee_id' => 'nullable|exists:employees,id',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 422);
-    }
-
-    // التأكد من أن أحدهما فقط تم تقديمه
-    if (!$request->hasAny(['teacher_id', 'employee_id'])) {
-        return response()->json(['message' => 'Either teacher_id or employee_id must be provided'], 422);
-    }
-
-
-    $maturite = new Maturitie();
-    $maturite->amount = $request->amount;
-    $maturite->teacher_id = $request->teacher_id;
-    $maturite->employee_id = $request->employee_id;
-    $maturite->save();
-
-    return response()->json(['sucssssss']);
-
-    }
-
-
-
-public function deleteMaturitie(Request $request,$mut_id)
-{
-
-    $validator = Validator::make($request->all(), [
-        'teacher_id' => 'nullable|exists:teachers,id',
-        'employee_id' => 'nullable|exists:employees,id',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 422);
-    }
-
-    // if (!$request->hasAny(['teacher_id', 'employee_id'])) {
-    //     return response()->json(['message' => 'Either teacher_id or employee_id must be provided'], 422);
-    // }
-
-    if($request->has('teacher_id'))
-    {
-        $teacher = Teacher::find($request->teacher_id);
-        if($teacher)
-        {
-            $mut = Maturitie::find($mut_id);
-
-            if($mut)
-            {
-                $mut->delete;
-            }
-        }
-    }
-
-    if($request->has('employee_id'))
-    {
-        $employee = Employee::find($request->employee_id);
-        if($employee)
-        {
-            $mut = Maturitie::find($mut_id)->where('employee_id',$request->employee_id);
-            if($mut)
-            {
-                $mut->delete();
-            }
-        }
-    }
-
-
-    return response()->json(['sucssssss']);
-    }
-
-
-public function Add_course(Request $request,$academy_id)
-{
-    $academy = Academy::find($academy_id);
-    $validator = Validator::make($request->all(), [
-        'name_course'=>'required',
-        'description'=>'required',
-        'cost_course'=>'required',
-        'start_date'=>'required',
-        'finish_date'=>'required',
-        'start_time'=>'required',
-        'finish_time'=>'required',
-        'percent_teacher'=>'required',
-        'subject_id'=>'required',
-        'class_id'=>'required',
-        'teacher_id'=>'required',
-        'name_file' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt',
-        'description_file'=>'required'
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 422);
-    }
-
-
-    $course = new Course();
-    $course->name_course = $request->name_course;
-    $course->description = $request->description;
-    $course->cost_course = $request->cost_course;
-    $course->start_date = $request->start_date;
-    $course->finish_date = $request->finish_date;
-    $course->start_time = $request->start_time;
-    $course->finish_time = $request->finish_time;
-    $course->year = $academy->year;
-    $course->percent_teacher = $request->percent_teacher;
-    $course->subject_id = $request->subject_id;
-    $course->class_id = $request->class_id;
-    $course->teacher_id = $request->teacher_id;
-
-
-    $course->save();
-
-    $img = $request->name_file;
-    $ext = $img->getClientOriginalExtension();
-    $imgFileName = time().'.'.$ext;
-    $img->move(public_path().'/upload',$imgFileName);
-
-    if ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif" ||
-    $ext=="pdf" || $ext=="docx" || $ext=="txt") {
-    $image = new File_course();
-    $image->name = $imgFileName;
-    $image->description = $request->description_file;
-
-    $image->course_id = $course->id;
-
-    $image->save();
-
-    }
-
-    return response()->json(['addedddd   course  with files']);
-
-
-    }
-
-
-
-public function upload_file_image_for_course(Request $request, $course_id,$academy_id)
-{
-    $validator = Validator::make($request->all(),[
-        'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'false',
-            'message' => 'Please fix the errors',
-            'errors' => $validator->errors()
-        ]);
-    }
-
-    $img = $request->name;
-    $ext = $img->getClientOriginalExtension();
-    $imgFileName = time().'.'.$ext;
-    $img->move(public_path().'/upload',$imgFileName);
-
-    if ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif") {
-        $image = new File_course();
-    $image->name = $imgFileName;
-    $image->description = $request->description;
-    $image->course_id = $request->course_id;
-    $image->save();
-
-    return response()->json([
-        'status' => 'true',
-        'message' => 'image upload success',
-        'path' => asset('/upload/'.$imgFileName),
-        'data' => $image
-    ]);
-    }
-
-    elseif ($ext=="pdf" || $ext=="docx" || $ext=="txt") {
-        $file = new File_course();
-    $file->name = $imgFileName;
-    $file->description = $request->description;
-    $file->course_id = $request->course_id;
-    $file->save();
-
-    return response()->json([
-        'status' => 'true',
-        'message' => 'file upload success',
-        'path' => asset('/upload/'.$imgFileName),
-        'data' => $file
-    ]);
-    }
-
-}
-public function desplay_all_publish()
-    {
-        $publish = Publish::with('course')->get()->all();
-        return response()->json([$publish,'this is all publish']);
-    }
-
-public function desplay_publish($publish_id)
-{
-    $publish = Publish::find($publish_id);
-    if(!$publish)
-    {
-        return response()->json(['the publish not found']);
-    }
-    $publish->course;
-    $publish->image;
-    return response()->json([$publish]);
-
-
-}
-
-public function desplay_section_and_student($class_id)
-{
-    $classs = Classs::find($class_id);
-    if(!$classs)
-    {
-        return response()->json(['the classs not found']);
-    }
-    $section = $classs->section;
-    $student  =  Section::with('student')->find($section);
-    $user =  Student::with('user')->find($student);
-
-
-
-    return response()->json([$classs,$student,$user]);
-
-}
 
 
 

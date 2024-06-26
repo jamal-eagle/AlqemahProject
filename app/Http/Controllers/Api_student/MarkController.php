@@ -12,10 +12,6 @@ class MarkController extends Controller
 {
     public function displayMark()
     {
-
-
-
-
         $student = Student::where('user_id',auth()->user()->id)->first();
         $mark = Mark::where('student_id', $student->id)->with('subject')->get();
 

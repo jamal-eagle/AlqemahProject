@@ -21,6 +21,7 @@ use App\Models\Image;
 use App\Models\Image_Archive;
 use App\Models\File_Archive;
 use Illuminate\Http\UploadedFile;
+use App\Models\Academy;
 
 class TeacherController extends Controller
 {
@@ -36,8 +37,9 @@ class TeacherController extends Controller
                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$img->path);
                         //return response()->file($imagePath);
                         if (file_exists($imagePath)) {
+                            $img->image_url = asset('/upload/' . $img->path);
                             return response()->json([
-                                'path' => $imagePath,
+                                // 'path' => $imagePath,
                                 'image_info' => $img
                             ]);    
                         }
@@ -52,13 +54,30 @@ class TeacherController extends Controller
     //إضافة ملاحظات لطالب معين
     public function add_note_about_student(Request $request ,$student_id)
     {
-        $student = Student::where('id', $student_id)->first();
+        $student = Student::find($student_id);
+    if(!$student)
+    {
+        return response()->json(['the student not found']);
+    }
+    $validator = Validator::make($request->all(),[
+        'text'=>'required|string',
+        'type'=>'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()]);
+        }
 
         $note = new Note_Student;
 
+        $note->type = $request->type;
         $note->text = $request->text;
         $note->student_id = $student_id;
         $note->user_id = auth()->user()->id;
+
+        $note->save();
+
+        return $note;
     }
 
     //غيابات المدرس
@@ -121,8 +140,9 @@ public function display_file_subject($subject_id)
         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
                     //return response()->file($imagePath);
                     if (file_exists($imagePath)) {
+                        $i->image_url = asset('/upload/' . $i->name);
                         $result[] = [
-                            'path' => $imagePath,
+                            // 'path' => $imagePath,
                             'image_info' => $i
                         ];    
                     }
@@ -134,18 +154,21 @@ public function display_file_subject($subject_id)
         $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                     //return response()->file($imagePath);
                     if (file_exists($imagePath)) {
+                        $f->file_url = asset('/upload/' . $f->name);
                         $result[] = [
-                            'path' => $filePath,
+                            // 'path' => $filePath,
                             'file_info' => $f
                         ];    
                     }
     }
     //عم نشوف إذا في نتائج أو لاء
     if (!empty($result)) {
-        return response()->json([
-            'status' => 'true',
-            'images_files' => $result
-        ]);
+        // return response()->json([
+        //     'status' => 'true',
+        //     'images_files' => $result
+        // ]);
+        
+        return $result;
     } else {
         return response()->json([
             'status' => 'false',
@@ -205,6 +228,8 @@ public function delete_file_image($file_img_id, $imgFileName)
 //رفع ملفات و صور للسنة الحاليةzahraa
 public function upload_file_image(Request $request, $subject_id)
 {
+    $year_study = Academy::find(1);
+    $archive = Archive::where('year',$year_study->year)->where('subject_id', $subject_id)->first();
     $validator = Validator::make($request->all(),[
         'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
     ]);
@@ -226,7 +251,7 @@ public function upload_file_image(Request $request, $subject_id)
         $image = new Image_Archive;
     $image->name = $imgFileName;
     $image->description = $request->description;
-    $image->archive_id = $request->archive_id;
+    $image->archive_id = $archive->id;
     $image->save();
 
     return response()->json([
@@ -241,7 +266,7 @@ public function upload_file_image(Request $request, $subject_id)
         $file = new File_Archive;
     $file->name = $imgFileName;
     $file->description = $request->description;
-    $file->archive_id = $request->archive_id;
+    $file->archive_id = $archive->id;
     $file->save();
 
     return response()->json([
@@ -521,8 +546,9 @@ if ($request->hasFile('name')) {
             $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->name);
                         //return response()->file($imagePath);
                         if (file_exists($imagePath)) {
+                            $i->image_url = asset('/upload/' . $i->name);
                             $result[] = [
-                                'path' => $imagePath,
+                                // 'path' => $imagePath,
                                 'image_info' => $i
                             ];    
                         }
@@ -534,8 +560,9 @@ if ($request->hasFile('name')) {
             $filePath = str_replace('\\', '/', public_path().'/upload/'.$f->name);
                         //return response()->file($imagePath);
                         if (file_exists($filePath)) {
+                            $f->image_url = asset('/upload/' . $f->name);
                             $result[] = [
-                                'path' => $filePath,
+                                // 'path' => $filePath,
                                 'file_info' => $f
                             ];    
                         }
@@ -555,7 +582,7 @@ if ($request->hasFile('name')) {
     }
 
 //رفع ملف أو صورة من ملفات الأرشيف
-public function upload_file_image_archive(Request $request,$subject_id, $archive_id)
+public function upload_file_image_archive(Request $request, $archive_id)
 {
     // public function upload_file_image(Request $request, $subject_id)
     $validator = Validator::make($request->all(),[
@@ -890,6 +917,11 @@ public function update_image(Request $request, $id)
     ]);
 }
 
+
+public function add_course()
+{
+
+}
 
 
 }

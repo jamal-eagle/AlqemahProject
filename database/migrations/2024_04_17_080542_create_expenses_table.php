@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('num_product');
             $table->double('total_cost');
             $table->string('year');
-            $table->foreignIdFor(Course::class,'course_id');
+            $table->foreignIdFor(Course::class,'course_id')->nullable();
 
             $table->timestamps();
         });

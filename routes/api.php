@@ -58,6 +58,8 @@ Route::prefix('out_user')->group(function () {
     Route::put('/update/{id}',[OrderController::class,'update']);
     //عرض معلومات المعهد
     Route::get('/display_info_academy',[Student_operationController::class,'display_info_academy']);
+    //إعلانات المعهد
+    Route::get('all_publish', [Student_operationController::class, 'publish']);
 
 
 });
@@ -221,6 +223,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('edit_year/{id}',[AdminOperationController::class,'edit_year']);
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
+<<<<<<< HEAD
     //اضافة دورة للمعهد
     Route::post('add_course/{academy_id}',[AdminOperationController::class,'Add_course']);
 
@@ -241,6 +244,25 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
     //عرض الشعب لصف معين وعرض الطلاب لكل شعبة
     route::get('desplay_section_and_student/{class_id}', [AdminOperationController::class, 'desplay_section_and_student']);
+=======
+    //تسجيل طلب للتسجيل بدورة معينة
+    Route::post('/add-order-course/{course_id}',[OrderController::class,'CreateOrderForCourse']);
+    //عرض طلبات التسجيل في دورة معينة
+    Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
+    //عرض كل مدرسي المعهد
+    Route::get('/all-teatcher-for-course',[DisplayController::class,'all_teatcher']);
+    //إضافة دورة مع إمكانية إضافة إعلان إن أردنا أو عدم إضافة    
+    Route::post('/add_course',[AdminOperationController::class,'add_course']);
+    //القسط و الدفعات و المتبقي
+    Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
+    //عرض معلومات الكورس
+    Route::get('/display_info_course/{course_id}',[AdminOperationController::class,'display_info_course']);
+    //إضافة موجه
+    Route::post('/add_monetor',[AdminOperationController::class,'add_monetor']);
+
+    
+    
+>>>>>>> 839aef55656bb9867889931761eb1a6ed0ff94a0
 });
 
 
@@ -318,7 +340,9 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
 Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(function () {
     //عرض مواد الطالب
     Route::get('/my_subject',[Student_operationController::class,'display_subject']);
-    //عرض الملفات و الصور للمادة المختارة
+    //عرض صور مواد الطالب
+    Route::get('/img_subject/{subject_id}',[Student_operationController::class,'display_img_subject']);
+    //عرض الملفات للمادة المختارة
     Route::get('/file_subject/{subject_id}',[Student_operationController::class,'display_file_subject']);
     //تسجيل طالب في دورة
     Route::post('/create-order-course/{course_id}',[Student_operationController::class,'orderCourse']);
@@ -437,7 +461,7 @@ Route::prefix('teacher')->middleware(['auth:sanctum','check_teacher'])->group(fu
     //رفع ملف أو صورة لملفات السنة الحاليةzahraa
     Route::post('/upload_file_image/{subject_id}',[TeacherController::class,'upload_file_image']);
     //رفع ملف أو صورة لملفات الأرشيفzahraa
-    Route::post('/upload_file_image_archive/{subject_id}/{archive_id}',[TeacherController::class,'upload_file_image_archive']);
+    Route::post('/upload_file_image_archive/{archive_id}',[TeacherController::class,'upload_file_image_archive']);
     Route::delete('/delete_file_image/{file_img_id}/{imgFileName}',[TeacherController::class,'delete_file_image']);
     Route::post('/update-file-image/{id}', [TeacherController::class,'update_file_image']);
 
