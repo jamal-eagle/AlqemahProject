@@ -1,10 +1,10 @@
 <?php
 
+use App\Models\Employee;
+use App\Models\Teacher;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Models\Classs;
-use App\Models\Teacher;
 
 return new class extends Migration
 {
@@ -13,12 +13,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subjects', function (Blueprint $table) {
+        Schema::create('create__maturitie_tables', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->integer('num_hour');
-            $table->integer('success_rate');
-            $table->foreignIdFor(Classs::class,'class_id');
+            $table->double('amount');
+            $table->foreignIdFor(Teacher::class,'teacher_id')->nullable();
+            $table->foreignIdFor(Employee::class,'employee_id')->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subjects');
+        Schema::dropIfExists('create__maturitie_tables');
     }
 };

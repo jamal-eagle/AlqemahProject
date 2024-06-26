@@ -18,7 +18,7 @@ use App\Models\Subject;
 use App\Models\Teacher_section;
 use App\Models\Section;
 use App\Models\Teacher_Schedule;
-
+use App\Models\Maturitie;
 
 class Teacher extends Model
 {
@@ -29,7 +29,8 @@ class Teacher extends Model
         'num_hour_added',
         'note_hour_added',
         'user_id',
-        'course_id'
+        'course_id',
+        'certificate',
         //'subject_id',
     ];
 
@@ -79,8 +80,24 @@ public function sections()
 }
 
 public function teacher_schedule()
-    {
+{
         return $this->hasOne(Teacher_Schedule::class);
+}
+
+
+public function subject()
+{
+    return $this->belongsToMany(Subject::class,'teacher_subjects','teacher_id','subject_id');
+}
+
+public function salary()
+    {
+        return $this->hasMany('App\Models\Salary',foreignKey:'teacher_id',localKey:'id');
+    }
+
+public function maturitie()
+    {
+        return $this->hasMany('App\Models\Maturitie',foreignKey:'teacher_id',localKey:'id');
     }
 
 }

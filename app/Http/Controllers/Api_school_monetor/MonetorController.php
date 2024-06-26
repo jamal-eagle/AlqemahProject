@@ -463,11 +463,11 @@ public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month
         return $course;
     }
 
-    // public function desplay_publish()
-    // {
-    //     $publish = Publish::get()->all();
-    //     return response()->json([$publish,'this is all publish']);
-    // }
+    public function desplay_all_publish()
+    {
+        $publish = Publish::with('course')->get()->all();
+        return response()->json([$publish,'this is all publish']);
+    }
     public function DisplayOrderNewStudent()
     {
         $order = DB::table('orders')->where('student_id','=',null)->where('course_id','=',null)->get();
@@ -525,7 +525,7 @@ public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month
             $validator = Validator::make($request->all(),[
                 'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
             ]);
-        
+
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'false',
@@ -533,19 +533,19 @@ public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month
                     'errors' => $validator->errors()
                 ]);
             }
-        
+
             $img = $request->path;
             $ext = $img->getClientOriginalExtension();
             $imageName = time().'.'.$ext;
             $img->move(public_path().'/upload',$imageName);
-        
+
             $image = new Image;
             $image->path = $imageName;
             $image->description = $request->description;
             $image->publish_id = $publish->id;
-    
+
             $image->save();
-        
+
             return response()->json([
                 'status' => 'true',
                 'message' => 'image upload success',
@@ -558,8 +558,8 @@ public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month
         else {
             return response()->json(['sucssscceccs']);
         }
-        
-        
+
+
 }
 
 public function delete_publish($publish_id)
@@ -775,7 +775,7 @@ public function update_program_section(Request $request, $program_id)
         $validator = Validator::make($request->all(),[
             'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'false',
@@ -783,41 +783,41 @@ public function update_program_section(Request $request, $program_id)
                 'errors' => $validator->errors()
             ]);
         }
-    
+
         // استرجاع الصورة القديمة بناءً على الـ ID
         // $image = Image::find($id);
-    
+
         if (!$image) {
             return response()->json([
                 'status' => 'false',
                 'message' => 'Image not found'
             ]);
         }
-    
+
         // حذف الصورة القديمة من المجلد إذا كانت موجودة
         $oldImagePath = public_path().'/upload/'.$image->path;
         if (file_exists($oldImagePath)) {
             unlink($oldImagePath);
         }
-    
+
         // رفع الصورة الجديدة
         $img = $request->path;
         $ext = $img->getClientOriginalExtension();
         $imageName = time().'.'.$ext;
         $img->move(public_path().'/upload', $imageName);
-    
+
         // تحديث مسار الصورة في قاعدة البيانات
         $image->path = $imageName;
         $image->save();
-    
+
         return response()->json([
             'status' => 'true',
             'message' => 'Image updated successfully',
             'path' => asset('/upload/'.$imageName),
             'data' => $image
         ]);
-    }    
-    
+    }
+
 
 
 }

@@ -26,6 +26,12 @@ class Employee extends Model
 
     public function out_of_work_employee()
 {
-    return $this->hasMany('App\Models\Out_Of_Work_Employee',foreignKey:'employee_id',localKey:'id');
+    return $this->hasMany('App\Models\Out_Of_Work_Employee',foreignKey:'employee_id');
 }
+
+public function maturitie()
+    {
+        return $this->hasMany('App\Models\Maturitie',foreignKey:'employee_id');
+    }
+
 }

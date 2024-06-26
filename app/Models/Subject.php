@@ -23,7 +23,7 @@ class Subject extends Model
         'name',
         'num_hour',
         'success_rate',
-        'class_id'
+        'class_id',
     ];
 
     public function homework()
@@ -57,6 +57,11 @@ class Subject extends Model
     public function classs()
     {
         return $this->belongsTo('App\Models\Classs',foreignKey:'class_id');
+    }
+
+    public function teacher()
+    {
+        return $this->belongsToMany(Teacher::class,'teacher_subjects','subject_id','teacher_id');
     }
 
     protected $hidden = [

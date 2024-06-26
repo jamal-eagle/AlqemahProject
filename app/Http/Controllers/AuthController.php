@@ -160,8 +160,8 @@ class AuthController extends Controller
 
     }
 
-    public function get_teacher_profile($teacher_id)
-    {
+public function get_teacher_profile($teacher_id)
+{
         $teacher = Teacher::find($teacher_id);
         if(!$teacher)
         {
@@ -170,6 +170,8 @@ class AuthController extends Controller
 
         $teacher1 = $teacher->user;
         $section = $teacher->section;
+        $subject= $teacher->subject;
+        
         return response()->json([$teacher,$section]);
     }
 

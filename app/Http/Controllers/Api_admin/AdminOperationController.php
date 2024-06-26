@@ -32,6 +32,11 @@ use App\Models\Teacher_Schedule;
 use App\Models\Out__Of__Work__Employee;
 use App\Models\Image;
 use App\Models\Academy;
+use App\Models\File_Archive;
+use App\Models\File_course;
+use App\Models\Image_Archive;
+use App\Models\Maturitie;
+use App\Models\Section;
 
 
 class AdminOperationController extends BaseController
@@ -162,11 +167,12 @@ if($user){
 
 
 
-    public function register_student(Request $request, $order_id)
+    public function register_student(Request $request, $order_id,$academy_id)
 {
 
     // جلب الطلب حسب المعرف
     $order = Order::find($order_id);
+    $academy = Academy::find($academy_id);
     // التحقق من صحة البيانات الأولية
     $user = new User();
         $email = $order->first_name . Str::random(5) . "@gmail.com";
@@ -179,20 +185,12 @@ if($user){
         $user->gender = $order->gender;
         $user->phone = $order->phone;
         $user->address = $order->address;
-        $user->year = $order->year;
+        $user->year = $academy->year;
         $user->email = $email;
         $user->password = Hash::make($password);
         $user->conf_password = Hash::make($password);
         $user->user_type = 'student';
         $user->save();
-
-
-    // إنشاء البريد الإلكتروني وكلمة المرور تلقائيًا
-
-
-    // إنشاء المستخدم الجديد
-
-
 
     // التحقق من صحة البيانات الثانوية
     $validator1 = Validator::make($request->all(), [
@@ -237,9 +235,10 @@ if($user){
 }
 
 
-public function register_student1(Request $request){
+public function register_student1(Request $request,$academy_id){
 
 
+        $academy = Academy::find($academy_id);
         $validator3 = Validator::make($request->all(), [
             'first_name' => 'required',
             'last_name' => 'required|string',
@@ -247,7 +246,6 @@ public function register_student1(Request $request){
             'mother_name' => 'required|string',
             'birthday' => 'required|date',
             'gender'=>'required',
-            'year'=>'required',
             'phone' => 'required',
             'address' => 'required',
             'email'=>'required|email',
@@ -270,7 +268,7 @@ public function register_student1(Request $request){
         $user->gender = $request->gender;
         $user->phone = $request->phone;
         $user->address = $request->address;
-        $user->year = $request->year;
+        $user->year = $academy->year;
         $user->email = $request->email;
         $user->password = Hash::make($password);
         $user->conf_password = Hash::make($password);
@@ -320,11 +318,6 @@ public function register_student1(Request $request){
     }
 
 
-
-
-
-
-
     public function register_parentt(Request $request){
 
         $validator = Validator::make($request->all(),[
@@ -356,8 +349,9 @@ public function register_student1(Request $request){
 
     }
 
-public function register_teacher(Request $request)
+public function register_teacher(Request $request,$academy_id)
 {
+    $academy = Academy::find($academy_id);
     $validator = Validator::make($request->all(), [
         'first_name' => 'required',
         'last_name' => 'required',
@@ -367,7 +361,6 @@ public function register_teacher(Request $request)
         'gender' => 'required',
         'phone' => 'required',
         'address' => 'required',
-        'year' => 'required',
         'image' => 'required',
     ]);
 
@@ -387,7 +380,7 @@ public function register_teacher(Request $request)
     $user->gender = $request->gender;
     $user->phone = $request->phone;
     $user->address = $request->address;
-    $user->year = $request->year;
+    $user->year = $academy->year;
     $user->image = $request->image;
     $user->email = $request->first_name . Str::random(5) . "@gmail.com";
     $user->password = Hash::make($password);
@@ -403,6 +396,7 @@ public function register_teacher(Request $request)
         'cost_hour' => 'required',
         'num_hour_added' => 'required',
         'note_hour_added' => 'required',
+        'certificate'=>'required',
     ]);
 
     if ($validator1->fails()) {
@@ -415,21 +409,22 @@ public function register_teacher(Request $request)
     $teacher->num_hour_added = $request->num_hour_added;
     $teacher->note_hour_added = $request->note_hour_added;
     $teacher->user_id = $user->id;
+    $teacher->certificate = $request->certificate;
 
     $teacher->save();
     return response()->json([$user->email, $password]);
 
     }
 
-public function register_employee(Request $request)
+public function register_employee(Request $request,$academy_id)
 {
+    $academy = Academy::find($academy_id);
     $validator = Validator::make($request->all(), [
         'first_name' => 'required',
         'last_name' => 'required',
         'phone' => 'required',
         'address' => 'required',
         'salary' => 'required',
-        'year' => 'required',
         'type'=>'required',
     ]);
 
@@ -446,7 +441,7 @@ public function register_employee(Request $request)
     $employee->phone = $request->phone;
     $employee->address = $request->address;
     $employee->salary = $request->salary;
-    $employee->year = $request->year;
+    $employee->year = $academy->year;
     $employee->email = $email;
     $employee->password = Hash::make($password);
     $employee->type = $request->type;
@@ -515,10 +510,10 @@ public function delete_teacher($teacher_id)
     }
 
 
-    public function registerPost(Request $request, $order_id)
+    public function registerPost(Request $request, $order_id,$academy_id)
     {
         $order = Order::where('id', $order_id)->first();
-
+        $academy = Academy::find($academy_id);
         $user = new User();
 
         $user->first_name = $order->first_name;
@@ -529,7 +524,7 @@ public function delete_teacher($teacher_id)
         $user->gender = $order->gender;
         $user->phone = $order->phone;
         $user->address = $order->address;
-        $user->year = $order->year;
+        $user->year = $academy->year;
         $user->image = $request->image;
         $user->email = $order->email;
         $user->password = Hash::make($request->password);
@@ -720,7 +715,7 @@ public function desplay_teacher_salary($teacher_id , $year , $month)
     return response()->json([$teacher,$salary,'successsss']);
 }
 
-private function getteacherworkhour($teacher_id, $year, $month)
+public function getteacherworkhour($teacher_id, $year, $month)
     {
         // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
         $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
@@ -764,13 +759,16 @@ private function getteacherworkhour($teacher_id, $year, $month)
         }
 
         $work_hour = 0;
-        for($day = 1; $day <= $daysInMonth; $day++){
-            $work_hour = $work_hour+  $attendanceDetails[$day];
-        }
+        // for($day = 1; $day <= $daysInMonth; $day++){
+        //     $work_hour=  $attendanceDetails[$day];
 
-        return response()->json([
-            'attendance_details' => $attendanceDetails,
-        ]);
+        // }
+
+        return $attendanceDetails;
+
+        // return response()->json([
+        //     'attendance_details' => $attendanceDetails,
+        // ]);
 
 
     }
@@ -809,8 +807,9 @@ public function desplay_one_employee($employee_id)
 
     }
 
-public function update_employee_profile(Request $request,$employee_id)
+public function update_employee_profile(Request $request,$employee_id,$academy_id)
 {
+    $academy = Academy::find($academy_id);
     $employee = Employee::find($employee_id);
     if(!$employee)
     {
@@ -819,7 +818,6 @@ public function update_employee_profile(Request $request,$employee_id)
     $validator = Validator::make($request->all(),[
         'salary' => 'required',
         'type' => 'required',
-        'year' => 'required',
     ]);
     if ($validator->fails()) {
         return $this->responseError(['errors' => $validator->errors()]);
@@ -828,7 +826,7 @@ public function update_employee_profile(Request $request,$employee_id)
     $employee ->update([
         'salary' => $request->salary,
         'type' => $request->type,
-        'year' => $request->year,
+        'year' => $academy->year,
     ]);
 
     }
@@ -1758,14 +1756,14 @@ public function update_publish(Request $request, $publish_id)
 
 
 
-public function add_to_expensess(Request $request)
+public function add_to_expensess(Request $request,$academy_id)
 {
+    $academy = Academy::find($academy_id);
     $validator = Validator::make($request->all(),[
         'date' => 'required|date',
         'product'=>'required',
         'cost_one_piece'=>'required',
         'num_product'=>'required',
-        'year'=>'required'
     ]);
 
     if ($validator->fails()) {
@@ -1778,21 +1776,21 @@ public function add_to_expensess(Request $request)
     $expenses->cost_one_piece = $request->cost_one_piece;
     $expenses->num_product = $request->num_product;
     $expenses->total_cost = $request->num_product * $request->cost_one_piece;
-    $expenses->year = $request->year;
+    $expenses->year = $academy->year;
     $expenses->save();
     return response()->json(['sucsseesss']);
 
 }
 
 
-public function add_to_break(Request $request)
+public function add_to_break(Request $request,$academy_id)
 {
+    $academy = Academy::find($academy_id);
     $validator = validator::make($request->all(),[
         'first_name'=>'required',
         'last_name'=>'required',
         'phone'=>'required',
         'address'=>'required',
-        'year'=>'required',
         'cost_from_breake'=>'required',
     ]);
 
@@ -1805,7 +1803,7 @@ public function add_to_break(Request $request)
     $break->last_name = $request->last_name;
     $break->phone = $request->phone;
     $break->address = $request->address;
-    $break->year = $request->year;
+    $break->year = $academy->year;
     $break->cost_from_breake = $request->cost_from_breake;
 
     $break->save();
@@ -1972,8 +1970,10 @@ public function edit_year(Request $request,$id)
     $info->save();
 
     return $info;
-    
+
 }
+
+
 
 public function student_course($student_id)
     {
@@ -1985,6 +1985,238 @@ public function student_course($student_id)
 
         return $order;
     }
+
+
+
+public function addMaturitie(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'amount'=>'required',
+        'teacher_id' => 'nullable|exists:teachers,id',
+        'employee_id' => 'nullable|exists:employees,id',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // التأكد من أن أحدهما فقط تم تقديمه
+    if (!$request->hasAny(['teacher_id', 'employee_id'])) {
+        return response()->json(['message' => 'Either teacher_id or employee_id must be provided'], 422);
+    }
+
+
+    $maturite = new Maturitie();
+    $maturite->amount = $request->amount;
+    $maturite->teacher_id = $request->teacher_id;
+    $maturite->employee_id = $request->employee_id;
+    $maturite->save();
+
+    return response()->json(['sucssssss']);
+
+    }
+
+
+
+public function deleteMaturitie(Request $request,$mut_id)
+{
+
+    $validator = Validator::make($request->all(), [
+        'teacher_id' => 'nullable|exists:teachers,id',
+        'employee_id' => 'nullable|exists:employees,id',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // if (!$request->hasAny(['teacher_id', 'employee_id'])) {
+    //     return response()->json(['message' => 'Either teacher_id or employee_id must be provided'], 422);
+    // }
+
+    if($request->has('teacher_id'))
+    {
+        $teacher = Teacher::find($request->teacher_id);
+        if($teacher)
+        {
+            $mut = Maturitie::find($mut_id);
+
+            if($mut)
+            {
+                $mut->delete;
+            }
+        }
+    }
+
+    if($request->has('employee_id'))
+    {
+        $employee = Employee::find($request->employee_id);
+        if($employee)
+        {
+            $mut = Maturitie::find($mut_id)->where('employee_id',$request->employee_id);
+            if($mut)
+            {
+                $mut->delete();
+            }
+        }
+    }
+
+
+    return response()->json(['sucssssss']);
+    }
+
+
+public function Add_course(Request $request,$academy_id)
+{
+    $academy = Academy::find($academy_id);
+    $validator = Validator::make($request->all(), [
+        'name_course'=>'required',
+        'description'=>'required',
+        'cost_course'=>'required',
+        'start_date'=>'required',
+        'finish_date'=>'required',
+        'start_time'=>'required',
+        'finish_time'=>'required',
+        'percent_teacher'=>'required',
+        'subject_id'=>'required',
+        'class_id'=>'required',
+        'teacher_id'=>'required',
+        'name_file' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt',
+        'description_file'=>'required'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+
+    $course = new Course();
+    $course->name_course = $request->name_course;
+    $course->description = $request->description;
+    $course->cost_course = $request->cost_course;
+    $course->start_date = $request->start_date;
+    $course->finish_date = $request->finish_date;
+    $course->start_time = $request->start_time;
+    $course->finish_time = $request->finish_time;
+    $course->year = $academy->year;
+    $course->percent_teacher = $request->percent_teacher;
+    $course->subject_id = $request->subject_id;
+    $course->class_id = $request->class_id;
+    $course->teacher_id = $request->teacher_id;
+
+
+    $course->save();
+
+    $img = $request->name_file;
+    $ext = $img->getClientOriginalExtension();
+    $imgFileName = time().'.'.$ext;
+    $img->move(public_path().'/upload',$imgFileName);
+
+    if ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif" ||
+    $ext=="pdf" || $ext=="docx" || $ext=="txt") {
+    $image = new File_course();
+    $image->name = $imgFileName;
+    $image->description = $request->description_file;
+
+    $image->course_id = $course->id;
+
+    $image->save();
+
+    }
+
+    return response()->json(['addedddd   course  with files']);
+
+
+    }
+
+
+
+public function upload_file_image_for_course(Request $request, $course_id,$academy_id)
+{
+    $validator = Validator::make($request->all(),[
+        'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
+
+    $img = $request->name;
+    $ext = $img->getClientOriginalExtension();
+    $imgFileName = time().'.'.$ext;
+    $img->move(public_path().'/upload',$imgFileName);
+
+    if ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif") {
+        $image = new File_course();
+    $image->name = $imgFileName;
+    $image->description = $request->description;
+    $image->course_id = $request->course_id;
+    $image->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'image upload success',
+        'path' => asset('/upload/'.$imgFileName),
+        'data' => $image
+    ]);
+    }
+
+    elseif ($ext=="pdf" || $ext=="docx" || $ext=="txt") {
+        $file = new File_course();
+    $file->name = $imgFileName;
+    $file->description = $request->description;
+    $file->course_id = $request->course_id;
+    $file->save();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'file upload success',
+        'path' => asset('/upload/'.$imgFileName),
+        'data' => $file
+    ]);
+    }
+
+}
+public function desplay_all_publish()
+    {
+        $publish = Publish::with('course')->get()->all();
+        return response()->json([$publish,'this is all publish']);
+    }
+
+public function desplay_publish($publish_id)
+{
+    $publish = Publish::find($publish_id);
+    if(!$publish)
+    {
+        return response()->json(['the publish not found']);
+    }
+    $publish->course;
+    $publish->image;
+    return response()->json([$publish]);
+
+
+}
+
+public function desplay_section_and_student($class_id)
+{
+    $classs = Classs::find($class_id);
+    if(!$classs)
+    {
+        return response()->json(['the classs not found']);
+    }
+    $section = $classs->section;
+    $student  =  Section::with('student')->find($section);
+    $user =  Student::with('user')->find($student);
+
+
+
+    return response()->json([$classs,$student,$user]);
+
+}
 
 
 
