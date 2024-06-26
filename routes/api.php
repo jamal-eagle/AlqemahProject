@@ -223,9 +223,6 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('edit_year/{id}',[AdminOperationController::class,'edit_year']);
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
-<<<<<<< HEAD
-    //اضافة دورة للمعهد
-    Route::post('add_course/{academy_id}',[AdminOperationController::class,'Add_course']);
 
 
 
@@ -244,27 +241,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
     //عرض الشعب لصف معين وعرض الطلاب لكل شعبة
     route::get('desplay_section_and_student/{class_id}', [AdminOperationController::class, 'desplay_section_and_student']);
-=======
-    //تسجيل طلب للتسجيل بدورة معينة
-    Route::post('/add-order-course/{course_id}',[OrderController::class,'CreateOrderForCourse']);
-    //عرض طلبات التسجيل في دورة معينة
-    Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
-    //عرض كل مدرسي المعهد
-    Route::get('/all-teatcher-for-course',[DisplayController::class,'all_teatcher']);
-    //إضافة دورة مع إمكانية إضافة إعلان إن أردنا أو عدم إضافة    
-    Route::post('/add_course',[AdminOperationController::class,'add_course']);
-    //القسط و الدفعات و المتبقي
-    Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
-    //عرض معلومات الكورس
-    Route::get('/display_info_course/{course_id}',[AdminOperationController::class,'display_info_course']);
-    //إضافة موجه
-    Route::post('/add_monetor',[AdminOperationController::class,'add_monetor']);
-
-    
-    
->>>>>>> 839aef55656bb9867889931761eb1a6ed0ff94a0
 });
-
 
 Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){
     //عرض تصنيف الطلاب
