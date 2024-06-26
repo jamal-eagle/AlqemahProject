@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api_student;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Models\Student;
@@ -619,5 +620,35 @@ public function display_info_academy()
     $info = Academy::all();
     return $info;
 }
+
+public function edit_some_info_profile(Request $request)
+{
+    $user = User::where('id', auth()->user()->id)->first();
+
+    if ($request->has('phone') && !empty($request->phone)) {
+        $phone = $request->phone;
+        if (!preg_match('/^(\+?963|0)?9\d{8}$/', $phone)) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+        }
+        $user->phone = $request->phone;
+    }
+
+    if ($request->has('address') && !empty($request->address)) {
+        $user->address = $request->address;
+    }
+
+    if ($request->has('password')) {
+        if (!$request->has('conf_password') || $request->password !== $request->conf_password) {
+            return response()->json(['status' => 'error', 'message' => 'Passwords do not match'], 400);
+        }
+        $user->password = Hash::make($request->password);
+        $user->conf_password = Hash::make($request->conf_password);
+    }
+
+    $user->save();
+
+    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully']);
+}
+
     
 }
