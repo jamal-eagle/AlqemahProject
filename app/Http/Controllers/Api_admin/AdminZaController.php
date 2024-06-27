@@ -38,6 +38,7 @@ use App\Models\Image_Archive;
 use App\Models\Maturitie;
 use App\Models\Section;
 use App\Models\Subject;
+use App\Models\Pay_Fee;
 
 class AdminZaController extends Controller
 {
@@ -94,6 +95,19 @@ public function desplay_student_marks($student_id)
         $note_student->save();
 
         return response()->json(['successssss']);
+
+}
+
+public function desplay_section_and_student($class_id)
+{
+    $classs = Classs::find($class_id);
+    if(!$classs)
+    {
+        return response()->json(['the classs not found']);
+    }
+    $section = $classs->section;
+    $student  =  Section::with('student.user')->find($section);
+    return response()->json([$student]);
 
 }
 
@@ -542,6 +556,197 @@ public function add_publish(Request $request)
         }
     }
 
+    //إضافة دفعة لطالب محدد
+    public function add_pay(Request $request, $student_id)
+    {
+        // route::post('add_pay/{student_id}', [AdminZaController::class, 'add_pay']);
+    
+        $validator = Validator::make($request->all(), [
+            'type' => 'nullable|string',
+            'date' => 'nullable|date',
+            'amount_money' => 'required|numeric',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+    
+        $pay = new Pay_Fee();
+        $pay->type = $request->type;
+        $pay->date = $request->date ?? now();
+
+        $all_pays = Pay_Fee::where('student_id', $student_id)->where('course_id', null)->sum('amount_money');
+        $total_fee = Student::where('id', $student_id)->value('school_tuition');
+        $remaining_fee_before_pay_now = $total_fee - $all_pays;
+
+        if ($request->amount_money > $remaining_fee_before_pay_now) {
+            return response()->json(['errors' => 'The amount money big'], 422);
+        }
+
+        $pay->amount_money = $request->amount_money;
+        $pay->student_id = $student_id;
+        
+        // $all_pays = Pay_Fee::where('student_id', $student_id)->sum('amount_money');
+        $total_paid = $all_pays + $pay->amount_money;
+    
+        // $total_fee = Student::where('id', $student_id)->value('school_tuition');
+        
+        $remaining_fee = $total_fee - $total_paid;
+        
+        $pay->remaining_fee = $remaining_fee;
+        
+        $pay->save();
+        
+        return response()->json([
+            'pay' => $pay,
+            'total_paid' => $total_paid,
+            'remaining_fee' => $remaining_fee,
+        ]);
+    }
+
+    public function add_pay_course(Request $request, $student_id,$course_id)
+    {
+        // route::post('add_pay_course/{student_id}/{course_id}', [AdminZaController::class, 'add_pay_course']);
+
+        $validator = Validator::make($request->all(), [
+            'type' => 'nullable|string',
+            'date' => 'nullable|date',
+            'amount_money' => 'required|numeric',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+    
+        $pay = new Pay_Fee();
+        $pay->type = $request->type;
+        $pay->date = $request->date ?? now();
+
+        $all_pays = Pay_Fee::where('student_id', $student_id)->where('course_id',$course_id)->sum('amount_money');
+        $total_fee = Course::where('id',$course_id)->value('cost_course');
+        $remaining_fee_before_pay_now = $total_fee - $all_pays;
+
+        if ($request->amount_money > $remaining_fee_before_pay_now) {
+            return response()->json(['errors' => 'The amount money big'], 422);
+        }
+        
+        $pay->amount_money = $request->amount_money;
+        $pay->student_id = $student_id;
+        $pay->course_id = $course_id;
+        
+        // $all_pays = Pay_Fee::where('student_id', $student_id)->where('course_id',$course_id)->sum('amount_money');
+        $total_paid = $all_pays + $pay->amount_money;
+    
+        // $total_fee = Course::where('id',$course_id)->value('cost_course');
+
+        //المبلغ المتبقي بعد دفع دفعة اليوم
+        $remaining_fee = $total_fee - $total_paid;
+        
+        $pay->remaining_fee = $remaining_fee;
+        
+        $pay->save();
+        
+        return response()->json([
+            'pay' => $pay,
+            'total_paid' => $total_paid,
+            'remaining_fee' => $remaining_fee,
+        ]);
+
+    }
+
+    //عرض شعب صف معين
+    public function display_section_for_class($class_id)
+    {
+        // route::get('display_section_for_class/{class_id}', [AdminZaController::class, 'display_section_for_class']);
+
+        $section = Section::where('class_id', $class_id)->get();
+        return $section;
+    }
+
+    //عرض طلاب شعبة معينة
+    public function display_student_in_section($section_id)
+    {
+       $student =  Student::where('section_id', $section_id)->with('user')->get();
+       return $student;
+
+    }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**********************************جدوى**********************************/
+
+    //المبلغ الذي حصل عليه المعهد من دفعات الطلاب للقسط
+    // public function money_from_fee()
+    // {
+    //     // route::get('/money_from_fee', [AdminZaController::class, 'money_from_fee']);
+
+    //     $all_pays = Pay_Fee::where('course_id', null)->sum('amount_money');
+    //     return $all_pays;
+    // }
+    public function money_from_fee(Request $request)
+{
+    // route::get('/money_from_fee', [AdminZaController::class, 'money_from_fee']);
+    
+    
+    
+
+    $query = Pay_Fee::query();
+
+    // تصفية حسب اليوم
+    if ($request->has('day')) {
+        $query->whereDay('date', $request->day);
+    }
+
+    // تصفية حسب الشهر
+    if ($request->has('month')) {
+        $query->whereMonth('date', $request->month);
+    }
+
+    // تصفية حسب السنة
+    if ($request->has('year')) {
+        $query->whereYear('date', $request->year);
+    }
+
+    if ($request->year_studey) {
+    //    $user = User::where('year',$request->year_studey)->where('user_type','student')->get(student.id)
+
+    }
+
+    // تصفية المدفوعات التي ليس لها course_id
+    $query->where('course_id', null);
+
+    // حساب المجموع
+    $all_pays = $query->sum('amount_money');
+
+    return response()->json(['total_amount' => $all_pays]);
+}
+
+
+
+    //مجموع دفعات أقساط الطلاب///////////////////////////////////////
+    //مجموع دفعات الدورات
+    //مجموع البوفيه
+    //مجموع النقل
+
+
+
+    //معاشات الأساتذة
+    //معاشات الموظفين
+    //سلف 
+    //مصاريف
+    
+    
+    
 }

@@ -241,7 +241,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //اضافة ملفات لدورة
     route::get('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
     //عرض الشعب لصف معين وعرض الطلاب لكل شعبة
-    route::get('desplay_section_and_student/{class_id}', [AdminOperationController::class, 'desplay_section_and_student']);
+    route::get('desplay_section_and_student/{class_id}', [AdminZaController::class, 'desplay_section_and_student']);
     //إضافة دورة za
     Route::post('add_course' ,[AdminZaController::class,'add_course']);
     //عرض تفاصيل دورة za
@@ -250,12 +250,20 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('/add_monetor' ,[AdminZaController::class,'add_monetor']);
     //إضافة محاسب za
     Route::post('/add_accounting',[AdminZaController::class,'add_accounting']);
-    //القسط و الدفعات و المتبقي
+    //القسط و الدفعات و المتبقي za
     Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
     //عرض كل الموظفين من معليمن وموجهين وووو
     route::get('desplay_all_employee_and_others/{academy_id}', [AdminOperationController::class, 'desplay_all_employee_and_others']);
-
-
+    //إضافة دفعة لطالب محدد
+    route::post('add_pay/{student_id}', [AdminZaController::class, 'add_pay']);
+    //إضافة دفعة لطالب محدد
+    route::post('add_pay_course/{student_id}/{course_id}', [AdminZaController::class, 'add_pay_course']);
+    //عرض شعب صف معين
+    route::get('display_section_for_class/{class_id}', [AdminZaController::class, 'display_section_for_class']);
+    //عرض طلاب شعبة معينة
+    route::get('display_student_in_section/{section_id}', [AdminZaController::class, 'display_student_in_section']);
+    
+    Route::get('/money_from_fee', [AdminZaController::class, 'money_from_fee']);
 
 
 
