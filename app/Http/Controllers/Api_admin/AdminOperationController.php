@@ -703,24 +703,45 @@ public function addAbsenceForTeacherandemployee(Request $request)
 
 
 
-
-public function desplay_teacher_salary($teacher_id , $year , $month)
+    public function desplay_teacher_salary($teacher_id , $year , $month)
     {
-    $teacher = Teacher::where('id' , $teacher_id)->get()->first();
+    $teacher = Teacher::with('user')->find($teacher_id);
     if(!$teacher)
     {
         return response()->json(['teacher not found ']);
     }
-    $salary = $this->getteacherworkhour($teacher_id , $year , $month) * $teacher->cost_hour;
+    $num_work_hour = $this->getteacherworkhour($teacher_id , $year , $month);
+    $basic_salary = $num_work_hour * $teacher->cost_hour;
+    $solfa = 0;
+    $maturitie = $teacher->maturitie;
+    foreach($maturitie as $mut)
+    {
+        $solfa += $mut->amount;
+    }
+    $salary = $basic_salary - $solfa;
 
-    return response()->json([$teacher,$salary,'successsss']);
+
+    return response()->json([$teacher,$basic_salary,$salary,$num_work_hour,'successsss']);
+}
+
+
+function calculateTotalHours($hoursArray) {
+    $totalHours = 0;
+    foreach ($hoursArray as $hours) {
+        $totalHours += $hours;
+    }
+    return $totalHours;
 }
 
 public function getteacherworkhour($teacher_id, $year, $month)
     {
         // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
         $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
-
+        $teacher = Teacher::find($teacher_id);
+        if(!$teacher)
+        {
+            return response()->json(['the teacher not found']);
+        }
         // استرجاع قائمة الأيام العطل في الشهر (يمكن تركها فارغة في حال لم يكن لديك بيانات)
         $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
             ->whereYear('date', $year)
@@ -759,20 +780,31 @@ public function getteacherworkhour($teacher_id, $year, $month)
             }
         }
 
-        $work_hour = 0;
-        // for($day = 1; $day <= $daysInMonth; $day++){
-        //     $work_hour=  $attendanceDetails[$day];
+        $totalWorkingHours = $this->calculateTotalHours(array_column($attendanceDetails, 'working_hours')) + $teacher->num_hour_added;
 
-        // }
-
-        return $attendanceDetails;
-
-        // return response()->json([
-        //     'attendance_details' => $attendanceDetails,
-        // ]);
-
+        return $totalWorkingHours;
 
     }
+
+
+
+
+
+
+public function desplay_all_employee_and_others($academy_id)
+{
+    $academy = Academy::find($academy_id);
+    $employee = Employee::where('year',$academy->year)->where('status',1)->get()->all();
+    $montor = User::where('user_type','monetor')->where('status',1)->where('year',$academy->year)->get();
+    $teacher = User::where('user_type','teacher')->where('status',1)->where('year',$academy->year)->get()->all();
+
+    return response()->json([$employee,$montor,$teacher]);
+
+}
+
+
+
+
 
 public function desplay_teacher_course($teacher_id)
 {

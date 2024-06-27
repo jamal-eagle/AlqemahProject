@@ -252,10 +252,13 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('/add_accounting',[AdminZaController::class,'add_accounting']);
     //القسط و الدفعات و المتبقي
     Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
+    //عرض كل الموظفين من معليمن وموجهين وووو
+    route::get('desplay_all_employee_and_others/{academy_id}', [AdminOperationController::class, 'desplay_all_employee_and_others']);
 
-    
 
-    
+
+
+
 });
 
 Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){
