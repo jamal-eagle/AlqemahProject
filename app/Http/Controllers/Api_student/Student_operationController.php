@@ -172,7 +172,7 @@ class Student_operationController extends BaseController
 
         //كلشي تحت لتغير حالة الدورة من قيد الدراسة إلى مفتوحة
         //عدد الطلاب المسجلين في الدورة
-        $num_order_for_course = Order::where('course_id',$course_id)->count();
+        $num_order_for_course = Order::where('course_id',$course_id)->where('student_type','11')->count();
 
         $course = Course::find($course_id);
 

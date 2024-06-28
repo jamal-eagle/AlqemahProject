@@ -466,7 +466,7 @@ public function display_info_course($course_id)
     }
 
     // عدد الطلاب المسجلين في الدورة
-    $num_order_for_course = Order::where('course_id', $course_id)->count();
+    $num_order_for_course = Order::where('course_id', $course_id)->where('student_type','11')->count();
 
     // المبلغ الذي جمعه المعهد من الطلاب المسجلين
     $Money = $num_order_for_course * $course->cost_course;

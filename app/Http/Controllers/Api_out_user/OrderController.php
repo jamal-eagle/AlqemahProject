@@ -91,7 +91,7 @@ class OrderController extends BaseController
             $new->phone = $request->phone;
             $new->address = $request->address;
             $new->email = $request->email;
-            $new->student_type = "10";
+            $new->student_type = "11";
         // $;;;;;;;;;
             //$new->classification = $request->classification;
             //$new->class = $request->class;
@@ -101,7 +101,7 @@ class OrderController extends BaseController
 
             //كلشي تحت لتغير حالة الدورة من قيد الدراسة إلى مفتوحة
         //عدد الطلاب المسجلين في الدورة
-        $num_order_for_course = Order::where('course_id',$course_id)->count();
+        $num_order_for_course = Order::where('course_id',$course_id)->where('studen_type','11')->count();
 
         $course = Course::find($course_id);
 
