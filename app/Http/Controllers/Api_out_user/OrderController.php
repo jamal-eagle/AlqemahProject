@@ -91,7 +91,7 @@ class OrderController extends BaseController
             $new->phone = $request->phone;
             $new->address = $request->address;
             $new->email = $request->email;
-            $new->student_type = $request->student_type ?? "2";
+            $new->student_type = "10";
         // $;;;;;;;;;
             //$new->classification = $request->classification;
             //$new->class = $request->class;
@@ -154,4 +154,9 @@ class OrderController extends BaseController
     $order->save();
         return $order;
     }
+
+
+    
+
+
 }

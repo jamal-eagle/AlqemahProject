@@ -83,7 +83,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     ///خلق حسابات الطلاب
     Route::post('/register_student/{order_id}/{academy_id}',[AdminOperationController::class,'register_student']);
     //تسجيل بدون طلب تسجيل
-    Route::post('/register_student/{academy_id}',[AdminOperationController::class,'register_student1']);
+    Route::post('/register_student',[AdminZaController::class,'register']);
     ///خلق حساب للأهل
     Route::post('/register_parentt',[AdminOperationController::class,'register_parentt']);
     //خلق حسابات للاستاذ
@@ -222,8 +222,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/student_course/{student_id}',[AdminOperationController::class,'student_course']);
     //تعديل السنة الدراسية
     Route::post('edit_year/{id}',[AdminZaController::class,'edit_year']);
-    //عرض طلبات التسجيل في دورة معينة
-    Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
+    // //عرض طلبات التسجيل في دورة معينة
+    // Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
 
 
 
@@ -253,7 +253,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //القسط و الدفعات و المتبقي za
     Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
     //عرض كل الموظفين من معليمن وموجهين وووو
-    route::get('desplay_all_employee_and_others/{academy_id}', [AdminOperationController::class, 'desplay_all_employee_and_others']);
+    route::get('desplay_all_employee_and_others', [AdminZaController::class, 'desplay_all_employee_and_others']);
     //إضافة دفعة لطالب محدد
     route::post('add_pay/{student_id}', [AdminZaController::class, 'add_pay']);
     //إضافة دفعة لطالب محدد
@@ -264,7 +264,17 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('display_student_in_section/{section_id}', [AdminZaController::class, 'display_student_in_section']);
     
     Route::get('/money_from_fee', [AdminZaController::class, 'money_from_fee']);
+    //الموافقة على طلب تسجيل في كورس
+    route::post('ok_order_course/{order_id}', [AdminZaController::class, 'ok_order_course']);
+    //عرض طلبات التسجيل في دورة
+    Route::get('/order_on_course/{course_id}', [AdminZaController::class, 'order_on_course']);
+    //عرض الطلاب في دورة
+    Route::get('/display_student_in_course/{course_id}', [AdminZaController::class, 'display_student_in_course']);
+    //رفض طلب تسجيل في دورة
+    route::post('no_order_course/{order_id}', [AdminZaController::class, 'no_order_course']);
+    
 
+    
 
 
 });
@@ -327,7 +337,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //إنهاء و إعادة تفعيل مناقشة
     Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
     //عرض طلبات التسجيل في دورة معينة
-    Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
+    Route::get('order_on_course/{course_id}',[AdminZaController::class,'order_on_course']);
     //رفع برنامج لشعبة محددة
     Route::post('upload_program_section/{section_id}',[MonetorController::class,'upload_program_section']);
     //حذف برنامج

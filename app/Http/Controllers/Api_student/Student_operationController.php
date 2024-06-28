@@ -165,7 +165,7 @@ class Student_operationController extends BaseController
         $new->classification = $user->classification;
         //$new->class = $request->class;
         //$new->year = $request->year;
-        $new->student_type = $student->student_type;
+        $new->student_type = '10';
         $new->student_id = $student->id;
         $new->course_id = $course_id;
         $new->save();

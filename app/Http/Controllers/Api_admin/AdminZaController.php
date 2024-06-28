@@ -40,7 +40,7 @@ use App\Models\Section;
 use App\Models\Subject;
 use App\Models\Pay_Fee;
 
-class AdminZaController extends Controller
+class AdminZaController extends BaseController
 {
     //j
     public function desplay_all_student_regester($year)
@@ -110,6 +110,132 @@ public function desplay_section_and_student($class_id)
     return response()->json([$student]);
 
 }
+
+public function desplay_all_employee_and_others()
+{
+    $academy = Academy::find(1);
+    $employee = Employee::where('year',$academy->year)->where('status',1)->get()->all();
+    return response()->json([$employee]);
+
+}
+
+// public function register_student1(Request $request)
+// {
+//     $academy = Academy::find(1);
+//     /***حساب الطالب***/
+//     // $validator3 = Validator::make($request->all(), [
+//     //     'first_name_s' => 'required',
+//     //     'last_name_s' => 'required|string',
+//     //     'father_name' => 'required|string',
+//     //     'mother_name' => 'required|string',
+//     //     'birthday' => 'required|date',
+//     //     'gender'=>'required',
+//     //     'phone_s' => ['required', 'regex:/^\+963\s?9[0-9]{1}\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/'],
+//     //     'address_s' => 'required',
+//     //     'email_s'=>'required|email',
+//     //     'password_s' => 'required|min:8',
+//     //     'conf_password_s' => 'required|min:8|same:password',
+//     // ]);
+
+//     // if ($validator3->fails()) {
+//     //     return $this->responseError(['errors' => $validator3->errors()]);
+//     // }
+
+//     $user = new User();
+
+//     // $password_s  = $request->password_s;
+//     $user->first_name = $request->first_name_s;
+//     $user->last_name = $request->last_name_s;
+//     $user->father_name = $request->father_name;
+//     $user->mother_name = $request->mother_name;
+//     $user->birthday = $request->birthday;
+//     $user->gender = $request->gender;
+//     $user->phone = $request->phone_s;
+//     $user->address = $request->address_s;
+//     $user->year = $academy->year;
+//     $user->email = $request->email_s;
+//     $user->password = Hash::make($request->password_s);
+//     $user->conf_password = Hash::make($request->conf_password_s);
+//     $user->user_type = 'student';
+//     $user->save();
+
+//     /***حساب الأهل***/
+//     $validator = Validator::make($request->all(),[
+//         'first_name_p'=>'required|string',
+//         'last_name_p' => 'required|string',
+//         'phone_p' => ['required', 'regex:/^\+963\s?9[0-9]{1}\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/'],
+//         'address_p' => 'required',
+//         'email_p'=>'required|email',
+//         'password_p' => 'required|min:8',
+//         'conf_password_p' => 'required|min:8|same:password',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return $this->responseError(['errors' => $validator->errors()]);
+//     }
+
+//     $parentt =new Parentt();
+//     $parentt->first_name = $request->first_name_p;
+//     $parentt->last_name = $request->last_name_p;
+//     $parentt->phone = $request->phone_p;
+//     $parentt->address = $request->address_p;
+//     $parentt->email = $request->email_p;
+//     if (!Parentt::where('email',$request->email)) {
+//         $parentt->password = Hash::make($request->password_p);
+//     $parentt->conf_password = Hash::make($request->conf_password_p);
+
+//     $parentt->save();
+//     // return response()->json([$parentt->email, $parentt->password]);
+//     }
+
+//     else {
+//         $parentt->id = Parentt::where('email',$request->email)->first();
+//     }
+    
+
+//     /***سجل للطالب شعبة صف..***/
+//     $validator1 = Validator::make($request->all(), [
+//         'school_tuition' => 'required',
+//         'class_id' => 'required',
+//         'section_id' => 'required',
+//         // 'parentt_id' => 'required',
+//         'student_type'=>'required',
+//     ]);
+
+//     if ($validator1->fails()) {
+//         return $this->responseError(['errors' => $validator1->errors()]);
+//     }
+
+//     // إنشاء سجل الطالب الجديد
+//     $student = new Student();
+//     $student->school_tuition = $request->school_tuition;
+//     $student->user_id = $user->id;
+//     $student->class_id = $request->class_id;
+//     $student->section_id = $request->section_id;
+//     $student->parentt_id = $parentt->id;
+//     $student->student_type = $request->student_type;
+
+//     // تعيين التصنيف إذا كان الطالب من فئة البكالوريا
+//     if ($request->student_type == 0 ) {
+//         $validator2 = Validator::make($request->all(), [
+//             'calssification' => 'required|in:0,1', // 0 للعلمي، 1 للأدبي
+//         ]);
+
+//         if ($validator2->fails()) {
+//             return $this->responseError(['errors' => $validator2->errors()]);
+//         }
+
+//         $student->calssification = $request->calssification;
+//     } else {
+//         $student->calssification = null;
+//     }
+
+//     $student->save();
+
+//     // إرجاع بيانات الدخول
+//     return response()->json([$user, $student, $parentt]);
+// }
+
 
     public function edit_year(Request $request,$id)
 {
@@ -687,50 +813,62 @@ public function add_publish(Request $request)
 
     /**********************************جدوى**********************************/
 
-    //المبلغ الذي حصل عليه المعهد من دفعات الطلاب للقسط
-    // public function money_from_fee()
-    // {
-    //     // route::get('/money_from_fee', [AdminZaController::class, 'money_from_fee']);
-
-    //     $all_pays = Pay_Fee::where('course_id', null)->sum('amount_money');
-    //     return $all_pays;
-    // }
+    //المبلغ الذي حصل عليه المعهد من دفعات الطلاب للقسط حسب يوم أو شهر أو سنة أو عام دراسي أو دمج بيناتون
     public function money_from_fee(Request $request)
 {
     // route::get('/money_from_fee', [AdminZaController::class, 'money_from_fee']);
-    
-    
-    
-
     $query = Pay_Fee::query();
 
     // تصفية حسب اليوم
-    if ($request->has('day')) {
+    if ($request->has('day') && !empty($request->day)) {
         $query->whereDay('date', $request->day);
     }
 
     // تصفية حسب الشهر
-    if ($request->has('month')) {
+    if ($request->has('month') && !empty($request->month)) {
         $query->whereMonth('date', $request->month);
     }
 
     // تصفية حسب السنة
-    if ($request->has('year')) {
+    if ($request->has('year') && !empty($request->year)) {
         $query->whereYear('date', $request->year);
     }
 
-    if ($request->year_studey) {
-    //    $user = User::where('year',$request->year_studey)->where('user_type','student')->get(student.id)
+    // تصفية حسب السنة الدراسية
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        // جلب المستخدمين الذين يطابقون السنة الدراسية المحددة والنوع "طالب"
+        $users = User::where('year', $request->year_studey)
+                     ->where('user_type', 'student')
+                     ->with('student:id,user_id')
+                     ->get();
 
+        // التأكد من جلب الطلاب بشكل صحيح
+        if ($users->isEmpty()) {
+            return response()->json(['message' => 'No students found'], 404);
+        }
+
+        // استخراج معرفات الطلاب
+        $studentIds = $users->map(function($user) {
+            return $user->student ? $user->student->id : null;
+        })->filter()->toArray();
+
+        // إضافة شرط السنة الدراسية إلى الاستعلام
+        $query->whereIn('student_id', $studentIds);
     }
 
     // تصفية المدفوعات التي ليس لها course_id
     $query->where('course_id', null);
 
-    // حساب المجموع
-    $all_pays = $query->sum('amount_money');
+    // الحصول على قائمة المدفوعات
+    $pays = $query->get();
 
-    return response()->json(['total_amount' => $all_pays]);
+    // حساب المجموع
+    $total_amount = $pays->sum('amount_money');
+
+    return response()->json([
+        'total_amount' => $total_amount,
+        'pays' => $pays,
+    ]);
 }
 
 
@@ -747,6 +885,365 @@ public function add_publish(Request $request)
     //سلف 
     //مصاريف
     
+    public function register_student1(Request $request)
+{
+    $academy = Academy::find(1);
+    /***حساب الطالب***/
+    $validator3 = Validator::make($request->all(), [
+        'first_name_s' => 'required',
+        'last_name_s' => 'required|string',
+        'father_name' => 'required|string',
+        'mother_name' => 'required|string',
+        'birthday' => 'required|date',
+        'gender'=>'required',
+        'phone_s' => 'required',
+        'address_s' => 'required',
+        'email'=>'required|email',
+        'password_s' => 'required|min:8',
+        'conf_password_s' => 'required|min:8',
+    ]);
+
+    if ($validator3->fails()) {
+        return $this->responseError(['errors' => $validator3->errors()]);
+    }
+
+    $user = new User();
+
+    // $password_s  = $request->password_s;
+    $user->first_name = $request->first_name_s;
+    $user->last_name = $request->last_name_s;
+    $user->father_name = $request->father_name;
+    $user->mother_name = $request->mother_name;
+    $user->birthday = $request->birthday;
+    $user->gender = $request->gender;
+    $user->phone = $request->phone_s;
+    $user->address = $request->address_s;
+    $user->year = $academy->year;
+    $user->email = $request->email_s;
+    $user->password = Hash::make($request->password_s);
+    $user->conf_password = Hash::make($request->conf_password_s);
+    $user->user_type = 'student';
+    $user->save();
+
+    /***حساب الأهل***/
+    $validator = Validator::make($request->all(),[
+        'first_name'=>'required|string',
+        'last_name' => 'required|string',
+        'phone' => 'required',
+        'address' => 'required',
+        'email'=>'required|email',
+        'password' => 'required|min:8',
+        'conf_password' => 'required|min:8',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $parentt =new Parentt();
+    $parentt->first_name = $request->first_name_p;
+    $parentt->last_name = $request->last_name_p;
+    $parentt->phone = $request->phone_p;
+    $parentt->address = $request->address_p;
+    $parentt->email = $request->email_p;
+    $parentt->year = $academy->year;
+    if (!Parentt::where('email',$request->email)) {
+        $parentt->password = Hash::make($request->password_p);
+    $parentt->conf_password = Hash::make($request->conf_password_p);
+
+    $parentt->save();
+    // return response()->json([$parentt->email, $parentt->password]);
+    }
+
+    else {
+        $parentt->id = Parentt::where('email',$request->email)->first();
+    }
     
+
+    /***سجل للطالب شعبة صف..***/
+    $validator1 = Validator::make($request->all(), [
+        'school_tuition' => 'required',
+        'class_id' => 'required',
+        'section_id' => 'required',
+        // 'parentt_id' => 'required',
+        'student_type'=>'required',
+    ]);
+
+    if ($validator1->fails()) {
+        return $this->responseError(['errors' => $validator1->errors()]);
+    }
+
+    // إنشاء سجل الطالب الجديد
+    $student = new Student();
+    $student->school_tuition = $request->school_tuition;
+    $student->user_id = $user->id;
+    $student->class_id = $request->class_id;
+    $student->section_id = $request->section_id;
+    $student->parentt_id = $parentt->id;
+    $student->student_type = $request->student_type;
+
+    // تعيين التصنيف إذا كان الطالب من فئة البكالوريا
+    if ($request->student_type == 0 ) {
+        $validator2 = Validator::make($request->all(), [
+            'calssification' => 'required|in:0,1', // 0 للعلمي، 1 للأدبي
+        ]);
+
+        if ($validator2->fails()) {
+            return $this->responseError(['errors' => $validator2->errors()]);
+        }
+
+        $student->calssification = $request->calssification;
+    } else {
+        $student->calssification = null;
+    }
+
+    $student->save();
+
+    // إرجاع بيانات الدخول
+    return response()->json([$user, $student, $parentt]);
+}
+
+
+public function register(Request $request)
+{
+    $academy = Academy::find(1);
+
+    // Validate student data
+    $validatorStudent = Validator::make($request->all(), [
+        'first_name_s' => 'required',
+        'last_name_s' => 'required|string',
+        'father_name' => 'required|string',
+        'mother_name' => 'required|string',
+        'birthday' => 'required|date',
+        'gender' => 'required',
+        // 'phone_s' => ['required', 'regex:/^\+963\s?9[0-9]{1}\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/'],
+        'address_s' => 'required',
+        'email' => 'required|email|unique:users',
+        'password_s' => 'required|min:8',
+        'conf_password_s' => 'required|min:8|same:password_s',
+        'school_tuition' => 'required',
+        'class_id' => 'required',
+        'section_id' => 'required',
+        'student_type' => 'required',
+        // 'calssification' => 'required_if:student_type,0|in:0,1',
+    ]);
+
+    // Validate parent data
+    $validatorParent = Validator::make($request->all(), [
+        'first_name_p' => 'required|string',
+        'last_name_p' => 'required|string',
+        // 'phone_p' => ['required', 'regex:/^\+963\s?9[0-9]{1}\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/'],
+        'address_p' => 'required',
+        'email_p' => 'required|email',
+        'password_p' => 'required|min:8',
+        'conf_password_p' => 'required|min:8|same:password_p',
+    ]);
+
+    // Check if any validation errors occurred
+    if ($validatorStudent->fails() || $validatorParent->fails()) {
+        $errors = $validatorStudent->errors()->merge($validatorParent->errors());
+        return $this->responseError(['errors' => $errors]);
+    }
+
+    // Create parent record
+    $parentt = Parentt::where('email', $request->email_p)->first();
+    if (!$parentt) {
+        $parentt = new Parentt();
+        $parentt->first_name = $request->first_name_p;
+        $parentt->last_name = $request->last_name_p;
+        if ($request->has('phone_p') && !empty($request->phone_p)) {
+            $phone = $request->phone_p;
+            if (!preg_match('/^(\+?963|0)?9\d{8}$/', $phone)) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+            }
+            $parentt->phone = $request->phone_p;
+        }
+        // $parentt->phone = $request->phone_p;
+
+        $parentt->address = $request->address_p;
+        $parentt->email = $request->email_p;
+        $parentt->year = $academy->year;
+        $parentt->password = Hash::make($request->password_p);
+        $parentt->conf_password = Hash::make($request->conf_password_p);
+        $parentt->save();
+    }
+
+    // Create student record
+    $user = new User();
+    $user->first_name = $request->first_name_s;
+    $user->last_name = $request->last_name_s;
+    $user->father_name = $request->father_name;
+    $user->mother_name = $request->mother_name;
+    $user->birthday = $request->birthday;
+    $user->gender = $request->gender;
+    if ($request->has('phone_s') && !empty($request->phone_s)) {
+        $phone = $request->phone_s;
+        if (!preg_match('/^(\+?963|0)?9\d{8}$/', $phone)) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+        }
+        $user->phone = $request->phone_s;
+    }
+    // $user->phone = $request->phone_s;
+    $user->address = $request->address_s;
+    $user->year = $academy->year;
+    $user->email = $request->email;
+    $user->password = Hash::make($request->password_s);
+    $user->conf_password = Hash::make($request->conf_password_s);
+    $user->user_type = 'student';
+    $user->save();
+
+    // Create student profile
+    $student = new Student();
+    $student->school_tuition = $request->school_tuition;
+    $student->user_id = $user->id;
+    $student->class_id = $request->class_id;
+    $student->section_id = $request->section_id;
+    $student->parentt_id = $parentt->id;
+    $student->student_type = $request->student_type;
+    if ($request->student_type != 0 && empty($request->calssification)) {
+        $student->calssification = 2;
+    }
+    else {
+        $student->calssification = $request->calssification;
+    }
+    // $student->calssification = $request->student_type == 0 ? $request->calssification : null;
+    $student->save();
+
+    // Return response with created user, student, and parentt
+    return response()->json(['user' => $user, 'student' => $student, 'parentt' => $parentt]);
+}
+
+
+
+
+
+
+
+public function register2(Request $request,$academy_id){
+
+
+    $academy = Academy::find($academy_id);
+    $validator3 = Validator::make($request->all(), [
+        'first_name' => 'required',
+        'last_name' => 'required|string',
+        'father_name' => 'required|string',
+        'mother_name' => 'required|string',
+        'birthday' => 'required|date',
+        'gender'=>'required',
+        'phone' => 'required',
+        'address' => 'required',
+        'email'=>'required|email',
+        'password' => 'required|min:8',
+        'conf_password' => 'required|min:8',
+    ]);
+
+    if ($validator3->fails()) {
+        return $this->responseError(['errors' => $validator3->errors()]);
+    }
+
+    $user = new User();
+
+    $password  = $request->password;
+    $user->first_name = $request->first_name;
+    $user->last_name = $request->last_name;
+    $user->father_name = $request->father_name;
+    $user->mother_name = $request->mother_name;
+    $user->birthday = $request->birthday;
+    $user->gender = $request->gender;
+    $user->phone = $request->phone;
+    $user->address = $request->address;
+    $user->year = $academy->year;
+    $user->email = $request->email;
+    $user->password = Hash::make($password);
+    $user->conf_password = Hash::make($password);
+    $user->user_type = 'student';
+    $user->save();
+
+    $validator1 = Validator::make($request->all(), [
+        'school_tuition' => 'required',
+        'class_id' => 'required',
+        'section_id' => 'required',
+        'parentt_id' => 'required',
+        'student_type'=>'required',
+    ]);
+
+    if ($validator1->fails()) {
+        return $this->responseError(['errors' => $validator1->errors()]);
+    }
+
+    // إنشاء سجل الطالب الجديد
+    $student = new Student();
+    $student->school_tuition = $request->school_tuition;
+    $student->user_id = $user->id;
+    $student->class_id = $request->class_id;
+    $student->section_id = $request->section_id;
+    $student->parentt_id = $request->parentt_id;
+    $student->student_type = $request->student_type;
+
+    // تعيين التصنيف إذا كان الطالب من فئة البكالوريا
+    if ($request->student_type == 0 ) {
+        $validator2 = Validator::make($request->all(), [
+            'calssification' => 'required|in:0,1', // 0 للعلمي، 1 للأدبي
+        ]);
+
+        if ($validator2->fails()) {
+            return $this->responseError(['errors' => $validator2->errors()]);
+        }
+
+        $student->calssification = $request->calssification;
+    } else {
+        $student->calssification = null;
+    }
+
+    $student->save();
+
+    // إرجاع بيانات الدخول
+    return response()->json([$user->email, $password]);
+}
+
+//عرض طلبات التسجيل بالمعهد
+public function order_on_course($course_id)
+{
+    $order = Order::where('course_id', $course_id)->where('student_type','10')->get();
+
+    return $order;
+}
+
+//
+public function ok_order_course($order_id)
+    {
+        $order = Order::where('id', $order_id)->first();
+
+        $order->student_type = '11';
+
+        $order->save();
+
+        return $order;
+    }
+
+    //رفض طلب تسجيل في دورة
+    public function no_order_course($order_id)
+    {
+        $order = Order::where('id', $order_id)->first();
+
+        $order->student_type = '12';
+
+        $order->save();
+
+        return $order;
+
+    }
+
+    public function display_student_in_course($course_id)
+    {
+        $order = Order::where('course_id', $course_id)->where('student_type','11')->get();
+
+        return $order;
+
+    }
+
+
+
+
     
 }
