@@ -1190,7 +1190,7 @@ public function update_profile_student(Request $request,$student_id)
             'mother_name' => 'required|string',
             'phone' => 'required',
             'address' => 'required',
-            'calssification' => 'required',
+            // 'calssification' => 'required',
             'school_tuition'=>'required',
             'class_id'=>'required',
             'section_id'=>'required',
@@ -1207,7 +1207,7 @@ public function update_profile_student(Request $request,$student_id)
         $user->phone = $request->phone;
         $user->address = $request->address;
         $user_id = $user->id;
-        $student->calssification = $request->calssification;
+        // $student->calssification = $request->calssification;
         $student->school_tuition = $request->school_tuition;
         $student->user_id = $user_id;
         $student->class_id =$request->class_id;

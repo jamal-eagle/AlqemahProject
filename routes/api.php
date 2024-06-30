@@ -170,7 +170,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::post('/add_to_break/{academy_id}', [AdminOperationController::class, 'add_to_break']);
 
     //إعطاء موعد
-    route::post('/give_date/{order_id}',[AdminOperationController::class,'GiveDate']);
+    route::post('/give_date/{order_id}',[AdminZaController::class,'GiveDate']);
     //إنشاء حساب للطالب
     Route::post('/register/{order_id}/{academy_id}', [AdminOperationController::class, 'registerPost']);
     //حذف طالب
@@ -262,7 +262,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('display_section_for_class/{class_id}', [AdminZaController::class, 'display_section_for_class']);
     //عرض طلاب شعبة معينة
     route::get('display_student_in_section/{section_id}', [AdminZaController::class, 'display_student_in_section']);
-    
+    //المبلغ الذي حصل عليه المعهد من دفعات الطلاب للقسط حسب يوم أو شهر أو سنة أو عام دراسي أو دمج بيناتون
     Route::get('/money_from_fee', [AdminZaController::class, 'money_from_fee']);
     //الموافقة على طلب تسجيل في كورس
     route::post('ok_order_course/{order_id}', [AdminZaController::class, 'ok_order_course']);
@@ -273,7 +273,19 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //رفض طلب تسجيل في دورة
     route::post('no_order_course/{order_id}', [AdminZaController::class, 'no_order_course']);
     
-
+    Route::get('/money_from_all_course', [AdminZaController::class, 'money_from_all_course']);
+    /// اضافة سلفة لاستاذ
+    Route::post('/add_teacher_maturitie/{idteacher}',[AdminOperationController::class,'addTeacherMaturitie']);
+  /// اضافة سلفة لموظف
+  Route::post('/add_employee_maturitie/{idemployee}',[AdminOperationController::class,'addEmployeeMaturitie']);
+//عرض برنامج دوام شعبة
+Route::get('/programe_week/{section_id}', [AdminZaController::class, 'programe_week']);
+//عرض برنامج الدوام الاسبوعي للاستاذ
+route::get('/getWeeklyTeacherSchedule/{teacher_id}',[AdminZaController::class,'getWeeklyTeacherSchedule']);
+//عرض السلف والباقي من الراتب والراتب للاستاذ
+route::get('desplay_maturitie_for_teacher/{teacher_id}/{year}/{month}', [AdminOperationController::class, 'desplay_maturitie_for_teacher']);
+//عرض السلف والباقي من الراتب والراتب للموظف
+route::get('desplay_maturitie_for_employee/{employee_id}/{year}/{month}', [AdminOperationController::class, 'desplay_maturitie_for_employee']);
     
 
 
@@ -412,13 +424,15 @@ Route::prefix('parent')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/display_Subject_Sun/{student_id}',[ParenttController::class,'displaySubjectSun']);
     //عرض وظائف ابني لمادة محددة
     Route::get('/display_homework_Sun/{student_id}/{subject_id}',[ParenttController::class,'homework_subject_my_sun']);
+    //عرض ملحقات وظيفة محددة
+    Route::get('/file_image_homework/{homework_id}',[Student_operationController::class,'file_image_homework']);
     //عرض كل غيابات الابن
     Route::get('/all_out_work_student/{student_id}', [OutWorkStudentController::class, 'all_out_work_student']);
     //إضافة تبرير للابن لغيابه في يوم محدد
     Route::post('/add_Justification/{Out_Of_Work_Student_id}', [OutWorkStudentController::class, 'add_Justification']);
     //عرض الملاحظات التي بحق الابن
     Route::get('/display_note/{student_id}',[ParenttController::class,'display_note']);
-    //عرض علامات الابن
+    //عرض علامات الابنREZ
     Route::get('/display_mark/{student_id}',[ParenttController::class,'displayMark']);
     //القسط و الدفعات و المتبقي
     Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);

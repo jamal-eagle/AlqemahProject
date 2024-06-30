@@ -163,46 +163,57 @@ class ParenttController extends Controller
 //     }
 // }
 
+//شغال تمام لكن تم توقيفه بسبب طلب فصل الوظائف عن الملحقات
+// public function homework_subject_my_sun($student_id,$subject_id)
+// {
+//     $student = Student::where('id', $student_id)->first();
+//     $year = $student->user->year;
+
+//     $homework = Homework::where('year', $year)->where('subject_id', $subject_id)->get();
+//     $result = [];
+
+//     foreach ($homework as $h) {
+//         $accessories = Accessories::where('home_work_id', $h->id)->get();
+//         $homework_info = [
+//             'homework_info' => $h,
+//             'file_image_info' => []
+//         ];
+
+//         foreach ($accessories as $a) {
+//             $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
+
+//             if (file_exists($homework_path)) {
+//                 $a->image_url = asset('/upload/' . $a->path);
+//                 $homework_info['file_image_info'][] = [
+//                     // 'path' => $homework_path,
+//                     'file_image_info' => $a
+//                 ];
+//             }
+//         }
+
+//         $result[] = $homework_info;
+//     }
+
+//     if (!empty($result)) {
+//         return $result;
+//     } else {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'No images found'
+//         ]);
+//     }
+// }
+
+
 public function homework_subject_my_sun($student_id,$subject_id)
 {
     $student = Student::where('id', $student_id)->first();
     $year = $student->user->year;
 
-    $homework = Homework::where('year', $year)->where('subject_id', $subject_id)->get();
-    $result = [];
+    $homework = Homework::where('year', $year)->where('subject_id', $subject_id)->with('subject')->get();
 
-    foreach ($homework as $h) {
-        $accessories = Accessories::where('home_work_id', $h->id)->get();
-        $homework_info = [
-            'homework_info' => $h,
-            'file_image_info' => []
-        ];
-
-        foreach ($accessories as $a) {
-            $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
-
-            if (file_exists($homework_path)) {
-                $a->image_url = asset('/upload/' . $a->path);
-                $homework_info['file_image_info'][] = [
-                    // 'path' => $homework_path,
-                    'file_image_info' => $a
-                ];
-            }
-        }
-
-        $result[] = $homework_info;
-    }
-
-    if (!empty($result)) {
-        return $result;
-    } else {
-        return response()->json([
-            'status' => 'false',
-            'message' => 'No images found'
-        ]);
-    }
+    return $homework;
 }
-
 
     //عرض الملاحظات التي بحق الابن
     public function display_note($student_id)

@@ -19,7 +19,7 @@ use App\Models\Publish;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Image;
 use App\Models\Image_Archive;
-use App\Models\chFile_Arive;
+use App\Models\File_Archive;
 use App\Models\Accessories;
 use App\Models\Academy;
 use App\Models\Course;
@@ -341,7 +341,7 @@ public function homework_subject($subject_id)
         return response()->json(['error' => 'user not found'], 404);
     }
 
-    $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->get();
+    $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->with('subject')->get();
     return $homework;
 }
 
