@@ -264,40 +264,37 @@ public function get_teacher_profile($teacher_id)
 
 public function update_profile_employee(Request $request , $employee_id)
 {
-    $employee = Employee::find($employee_id);
-    if(!$employee)
-    {
-        return response()->json(['the employee not found']);
-    }
-
-    $validator = Validator::make($request->all(),[
-        'first_name'=>'required',
-        'last_name'=>'required',
-        'phone'=>'required',
-        'address'=>'required',
-        'salary'=>'required',
-        'type'=>'required',
-
+        $employee = Employee::find($employee_id);
+        if(!$employee){
+            return response()->json(['employee not found ']);
+        }
+        
+        $validator = validator::make($request->all(),[
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'phone' => 'required',
+            'address' => 'required',
+            'salary' => 'required',
+            'type' => 'required',
         ]);
         if($validator->fails())
         {
             return response()->json(['Please validate error',$validator->errors()]);
         }
 
-        $employee->update([
-        'first_name'=>$request->first_name,
-        'last_name'=>$request->last_name,
-        'birthday'=>$request->birthday,
-        'phone'=>$request->phone,
-        'address'=>$request->address,
-        'salary'=>$request->salary,
-        'type'=>$request->type,
+    $employee->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'birthday' => $request->birthday,
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'salary' => $request->salary,
+            'type' => $request->type,
+        ]);
 
 
-    ]);
 
-
-        return response()->json([$employee,'the user updated succeflly']);
+    return response()->json([$employee, 'the user updated successfully']);
 
 }
 

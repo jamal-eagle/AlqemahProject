@@ -97,9 +97,9 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //ايقاف حساب الاهل
     Route::put('/delete_parentt/{paentt_id}',[AdminOperationController::class,'delete_parentt']);
     //ايقاف حساب الاستاذ
-    Route::put('/delete_teacher/{teacher_id}',[AdminOperationController::class,'delete_teacher']);
+    Route::post('/delete_teacher/{teacher_id}',[AdminOperationController::class,'delete_teacher']);
     //تعديل معلومات موظف
-    Route::put('/update_profile_employee/{employee_id}',[AuthController::class,'update_profile_employee']);
+    Route::post('/update_profile_employee/{employee_id}',[AuthController::class,'update_profile_employee']);
     //عرض تصنيف الطلاب
     Route::get('/classification/{calssification}',[AdminOperationController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد
