@@ -7,7 +7,9 @@ use App\Models\Classs;
 use App\Models\Order;
 use App\Models\Parentt;
 use App\Models\Student;
+use App\Models\Subject;
 use App\Models\Teacher;
+use App\Models\Teacher_subject;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -171,40 +173,54 @@ public function get_teacher_profile($teacher_id)
         $teacher1 = $teacher->user;
         $section = $teacher->section;
         $subject= $teacher->subject;
-        
+
         return response()->json([$teacher,$section]);
     }
 
 
     public function update_teacher_profile(Request $request,$teacher_id)
     {
-        $user = User::find($teacher_id);
-        if(!$user){
-            return response()->json(['user not found ']);
-        }
-        $teacher = Teacher::where( 'user_id',$user->id );
-        if(!$teacher)
-        {
-            return response()->json(['this user not teacher']);
+        $teacher = Teacher::find($teacher_id);
+        if(!$teacher){
+            return response()->json(['teacher not found ']);
         }
 
         $validator = validator::make($request->all(),[
-            'num_hour'=>'required',
             'cost_hour'=>'required',
             'num_our_added'=>'required',
             'note_hour_added'=>'required',
+            'certificate'=>'required',
+            'class_id'=>'required',
+            'name_subject' => 'required|string|exists:subjects,name',
         ]);
         if($validator->fails())
         {
             return response()->json(['Please validate error',$validator->errors()]);
         }
-        $teacher = Teacher::where( 'user_id',$user->id );
-        $teacher->update([
-            'num_hour'=>$request->num_hour,
-            'cost_hour'=>$request->cost_hour,
-            'num_our_added'=>$request->num_hour_added,
-            'note_hour_added'=>$request->note_hour_added,
+        $subject = Subject::where('name', $request->name_subject)->first();
+        if (!$subject) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Subject not found for the specified class_id',
         ]);
+    }
+
+    $teacher->update([
+        'cost_hour'=>$request->cost_hour,
+        'num_our_added'=>$request->num_hour_added,
+        'note_hour_added'=>$request->note_hour_added,
+        'certificate'=>$request->certificate,
+        'class_id'=>$request->class_id,
+    ]);
+
+    $teacher_subject = Teacher_subject::with('teacher');
+    $teacher_subject->update([
+    'subject_id' => $subject->id,
+    'teacher_id' => $teacher->id,
+]);
+
+
+
 
     }
 
