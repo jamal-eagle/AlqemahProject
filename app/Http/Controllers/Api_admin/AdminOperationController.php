@@ -37,7 +37,8 @@ use App\Models\File_course;
 use App\Models\Image_Archive;
 use App\Models\Maturitie;
 use App\Models\Section;
-
+use App\Models\Subject;
+use App\Models\Teacher_subject;
 
 class AdminOperationController extends BaseController
 {
@@ -362,7 +363,7 @@ public function register_teacher(Request $request)
         'gender' => 'required',
         'phone' => 'required',
         'address' => 'required',
-        'image' => 'required',
+        'image' => 'nullable',
     ]);
 
 
@@ -399,6 +400,7 @@ public function register_teacher(Request $request)
         'note_hour_added' => 'required',
         'certificate'=>'required',
         'class_id'=>'required',
+        'name_subject' => 'required|string|exists:subjects,name',
     ]);
 
     if ($validator1->fails()) {
@@ -412,8 +414,26 @@ public function register_teacher(Request $request)
     $teacher->note_hour_added = $request->note_hour_added;
     $teacher->user_id = $user->id;
     $teacher->certificate = $request->certificate;
+    $teacher->classs_id = $request->class_id;
+
+
+
+
 
     $teacher->save();
+
+    $subject = Subject::where('name', $request->name_subject)->first();
+    if (!$subject) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Subject not found for the specified class_id',
+        ]);
+    }
+    $teacher_subject = new Teacher_subject();
+    $teacher_subject->subject_id = $subject->id;
+    $teacher_subject->teacher_id = $teacher->id;
+
+    $teacher_subject->save();
     return response()->json([$user->email, $password]);
 
     }
@@ -447,6 +467,7 @@ public function register_employee(Request $request,$academy_id)
     $employee->email = $email;
     $employee->password = Hash::make($password);
     $employee->type = $request->type;
+
 
     $employee->save();
     return response()->json([$employee->email, $password]);

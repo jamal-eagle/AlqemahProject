@@ -32,14 +32,23 @@ class Teacher extends Model
         'user_id',
         'course_id',
         'certificate',
+        'classs_id',
         //'subject_id',
     ];
+
+
+public function classs(){
+    return $this->belongsTo('App\Models\Classs',foreignKey:'classs_id');
+}
+
 
 
     public function course()
     {
         return $this->hasMany('App\Models\Course',foreignKey:'teacher_id',localKey:'id');
     }
+
+
 
     public function posts()
     {

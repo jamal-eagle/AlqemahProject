@@ -21,6 +21,12 @@ class Classs extends Model
         'name',
     ];
 
+
+public function teacher()
+    {
+        return $this->hasMany('App\Models\Teacher',foreignKey:'class_id',localKey:'id');
+    }
+
     public function student()
     {
         return $this->hasMany('App\Models\Student',foreignKey:'class_id',localKey:'id');

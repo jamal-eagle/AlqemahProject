@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Classs;
+use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,6 +21,7 @@ return new class extends Migration
             $table->string('note_hour_added')->nullable();
             $table->foreignIdFor(User::class,'user_id');
             $table->string('certificate');
+            $table->foreignIdFor(Classs::class,'classs_id');
             $table->timestamps();
         });
     }

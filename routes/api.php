@@ -87,7 +87,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     ///خلق حساب للأهل
     Route::post('/register_parentt',[AdminOperationController::class,'register_parentt']);
     //خلق حسابات للاستاذ
-    Route::post('/register_teacher/{academy_id}',[AdminOperationController::class,'register_teacher']);
+    Route::post('/register_teacher',[AdminOperationController::class,'register_teacher']);
     //خلق حسابات للموظف
     Route::post('/register_employee/{academy_id}',[AdminOperationController::class,'register_employee']);
     //ايقاف حساب الطالب
