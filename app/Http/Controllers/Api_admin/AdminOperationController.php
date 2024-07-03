@@ -350,9 +350,9 @@ public function register_student1(Request $request,$academy_id){
 
     }
 
-public function register_teacher(Request $request,$academy_id)
+public function register_teacher(Request $request)
 {
-    $academy = Academy::find($academy_id);
+    $academy = Academy::find(1);
     $validator = Validator::make($request->all(), [
         'first_name' => 'required',
         'last_name' => 'required',
@@ -398,6 +398,7 @@ public function register_teacher(Request $request,$academy_id)
         'num_hour_added' => 'required',
         'note_hour_added' => 'required',
         'certificate'=>'required',
+        'class_id'=>'required',
     ]);
 
     if ($validator1->fails()) {
@@ -2235,6 +2236,28 @@ public function desplay_section_and_student($class_id)
     return response()->json([$classs,$student,$user]);
 
 }
+
+public function add_section(Request $request, $class_id)
+{
+    $validator = Validator::make($request->all(),[
+        'num_section'=>'required',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
+    $section = new Section();
+    $section->num_section= $request->num_section;
+    $section->class_id = $class_id;
+    $section->save();
+    return response()->json(['sucsssss']);
+}
+
+
 
 
 

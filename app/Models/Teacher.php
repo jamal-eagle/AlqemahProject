@@ -19,6 +19,7 @@ use App\Models\Teacher_section;
 use App\Models\Section;
 use App\Models\Teacher_Schedule;
 use App\Models\Maturitie;
+use App\Models\Classs;
 
 class Teacher extends Model
 {
@@ -33,6 +34,7 @@ class Teacher extends Model
         'certificate',
         //'subject_id',
     ];
+
 
     public function course()
     {
