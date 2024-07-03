@@ -1287,8 +1287,7 @@ public function update_profile_student(Request $request,$student_id)
         return response()->json(['sucussssss']);
 
     }
-
-public function generateMonthlyAttendanceReport($student_id, $year, $month)
+    public function generateMonthlyAttendanceReport($student_id, $year, $month)
     {
         // استرجاع قائمة الأيام العطل في الشهر
         $holidays = collect([]);
@@ -1303,6 +1302,7 @@ public function generateMonthlyAttendanceReport($student_id, $year, $month)
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $date = Carbon::createFromDate($year, $month, $day);
             $attendanceStatus = 'حاضر';
+            $justification = null;
 
             if ($date->format('l') !== 'Friday' && $date->format('l') !== 'Saturday') {
                 $absence = Out_Of_Work_Student::where('student_id', $student_id)
@@ -1311,6 +1311,7 @@ public function generateMonthlyAttendanceReport($student_id, $year, $month)
 
                 if ($absence) {
                     $attendanceStatus = 'غائب';
+                    $justification = $absence->justification; // استرجاع مبرر الغياب إذا كان موجودًا
                 }
             } else {
                 $attendanceStatus = 'عطلة';
@@ -1319,6 +1320,7 @@ public function generateMonthlyAttendanceReport($student_id, $year, $month)
             $attendanceDetails[] = [
                 'date' => $date->toDateString(),
                 'attendance_status' => $attendanceStatus,
+                'justification' => $justification, // إضافة المبرر إلى التفاصيل
             ];
         }
 
