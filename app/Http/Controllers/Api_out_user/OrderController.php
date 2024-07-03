@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Order;
 use App\Models\Academy;
+use App\Models\Course;
+use App\Models\Expenses;
 //use App\Models\User;
 //use App\Models\Appointment;
 //use Carbon\Carbon;
@@ -66,11 +68,11 @@ class OrderController extends BaseController
             'last_name' => 'required|string',
             'father_name' => 'required|string',
             //'mother_name'=>'required|string',
-            'birthday' => 'required|date_format:Y-m-d',
+            'birthday' => 'nullable|date_format:Y-m-d',
             'gender' => 'required|in:0,1',
             'phone' => 'required|string',
             'address' => 'required|string',
-            'email' => 'required|email',
+            'email' => 'nullable|email',
             //'classification' => 'required|in:0,1',
             //'class' => 'required|string',
             //'year' => 'required|integer',
@@ -101,7 +103,7 @@ class OrderController extends BaseController
 
             //كلشي تحت لتغير حالة الدورة من قيد الدراسة إلى مفتوحة
         //عدد الطلاب المسجلين في الدورة
-        $num_order_for_course = Order::where('course_id',$course_id)->where('studen_type','11')->count();
+        $num_order_for_course = Order::where('course_id',$course_id)->where('student_type','11')->count();
 
         $course = Course::find($course_id);
 
@@ -124,6 +126,49 @@ class OrderController extends BaseController
 
 
 
+
+            return $this->responseData("success",$new);
+    }
+
+    public function CreateOrderForCourse_out_user(Request $request, $course_id)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'father_name' => 'required|string',
+            //'mother_name'=>'required|string',
+            // 'birthday' => 'required|date_format:Y-m-d',
+            'gender' => 'required|in:0,1',
+            'phone' => 'required|string',
+            'address' => 'required|string',
+            // 'email' => 'required|email',
+            //'classification' => 'required|in:0,1',
+            //'class' => 'required|string',
+            //'year' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responseError(['errors' => $validator->errors()]);
+        }
+
+            $new = new Order;
+
+            $new->first_name = $request->first_name;
+            $new->last_name = $request->last_name;
+            $new->father_name = $request->father_name;
+            //$new->mother_name = $request->mother_name;
+            // $new->birthday = $request->birthday;
+            $new->gender = $request->gender;
+            $new->phone = $request->phone;
+            $new->address = $request->address;
+            // $new->email = $request->email;
+            $new->student_type = "10";
+            //$new->classification = $request->classification;
+            //$new->class = $request->class;
+            //$new->year = $request->year;
+            $new->course_id = $course_id;
+            $new->save();
 
             return $this->responseData("success",$new);
     }

@@ -18,6 +18,9 @@ class Academy extends Model
         'facebook_link',
         'description',
         'year',
+        'resolve_brother',
+        'resolve_martyr',
+        'resolve_Son_teacher',
     ];
 
 

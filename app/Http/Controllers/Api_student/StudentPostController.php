@@ -24,7 +24,7 @@ class StudentPostController extends Controller
         //عرض مناقشة محددة التعليقات و السؤال
         public function displayPost($post_id)
         {
-            $post = Post::where('id',$post_id)->with('comments.student.user')->with('comments.teacher.user')->first();
+            $post = Post::where('id',$post_id)->with('comments.student.user')->with('comments.teacher.user')->orderBy('created_at')->first();
             return $post;
         }
     
@@ -70,6 +70,11 @@ class StudentPostController extends Controller
                 $comment->teacher_id = $teacher->id;
             }
             $comment->save();
+
+             return response()->json([
+                'user' => auth()->user(),
+                'comment' => $comment
+            ]);
         }
 
         elseif($post->state_on_off == 0) {
@@ -123,6 +128,9 @@ class StudentPostController extends Controller
      public function editComment(Request $request, $comment_id)
      {
          $comment = Comment::find($comment_id);
+         if (!$comment) {
+            return 'no have comment';
+         }
          $post = Post::where('id', $comment->post_id)->first();
 
          if ($post->state_on_off == 1) {
@@ -132,7 +140,7 @@ class StudentPostController extends Controller
    
             elseif ($comment->student_id != null) {
                 $student = Student::where('user_id', auth()->user()->id)->first();
-                $comment2=Comment::where('student_id', $student->id)->first();
+                $comment2=Comment::where('id',$comment_id)->where('student_id', $student->id)->first();
                 
                 $comment2->description = $request->description;
                 $comment2->save();
@@ -141,7 +149,7 @@ class StudentPostController extends Controller
    
             elseif ($comment->teacher_id != null) {
                 $teacher = Teacher::where('user_id', auth()->user()->id)->first();
-                $comment2=Comment::where('teacher_id', $teacher->id)->first();
+                $comment2=Comment::where('id',$comment_id)->where('teacher_id', $teacher->id)->first();
                 
                 $comment2->description = $request->description;
                 $comment2->save();
@@ -154,7 +162,7 @@ class StudentPostController extends Controller
 
          elseif ($post->state_on_off == 0 && $comment->teacher_id != null) {
             $teacher = Teacher::where('user_id', auth()->user()->id)->first();
-            $comment2=Comment::where('teacher_id', $teacher->id)->first();
+            $comment2=Comment::where('id',$comment_id)->where('teacher_id', $teacher->id)->first();
             
             $comment2->description = $request->description;
             $comment2->save();

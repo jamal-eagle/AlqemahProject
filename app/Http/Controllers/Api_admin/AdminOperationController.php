@@ -87,6 +87,49 @@ class AdminOperationController extends BaseController
 //     return $this->responseError(['please  check your Auth','auth error']);
 // }
 //     }
+// public function login(Request $request)
+//     {
+//         $request->validate([
+//             "email" => "required|email",
+//             "password" => "required"
+//         ]);
+
+//         // check email
+//         $user = User::where("email", "=", $request->email);
+// if($user){
+//     $user = User::where("email", "=", $request->email)->first();
+//     if(isset($user->id)){
+//         if(Hash::check($request->password, $user->password)){
+//             // create a token
+//             $token = $user->createToken("auth_token")->plainTextToken;
+//             /// send a response
+//             return response()->json([
+//         'User login successfully',
+//         'token'=>$token,
+//         'user' => $user,
+//     ]);
+//         }
+//     }else{
+//         $parent = Parentt::where("email", "=", $request->email)->first();
+//     if(isset($parent->id)){
+//         if(Hash::check($request->password, $parent->password)){
+//             // create a token
+//             $token = $parent->createToken("auth_token")->plainTextToken;
+//             /// send a response
+//             return response()->json([
+//         'User login successfully',
+//         'token'=>$token,
+//     ]);
+//         }
+//     }else{
+//         return $this->responseError(['please  check your Auth','auth error']);
+//     }
+
+//     }
+//     return $this->responseError(['please  check your Auth','auth error']);
+// }
+//     }
+
 public function login(Request $request)
     {
         $request->validate([
@@ -98,7 +141,7 @@ public function login(Request $request)
         $user = User::where("email", "=", $request->email);
 if($user){
     $user = User::where("email", "=", $request->email)->first();
-    if(isset($user->id)){
+    if(isset($user->id) && $user->status == '1'){
         if(Hash::check($request->password, $user->password)){
             // create a token
             $token = $user->createToken("auth_token")->plainTextToken;
@@ -111,7 +154,7 @@ if($user){
         }
     }else{
         $parent = Parentt::where("email", "=", $request->email)->first();
-    if(isset($parent->id)){
+    if(isset($parent->id) && $parent->status == '1'){
         if(Hash::check($request->password, $parent->password)){
             // create a token
             $token = $parent->createToken("auth_token")->plainTextToken;
@@ -129,6 +172,7 @@ if($user){
     return $this->responseError(['please  check your Auth','auth error']);
 }
     }
+
 
     public function logout(Request $request)
     {

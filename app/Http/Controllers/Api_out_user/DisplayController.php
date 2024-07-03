@@ -45,11 +45,23 @@ class DisplayController extends BaseController
     }
 
     /*------------------------course------------------------*/
-    public function all_course()
-    {
-        $course = Course::with('subject')->with('classs')->with('teacher.user')->get();
-        return $course;
-    }
+    // public function all_course()
+    // {
+    //     $course = Course::with('subject')->with('classs')->with('teacher.user')->get();
+    //     return $course;
+    // }
+
+public function all_course()
+{
+    $courses = Course::with('subject')
+        ->with('classs')
+        ->with('teacher.user')
+        ->orderByRaw("CASE WHEN Course_status = 1 THEN 0 WHEN Course_status = 2 THEN 1 ELSE 2 END") // ترتيب حسب أولوية القيم
+        ->orderBy('created_at', 'desc') // ترتيب حسب تاريخ الإنشاء بتنازلي
+        ->get();
+
+    return $courses;
+}
 
     public function info_course($id_course)
     {

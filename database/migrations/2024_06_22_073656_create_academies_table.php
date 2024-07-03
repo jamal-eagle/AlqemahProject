@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('resolve_brother')->default(0);
             $table->string('resolve_martyr')->default(0);
             $table->string('resolve_Son_teacher')->default(0);
-            $table->string('resolve_all')->default(0);
+            // $table->string('resolve_all')->default(0);
 
             $table->timestamps();
         });

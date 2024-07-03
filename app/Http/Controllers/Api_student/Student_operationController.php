@@ -168,30 +168,35 @@ class Student_operationController extends BaseController
         $new->student_type = '10';
         $new->student_id = $student->id;
         $new->course_id = $course_id;
+        // $f = Order::where('student_id',$student->id)->where('course_id',$course_id)->first();
+        // return $f;
+        if (Order::where('student_id',$student->id)->where('course_id',$course_id)->count() != 0) {
+            return 'you can not do that you have order for this course';
+        }
         $new->save();
 
         //كلشي تحت لتغير حالة الدورة من قيد الدراسة إلى مفتوحة
         //عدد الطلاب المسجلين في الدورة
-        $num_order_for_course = Order::where('course_id',$course_id)->where('student_type','11')->count();
+        // $num_order_for_course = Order::where('course_id',$course_id)->where('student_type','11')->count();
 
-        $course = Course::find($course_id);
+        // $course = Course::find($course_id);
 
-        //المبلغ الذي جمعه المعهد من الطلاب المسجلين
-        $Money = $num_order_for_course * $course->cost_course;
+        // //المبلغ الذي جمعه المعهد من الطلاب المسجلين
+        // $Money = $num_order_for_course * $course->cost_course;
 
-        // المبلغ الذي جمعه المعهد بعد إعطاء المدرس نسبته
-        $Money_without_teacher = $Money * ($course->percent_teacher) / 100;
+        // // المبلغ الذي جمعه المعهد بعد إعطاء المدرس نسبته
+        // $Money_without_teacher = $Money * ($course->percent_teacher) / 100;
 
-        //مصاريف الدورة الكلية
-        $expenses = Expenses::where('course_id',$course_id)->sum('total_cost') ?? 0;
+        // //مصاريف الدورة الكلية
+        // $expenses = Expenses::where('course_id',$course_id)->sum('total_cost') ?? 0;
 
-        //مربح المعهد من الدورة
-        $Money_win =  $Money_without_teacher - $expenses ;
+        // //مربح المعهد من الدورة
+        // $Money_win =  $Money_without_teacher - $expenses ;
 
-        if ($Money_win >= $course->Minimum_win) {
-            $course->Course_status = 1;
-            $course->save();
-        }
+        // if ($Money_win >= $course->Minimum_win) {
+        //     $course->Course_status = 1;
+        //     $course->save();
+        // }
 
         // return $Money_win; 
         return $this->responseData("success",$new);
@@ -333,6 +338,18 @@ class Student_operationController extends BaseController
 // }
 
 
+// public function homework_subject($subject_id)
+// {
+//     $user = User::where('id', auth()->user()->id)->first();
+
+//     if (!$user) {
+//         return response()->json(['error' => 'user not found'], 404);
+//     }
+//     $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->with('subject')->get();
+//     // $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->with('subject')->get();
+//     return $homework;
+// }
+
 public function homework_subject($subject_id)
 {
     $user = User::where('id', auth()->user()->id)->first();
@@ -341,9 +358,40 @@ public function homework_subject($subject_id)
         return response()->json(['error' => 'user not found'], 404);
     }
 
-    $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->with('subject')->get();
-    return $homework;
+    $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->get();
+    $result = [];
+
+    foreach ($homework as $h) {
+        $accessories = Accessories::where('home_work_id', $h->id)->get();
+        $homework_info = [
+            'homework_info' => $h,
+            'file_image_info' => []
+        ];
+
+        foreach ($accessories as $a) {
+            $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
+            // $h->$a->path;
+            if (file_exists($homework_path)) {
+                $homework_info['file_image_info'][] = [
+                    'path' => $homework_path,
+                    'file_image_info' => $a
+                ];
+            }
+        }
+
+        $result[] = $homework_info;
+    }
+
+    if (!empty($result)) {
+        return $result;
+    } else {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'No images found'
+        ]);
+    }
 }
+
 
 //عرض ملحقات وظيفة محددة
 public function file_image_homework($homework_id)
@@ -413,8 +461,9 @@ public function programe_week()
 
         if (!empty($result)) {
             return response()->json([
-                'status' => 'true',
-                'images' => $result
+                // 'status' => 'true',
+                // 'images' => $result
+                $result,
             ]);
         } else {
             return response()->json([

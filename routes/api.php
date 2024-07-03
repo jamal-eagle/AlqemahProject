@@ -47,6 +47,8 @@ Route::prefix('out_user')->group(function () {
     Route::post('/add-order',[OrderController::class,'CreateOrderForJoinToSchool']);
     //تسجيل طلب للتسجيل بدورة معينة
     Route::post('/add-order-course/{course_id}',[OrderController::class,'CreateOrderForCourse']);
+    //تسجيل طلب للتسجيل بدورة معينة من قبل مستخدم خارجي
+    Route::post('/CreateOrderForCourse_out_user/{course_id}',[OrderController::class,'CreateOrderForCourse_out_user']);
     //عرض كل مدرسي المعهد
     Route::get('/all-teatcher',[DisplayController::class,'all_teatcher']);
     //عرض معلومات مدرس معين
@@ -289,7 +291,14 @@ route::get('desplay_maturitie_for_employee/{employee_id}/{year}/{month}', [Admin
 
 //اضافة شعبة لصف معين
 route::post('/add_section_for_class/{class_id}', [AdminOperationController::class, 'add_section']);
-
+    //عرض الاساتذة في دورة معينة
+    Route::get('/display_teacher_in_course/{course_id}',[AdminOperationController::class,'display_teacher_in_course']);
+    //تسجيل طلب للتسجيل بدورة معينة
+    Route::post('/add-order-course/{course_id}',[OrderController::class,'CreateOrderForCourse']);
+    //عرض كل مناقشات شعبة محددة
+    Route::get('/display_post/{section_id}', [AdminZaController::class, 'display_post']);
+    //عرض مناقشة محددة التعليقات و السؤال
+    Route::get('/post/{post_id}',[StudentPostController::class,'displayPost']);
 
 
 });
