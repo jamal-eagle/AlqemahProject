@@ -68,7 +68,7 @@ public function desplay_student_marks($student_id)
 
     public function desplay_student_nots($student_id)
     {
-    
+
         $note = Note_Student::where('student_id',$student_id)->with('user')->get();
         return $note;
     }
@@ -176,7 +176,7 @@ public function desplay_maturitie_for_teacher($teacher_id,$year,$month)
         $solfa += $mut->amount;
     }
     $salary = $basic_salary - $solfa;
-    
+
     return response()->json([$basic_salary,$maturitie,$solfa,$salary]);
 
 
@@ -199,7 +199,7 @@ public function desplay_maturitie_for_employee($employee_id,$year,$month)
     }
     $salary = $basic_salary - $solfa;
 
-    return response()->json([$basic_salary,$solfa,$salary]);
+    return response()->json([$basic_salary,$maturitie,$solfa,$salary]);
 }
 
 //إعطاء موعد لطلب تسجيل في المعهد
@@ -353,7 +353,7 @@ public function programe_week($section_id)
 //     else {
 //         $parentt->id = Parentt::where('email',$request->email)->first();
 //     }
-    
+
 
 //     /***سجل للطالب شعبة صف..***/
 //     $validator1 = Validator::make($request->all(), [
@@ -408,7 +408,7 @@ public function programe_week($section_id)
     $info->save();
 
     return $info;
-    
+
 }
 
 
@@ -530,7 +530,7 @@ public function programe_week($section_id)
 //                 'path' => asset('/upload/'.$imageName),
 //                 'data_image' => $image,
 //                 'expenses' => $expenses,
-                
+
 //             ], 200);
 //         }
 
@@ -734,7 +734,7 @@ public function add_course(Request $request)
 //                 $user,
 //             ];
 //         }
-        
+
 //     }
 //     return $result;
 
@@ -761,7 +761,7 @@ public function display_teacher_for_course($name_subject, $class_id)
     }
 
     // Sort the results by first_name, last_name, and father_name
-    
+
     $sorted_result = collect($result)->sortBy([
         ['first_name', 'asc'],
         ['last_name', 'asc'],
@@ -818,13 +818,13 @@ public function update_course(Request $request, $course_id)
 
 //             $s = $x / $course->cost_course;
 
-//             $num_order_for_course + $s 
+//             $num_order_for_course + $s
 
 
 //         }
 
-//         // $num_student_to_open_course = 
-    
+//         // $num_student_to_open_course =
+
 
 //     // عدد الطلاب اللازم لحتى تنفتح الدور
 //     //مجموع المصلريف و نسبة الأستاذ
@@ -880,7 +880,7 @@ public function display_info_course($course_id)
     else {
         $num_students_remaining = $num_students_required - $num_order_for_course;
     }
-    
+
 
     // تغيير حالة الدورة إذا كانت الشروط مستوفاة
     if ($Money >= $required_money_to_open) {
@@ -905,7 +905,7 @@ public function add_monetor(Request $request)
     // Route::post('/add_monetor' ,[AdminZaController::class,'add_monetor']);
 
     $academy = Academy::find(1);
-    
+
     $validator = Validator::make($request->all(), [
         'first_name' => 'required',
         'last_name' => 'required|string',
@@ -965,7 +965,7 @@ public function add_accounting(Request $request)
 {
     // Route::post('/add_accounting',[AdminZaController::class,'add_accounting']);
     $academy = Academy::find(1);
-    
+
     $validator = Validator::make($request->all(), [
         'first_name' => 'required',
         'last_name' => 'required|string',
@@ -1079,17 +1079,17 @@ public function add_publish(Request $request)
     public function add_pay(Request $request, $student_id)
     {
         // route::post('add_pay/{student_id}', [AdminZaController::class, 'add_pay']);
-    
+
         $validator = Validator::make($request->all(), [
             'type' => 'nullable|string',
             'date' => 'nullable|date',
             'amount_money' => 'required|numeric',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-    
+
         $pay = new Pay_Fee();
         $pay->type = $request->type;
         $pay->date = $request->date ?? now();
@@ -1104,18 +1104,18 @@ public function add_publish(Request $request)
 
         $pay->amount_money = $request->amount_money;
         $pay->student_id = $student_id;
-        
+
         // $all_pays = Pay_Fee::where('student_id', $student_id)->sum('amount_money');
         $total_paid = $all_pays + $pay->amount_money;
-    
+
         // $total_fee = Student::where('id', $student_id)->value('school_tuition');
-        
+
         $remaining_fee = $total_fee - $total_paid;
-        
+
         $pay->remaining_fee = $remaining_fee;
-        
+
         $pay->save();
-        
+
         return response()->json([
             'pay' => $pay,
             'total_paid' => $total_paid,
@@ -1132,11 +1132,11 @@ public function add_publish(Request $request)
             'date' => 'nullable|date',
             'amount_money' => 'required|numeric',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-    
+
         $pay = new Pay_Fee();
         $pay->type = $request->type;
         $pay->date = $request->date ?? now();
@@ -1148,23 +1148,23 @@ public function add_publish(Request $request)
         if ($request->amount_money > $remaining_fee_before_pay_now) {
             return response()->json(['errors' => 'The amount money big'], 422);
         }
-        
+
         $pay->amount_money = $request->amount_money;
         $pay->student_id = $student_id;
         $pay->course_id = $course_id;
-        
+
         // $all_pays = Pay_Fee::where('student_id', $student_id)->where('course_id',$course_id)->sum('amount_money');
         $total_paid = $all_pays + $pay->amount_money;
-    
+
         // $total_fee = Course::where('id',$course_id)->value('cost_course');
 
         //المبلغ المتبقي بعد دفع دفعة اليوم
         $remaining_fee = $total_fee - $total_paid;
-        
+
         $pay->remaining_fee = $remaining_fee;
-        
+
         $pay->save();
-        
+
         return response()->json([
             'pay' => $pay,
             'total_paid' => $total_paid,
@@ -1382,7 +1382,7 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
         'pays' => $pays,
     ]);
 }
-    
+
     //المبلغ الذي حصل عليه المعهد من دفعات الطلاب للدورة حسب يوم أو شهر أو سنة أو عام دراسي أو دمج بيناتون
     public function money_from_all_course(Request $request)
      {
@@ -1440,7 +1440,7 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
 
         // }
 
-        
+
 
         $query->whereNotNull('course_id');
         $pays = $query->get();
@@ -1452,7 +1452,7 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
             'total_amount' => $total_amount,
             'pays' => $pays,
         ]);
-        
+
      }
 
 
@@ -1469,9 +1469,9 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
 
     //معاشات الأساتذة
     //معاشات الموظفين
-    //سلف 
+    //سلف
     //مصاريف
-    
+
 //     public function register_student1(Request $request)
 // {
 //     $academy = Academy::find(1);
@@ -1545,7 +1545,7 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
 //     else {
 //         $parentt->id = Parentt::where('email',$request->email)->first();
 //     }
-    
+
 
 //     /***سجل للطالب شعبة صف..***/
 //     $validator1 = Validator::make($request->all(), [
@@ -1590,7 +1590,7 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
 //     return response()->json([$user, $student, $parentt]);
 // }
 
-// // شغال و كامل و رابطة روان 
+// // شغال و كامل و رابطة روان
 // public function register(Request $request)
 // {
 //     $academy = Academy::find(1);
@@ -1700,8 +1700,8 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
 //     //     $student->calssification = $request->calssification;
 //     // }
 //     // $student->calssification = $request->student_type == 0 ? $request->calssification : null;
-    
-    
+
+
 //     $parentt->save();
 //     $user->save();
 //     $student->user_id = $user->id;
@@ -1823,8 +1823,8 @@ public function register(Request $request)
     //2 ابن معلم
     //3 حسم أشقاء
     //4 حسم كامل
-    
-    
+
+
     $son = Student::where('parentt_id',$parentt->id)->get();
 
     if ($student->student_type == '1') {
@@ -1847,7 +1847,7 @@ public function register(Request $request)
                 $student->school_tuition = $fee_class * (100 - $academy->resolve_brother) / 100 ;
                 break;
             }
-                
+
             }
     }
 
@@ -1863,7 +1863,7 @@ public function register(Request $request)
     //         $student->school_tuition = $fee_class * (100 - $academy->resolve_brother) / 100 ;
     //         break;
     //     }
-            
+
     //     }
     // }
 
@@ -1872,7 +1872,7 @@ public function register(Request $request)
 
     }
 
-    
+
     // $student->student_type = $request->student_type;
     // if ($request->student_type != 0 && empty($request->calssification)) {
     //     $student->calssification = 2;
@@ -1881,8 +1881,8 @@ public function register(Request $request)
     //     $student->calssification = $request->calssification;
     // }
     // $student->calssification = $request->student_type == 0 ? $request->calssification : null;
-    
-    
+
+
     $parentt->save();
     $user->save();
     $student->user_id = $user->id;
@@ -1985,5 +1985,5 @@ public function register(Request $request)
 
 
 
-    
+
 }

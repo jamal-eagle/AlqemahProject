@@ -277,17 +277,17 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
 
     Route::get('/money_from_all_course', [AdminZaController::class, 'money_from_all_course']);
     /// اضافة سلفة لاستاذ
-    Route::post('/add_teacher_maturitie/{idteacher}',[AdminOperationController::class,'addTeacherMaturitie']);
+    Route::post('/add_teacher_maturitie/{idteacher}',[AdminZaController::class,'addTeacherMaturitie']);
   /// اضافة سلفة لموظف
-  Route::post('/add_employee_maturitie/{idemployee}',[AdminOperationController::class,'addEmployeeMaturitie']);
+  Route::post('/add_employee_maturitie/{idemployee}',[AdminZaController::class,'addEmployeeMaturitie']);
 //عرض برنامج دوام شعبة
 Route::get('/programe_week/{section_id}', [AdminZaController::class, 'programe_week']);
 //عرض برنامج الدوام الاسبوعي للاستاذ
 route::get('/getWeeklyTeacherSchedule/{teacher_id}',[AdminZaController::class,'getWeeklyTeacherSchedule']);
 //عرض السلف والباقي من الراتب والراتب للاستاذ
-route::get('desplay_maturitie_for_teacher/{teacher_id}/{year}/{month}', [AdminOperationController::class, 'desplay_maturitie_for_teacher']);
+route::get('desplay_maturitie_for_teacher/{teacher_id}/{year}/{month}', [AdminZaController::class, 'desplay_maturitie_for_teacher']);
 //عرض السلف والباقي من الراتب والراتب للموظف
-route::get('desplay_maturitie_for_employee/{employee_id}/{year}/{month}', [AdminOperationController::class, 'desplay_maturitie_for_employee']);
+route::get('desplay_maturitie_for_employee/{employee_id}/{year}/{month}', [AdminZaController::class, 'desplay_maturitie_for_employee']);
 
 //اضافة شعبة لصف معين
 route::post('/add_section_for_class/{class_id}', [AdminOperationController::class, 'add_section']);
