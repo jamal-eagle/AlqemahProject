@@ -371,7 +371,7 @@ public function register_teacher(Request $request)
         return $this->responseError(['errors' => $validator->errors()]);
     }
 
-    $password = $request->first_name . Str::random(4) ;
+    $password = $request->first_name . Str::random(6) ;
 
     $user = new User();
     $user->first_name = $request->first_name;
