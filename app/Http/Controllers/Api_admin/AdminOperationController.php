@@ -482,9 +482,9 @@ public function register_teacher(Request $request)
 
     }
 
-public function register_employee(Request $request,$academy_id)
+public function register_employee(Request $request)
 {
-    $academy = Academy::find($academy_id);
+    $academy = Academy::find(1);
     $validator = Validator::make($request->all(), [
         'first_name' => 'required',
         'last_name' => 'required',
@@ -517,6 +517,8 @@ public function register_employee(Request $request,$academy_id)
     return response()->json([$employee->email, $password]);
 
 }
+
+
 
 public function delete_student($student_id)
 {

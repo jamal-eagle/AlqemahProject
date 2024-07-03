@@ -91,14 +91,15 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //خلق حسابات للاستاذ
     Route::post('/register_teacher',[AdminOperationController::class,'register_teacher']);
     //خلق حسابات للموظف
-    Route::post('/register_employee/{academy_id}',[AdminOperationController::class,'register_employee']);
+    Route::post('/register_employee',[AdminOperationController::class,'register_employee']);
     //ايقاف حساب الطالب
     Route::put('/delete_student/{student_id}',[AdminOperationController::class,'delete_student']);
     //ايقاف حساب الاهل
     Route::put('/delete_parentt/{paentt_id}',[AdminOperationController::class,'delete_parentt']);
     //ايقاف حساب الاستاذ
     Route::put('/delete_teacher/{teacher_id}',[AdminOperationController::class,'delete_teacher']);
-
+    //تعديل معلومات موظف
+    Route::put('/update_profile_employee/{employee_id}',[AuthController::class,'update_profile_employee']);
     //عرض تصنيف الطلاب
     Route::get('/classification/{calssification}',[AdminOperationController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد
@@ -109,6 +110,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('show_profile_student/{student_id}',[AdminOperationController::class,'show_profile_student']);
     //تعديل معلومات الطالب
     Route::post('update_profile_student/{student_id}',[AdminOperationController::class,'update_profile_student']);
+
     //سجل دوام الطالب
     Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReport']);
     //عرض علامات طالب
@@ -278,19 +280,19 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/money_from_all_course', [AdminZaController::class, 'money_from_all_course']);
     /// اضافة سلفة لاستاذ
     Route::post('/add_teacher_maturitie/{idteacher}',[AdminZaController::class,'addTeacherMaturitie']);
-  /// اضافة سلفة لموظف
-  Route::post('/add_employee_maturitie/{idemployee}',[AdminZaController::class,'addEmployeeMaturitie']);
-//عرض برنامج دوام شعبة
-Route::get('/programe_week/{section_id}', [AdminZaController::class, 'programe_week']);
-//عرض برنامج الدوام الاسبوعي للاستاذ
-route::get('/getWeeklyTeacherSchedule/{teacher_id}',[AdminZaController::class,'getWeeklyTeacherSchedule']);
-//عرض السلف والباقي من الراتب والراتب للاستاذ
-route::get('desplay_maturitie_for_teacher/{teacher_id}/{year}/{month}', [AdminZaController::class, 'desplay_maturitie_for_teacher']);
-//عرض السلف والباقي من الراتب والراتب للموظف
-route::get('desplay_maturitie_for_employee/{employee_id}/{year}/{month}', [AdminZaController::class, 'desplay_maturitie_for_employee']);
+    /// اضافة سلفة لموظف
+    Route::post('/add_employee_maturitie/{idemployee}',[AdminZaController::class,'addEmployeeMaturitie']);
+    //عرض برنامج دوام شعبة
+    Route::get('/programe_week/{section_id}', [AdminZaController::class, 'programe_week']);
+    //عرض برنامج الدوام الاسبوعي للاستاذ
+    route::get('/getWeeklyTeacherSchedule/{teacher_id}',[AdminZaController::class,'getWeeklyTeacherSchedule']);
+    //عرض السلف والباقي من الراتب والراتب للاستاذ
+    route::get('desplay_maturitie_for_teacher/{teacher_id}/{year}/{month}', [AdminZaController::class, 'desplay_maturitie_for_teacher']);
+    //عرض السلف والباقي من الراتب والراتب للموظف
+    route::get('desplay_maturitie_for_employee/{employee_id}/{year}/{month}', [AdminZaController::class, 'desplay_maturitie_for_employee']);
 
-//اضافة شعبة لصف معين
-route::post('/add_section_for_class/{class_id}', [AdminOperationController::class, 'add_section']);
+    //اضافة شعبة لصف معين
+    route::post('/add_section_for_class/{class_id}', [AdminOperationController::class, 'add_section']);
     //عرض الاساتذة في دورة معينة
     Route::get('/display_teacher_in_course/{course_id}',[AdminOperationController::class,'display_teacher_in_course']);
     //تسجيل طلب للتسجيل بدورة معينة
@@ -314,6 +316,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('show_profile_student/{student_id}',[MonetorController::class,'show_profile_student']);
     //تعديل معلومات الطالب
     Route::post('update_profile_student/{student_id}',[MonetorController::class,'update_profile_student']);
+
     //عرض سجل دوام الطالب
     Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReport']);
     //عرض علامات طالب

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Classs;
+use App\Models\Employee;
 use App\Models\Order;
 use App\Models\Parentt;
 use App\Models\Student;
@@ -258,6 +259,45 @@ public function get_teacher_profile($teacher_id)
 
 
     return response()->json([$user,'the user updated succeflly']);
+
+}
+
+public function update_profile_employee(Request $request , $employee_id)
+{
+    $employee = Employee::find($employee_id);
+    if(!$employee)
+    {
+        return response()->json(['the employee not found']);
+    }
+
+    $validator = Validator::make($request->all(),[
+        'first_name'=>'required',
+        'last_name'=>'required',
+        'phone'=>'required',
+        'address'=>'required',
+        'salary'=>'required',
+        'type'=>'required',
+
+        ]);
+        if($validator->fails())
+        {
+            return response()->json(['Please validate error',$validator->errors()]);
+        }
+
+        $employee->update([
+        'first_name'=>$request->first_name,
+        'last_name'=>$request->last_name,
+        'birthday'=>$request->birthday,
+        'phone'=>$request->phone,
+        'address'=>$request->address,
+        'salary'=>$request->salary,
+        'type'=>$request->type,
+
+
+    ]);
+
+
+        return response()->json([$employee,'the user updated succeflly']);
 
 }
 
