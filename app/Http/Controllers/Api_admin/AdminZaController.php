@@ -357,16 +357,30 @@ public function programe_week($section_id)
 // }
 
 
-    public function edit_year(Request $request,$id)
+public function edit_year(Request $request,$id)
 {
     $info = Academy::find($id);
 
+    //عدلنا العام الدراسي
     $info->year = $request->year ?? $info->year;
+
+    //إيقاف كل المستخدمين
+    User::where('status', '1')->where('user_type', '!=', 'admin')->update(['status' => '0']);
+
+    //إنشاء أرشيف
+
+    //إذا أنشأ مادة فيأمشئ أرشيف لها تلقائياً
+
+    //إنشاء قسط جديد
+    
+
+
+
 
     $info->save();
 
     return $info;
-
+    
 }
 
 
@@ -1706,7 +1720,7 @@ public function register(Request $request)
         'email' => 'required|email|unique:users',
         'password_s' => 'required|min:8',
         'conf_password_s' => 'required|min:8|same:password_s',
-        'school_tuition' => 'required',
+        // 'school_tuition' => 'required',
         'class_id' => 'required',
         'name_section' => 'required|string|exists:sections,num_section',
         // 'student_type' => 'required',
@@ -1791,6 +1805,9 @@ public function register(Request $request)
 
     //تحديد قسط الطالب بحيث إذا الو أخ أو ابن مدرس أو ابن شهيد سيكون له حسم و ممكن حسم كامل
     $fee_class = Fee_School::where('class_id',$student->class_id)->where('year',$academy->year)->value('amount');
+    if (!$fee_class) {
+        return 'You did not specify the annual premium for this class';
+    }
     // return $fee_class;
     $student->student_type = $request->student_type;
     //قيم ال student_type

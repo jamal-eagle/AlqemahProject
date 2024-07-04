@@ -349,46 +349,132 @@ class Student_operationController extends BaseController
 //     // $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->with('subject')->get();
 //     return $homework;
 // }
+// public function homework_subject($subject_id)
+// {
+//     $user = auth()->user();
+
+//     if (!$user) {
+//         return response()->json(['error' => 'user not found'], 404);
+//     }
+
+//     $homeworks = Homework::where('year', $user->year)
+//         ->where('subject_id', $subject_id)
+//         ->with('accessories')  // استخدام العلاقة لجلب الملحقات
+//         ->get();
+
+//     $result = [];
+
+//     foreach ($homeworks as $homework) {
+//         $homework_info = $homework->toArray();  // تحويل homework إلى مصفوفة
+//         $homework_info['file_image_info'] = [];
+
+//         foreach ($homework->accessories as $accessory) {
+//             $accessory_array = $accessory->toArray(); // تحويل accessory إلى مصفوفة
+//             $accessory_array['image_url'] = asset('upload/' . $accessory->path);
+//             $homework_info['file_image_info'][] = $accessory_array;
+//         }
+
+//         $result[] = $homework_info;
+//     }
+
+//     if (!empty($result)) {
+//         return response()->json([
+//             'status' => 'true',
+//             'homeworks' => $result
+//         ]);
+//     } else {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'No images found'
+//         ]);
+//     }
+// }
+
+
+// public function homework_subject($subject_id)
+// {
+//     $user = User::where('id', auth()->user()->id)->first();
+
+//     if (!$user) {
+//         return response()->json(['error' => 'user not found'], 404);
+//     }
+
+//     $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->get();
+//     $result = [];
+
+//     foreach ($homework as $h) {
+//         $accessories = Accessories::where('home_work_id', $h->id)->get();
+//         $homework_info = [
+//             'homework_info' => $h,
+//             'file_image_info' => []
+//         ];
+
+//         foreach ($accessories as $a) {
+//             $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
+//             // $h->$a->path;
+//             $a->image_file_url = asset('/upload/' . $a->path);
+//             if (file_exists($homework_path)) {
+//                 $homework_info['file_image_info'][] = [
+//                     // 'path' => $homework_path,
+//                     'file_image_info' => $a
+//                 ];
+//             }
+//         }
+
+//         $result[] = $homework_info;
+//     }
+
+//     if (!empty($result)) {
+//         return $result;
+//     } else {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'No images found'
+//         ]);
+//     }
+// }
+
 public function homework_subject($subject_id)
 {
-    $user = auth()->user();
+    $user = User::where('id', auth()->user()->id)->first();
 
     if (!$user) {
         return response()->json(['error' => 'user not found'], 404);
     }
 
-    $homeworks = Homework::where('year', $user->year)
-        ->where('subject_id', $subject_id)
-        ->with('accessories')  // استخدام العلاقة لجلب الملحقات
-        ->get();
+    $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->with('subject')->with('accessories')->get();
 
     $result = [];
 
-    foreach ($homeworks as $homework) {
-        $homework_info = $homework->toArray();  // تحويل homework إلى مصفوفة
-        $homework_info['file_image_info'] = [];
+    foreach ($homework as $h) {
+        $homework_info = $h->toArray();
+        $homework_info['accessories'] = [];
 
-        foreach ($homework->accessories as $accessory) {
-            $accessory_array = $accessory->toArray(); // تحويل accessory إلى مصفوفة
-            $accessory_array['image_url'] = asset('upload/' . $accessory->path);
-            $homework_info['file_image_info'][] = $accessory_array;
+        foreach ($h->accessories as $a) {
+            $a->image_file_url = asset('/upload/' . $a->path);
+            $homework_info['accessories'][] = $a;
         }
 
-        $result[] = $homework_info;
+        $result[] = ['homework_info' => $homework_info];
     }
 
     if (!empty($result)) {
-        return response()->json([
-            'status' => 'true',
-            'homeworks' => $result
-        ]);
+        // return response()->json(['status' => 'success', 'data' => $result]);
+
+        return $result;
     } else {
-        return response()->json([
-            'status' => 'false',
-            'message' => 'No images found'
-        ]);
+        return response()->json(['status' => 'false', 'message' => 'No images found']);
     }
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -429,54 +515,95 @@ public function file_image_homework($homework_id)
     // }
 
     //عرض برنامج الدوام الخاص بالطالب
+// public function programe_week()
+// {
+//     $student = Student::where('user_id', auth()->user()->id)->first();
+//     $section_id = $student->section_id;
+//     //$programe = Program_Student::where('section_id', $student->section_id)->get();
+//     $programe = Program_Student::all();
+
+//     if ($programe) {
+//         $result = [];
+
+//         foreach ($programe as $p) {
+//             if ($p->section_id == $student->section_id) {
+//                 $img = Image::all();
+//                 foreach ($img as $i) {
+//                     if ($p->id == $i->program_student_id) {
+//                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+//                         if (file_exists($imagePath)) {
+//                             $i->image_file_url = asset('/upload/' . $i->path);
+//                             $result[] = [
+//                                 // 'path' => $imagePath,
+//                                 'image_info' => $i,
+//                                 'program' => $p
+//                             ];
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+
+//         if (!empty($result)) {
+//             return response()->json([
+//                 // 'status' => 'true',
+//                 // 'images' => $result
+//                 $result,
+//             ]);
+//         } else {
+//             return response()->json([
+//                 'status' => 'false',
+//                 'message' => 'No images found'
+//             ]);
+//         }
+//     } else {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'Program not found for this student'
+//         ]);
+//     }
+// }
+
 public function programe_week()
 {
     $student = Student::where('user_id', auth()->user()->id)->first();
+
+    if (!$student) {
+        return response()->json(['status' => 'false', 'message' => 'Student not found'], 404);
+    }
+
     $section_id = $student->section_id;
-    //$programe = Program_Student::where('section_id', $student->section_id)->get();
-    $programe = Program_Student::all();
+    $programs = Program_Student::where('section_id', $section_id)->get();
 
-    if ($programe) {
-        $result = [];
+    if ($programs->isEmpty()) {
+        return response()->json(['status' => 'false', 'message' => 'Program not found for this student'], 404);
+    }
 
-        foreach ($programe as $p) {
-            if ($p->section_id == $student->section_id) {
-                $img = Image::all();
-                foreach ($img as $i) {
-                    if ($p->id == $i->program_student_id) {
-                        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
-                        if (file_exists($imagePath)) {
-                            $i->image_file_url = asset('/upload/' . $i->path);
-                            $result[] = [
-                                // 'path' => $imagePath,
-                                'image_info' => $i,
-                                'program' => $p
-                            ];
-                        }
-                    }
-                }
+    $result = [];
+
+    foreach ($programs as $program) {
+        $images = Image::where('program_student_id', $program->id)->get();
+
+        foreach ($images as $image) {
+            $imagePath = public_path('/upload/' . $image->path);
+
+            if (file_exists($imagePath)) {
+                $image->image_file_url = asset('/upload/' . $image->path);
+                $result[] = [
+                    'program' => $program,
+                    'image_info' => $image
+                ];
             }
         }
+    }
 
-        if (!empty($result)) {
-            return response()->json([
-                // 'status' => 'true',
-                // 'images' => $result
-                $result,
-            ]);
-        } else {
-            return response()->json([
-                'status' => 'false',
-                'message' => 'No images found'
-            ]);
-        }
+    if (!empty($result)) {
+        return response()->json($result);
     } else {
-        return response()->json([
-            'status' => 'false',
-            'message' => 'Program not found for this student'
-        ]);
+        return response()->json(['status' => 'false', 'message' => 'No images found'], 404);
     }
 }
+
     //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
     public function display_year_archive($subject_id)
     {
@@ -705,6 +832,15 @@ public function display_info_academy()
 
 public function edit_some_info_profile(Request $request)
 {
+    $validator = Validator::make($request->all(), [
+        'address' => 'nullable|string',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
     $user = User::where('id', auth()->user()->id)->first();
 
     if ($request->has('phone') && !empty($request->phone)) {
@@ -725,6 +861,33 @@ public function edit_some_info_profile(Request $request)
         }
         $user->password = Hash::make($request->password);
         $user->conf_password = Hash::make($request->conf_password);
+    }
+
+    if ($request->has('image')) {
+        if ($user->image != null) {
+            $oldImagePath = public_path().'/upload/'.$user->image;
+    if (file_exists($oldImagePath)) {
+        unlink($oldImagePath);
+    }
+
+    // رفع الصورة الجديدة
+    $img = $request->image;
+    $ext = $img->getClientOriginalExtension();
+    $imageName = time().'.'.$ext;
+    $img->move(public_path().'/upload', $imageName);
+
+    // تحديث مسار الصورة في قاعدة البيانات
+    $user->image = $imageName;
+        }
+
+        else {
+            $img = $request->image;
+    $ext = $img->getClientOriginalExtension();
+    $imageName = time().'.'.$ext;
+    $img->move(public_path().'/upload',$imageName);
+
+    $user->image = $imageName;
+        }
     }
 
     $user->save();
