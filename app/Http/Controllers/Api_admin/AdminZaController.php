@@ -159,48 +159,6 @@ public function getWeeklyTeacherSchedule($teacher_id)
     return response()->json(['weekly_schedule' => $weekly_schedule], 200);
 }
 
-public function desplay_maturitie_for_teacher($teacher_id,$year,$month)
-{
-    $teacher = Teacher::find($teacher_id);
-    //$mu = $teacher->with('maturitie');
-    if(!$teacher)
-    {
-        return response()->json(['the teacher not found']);
-    }
-    $num_work_hour = $this->getteacherworkhour($teacher_id , $year , $month);
-    $basic_salary = $num_work_hour * $teacher->cost_hour;
-    $solfa = 0;
-    $maturitie = $teacher->maturitie;
-    foreach($maturitie as $mut)
-    {
-        $solfa += $mut->amount;
-    }
-    $salary = $basic_salary - $solfa;
-
-    return response()->json([$basic_salary,$maturitie,$solfa,$salary]);
-
-
-
-}
-
-public function desplay_maturitie_for_employee($employee_id,$year,$month)
-{
-    $employee = Employee::find($employee_id);
-    if(!$employee)
-    {
-        return response()->json(['the employee not found']);
-    }
-    $basic_salary = $employee->salary;
-    $solfa = 0;
-    $maturitie = $employee->maturitie;
-    foreach($maturitie as $mut)
-    {
-        $solfa += $mut->amount;
-    }
-    $salary = $basic_salary - $solfa;
-
-    return response()->json([$basic_salary,$maturitie,$solfa,$salary]);
-}
 
 //إعطاء موعد لطلب تسجيل في المعهد
 public function GiveDate(Request $request, $order_id)
@@ -1298,25 +1256,43 @@ public function addTeacherMaturitie(Request $request, $idteacher)
 public function addEmployeeMaturitie(Request $request, $idemployee)
 {
     $validator = Validator::make($request->all(), [
-        'amount' => 'required',
+        'amount' => 'required|numeric|min:0',
     ]);
 
     if ($validator->fails()) {
         return response()->json(['errors' => $validator->errors()], 422);
     }
-    // التحقق من وجود المعلم في قاعدة البيانات
+
+    // التحقق من وجود الموظف في قاعدة البيانات
     $employee = Employee::find($idemployee);
     if (!$employee) {
         return response()->json(['message' => 'Employee not found'], 404);
     }
 
+    $amount = $request->amount;
+    $year = date('Y');
+    $month = date('m');
+
+    // حساب مجموع السلف التي أخذها الموظف هذا الشهر
+    $totalSolfaThisMonth = $employee->maturitie()
+        ->whereYear('created_at', $year)
+        ->whereMonth('created_at', $month)
+        ->sum('amount');
+
+    // التحقق إذا كانت السلفة الجديدة تتجاوز الراتب
+    if ($totalSolfaThisMonth + $amount > $employee->salary) {
+        return response()->json(['message' => 'Total maturities for this month exceed the employee\'s salary'], 400);
+    }
+
+    // إضافة السلفة الجديدة
     $maturite = new Maturitie();
-    $maturite->amount = $request->amount;
+    $maturite->amount = $amount;
     $maturite->employee_id = $idemployee;
     $maturite->save();
 
     return response()->json(['success' => 'Maturitie added successfully for employee']);
 }
+
     //عرض جميع المناقشات الخاصة بشعبة الطالب فقط عنوان و اسم المدرس
     public function display_post($section_id)
 {

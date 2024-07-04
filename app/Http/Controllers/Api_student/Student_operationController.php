@@ -62,7 +62,7 @@ class Student_operationController extends BaseController
                             $result[] = [
                                 // 'path' => $imagePath,
                                 'image_info' => $i
-                            ];    
+                            ];
                         }
         }
 
@@ -76,7 +76,7 @@ class Student_operationController extends BaseController
         //                     $result[] = [
         //                         // 'path' => $filePath,
         //                         'file_info' => $f
-        //                     ];    
+        //                     ];
         //                 }
         // }
         //عم نشوف إذا في نتائج أو لاء
@@ -114,7 +114,7 @@ class Student_operationController extends BaseController
         //                     $result[] = [
         //                         // 'path' => $imagePath,
         //                         'image_info' => $i
-        //                     ];    
+        //                     ];
         //                 }
         // }
 
@@ -128,7 +128,7 @@ class Student_operationController extends BaseController
                             $result[] = [
                                 // 'path' => $filePath,
                                 'file_info' => $f
-                            ];    
+                            ];
                         }
         }
         //عم نشوف إذا في نتائج أو لاء
@@ -198,9 +198,9 @@ class Student_operationController extends BaseController
         //     $course->save();
         // }
 
-        // return $Money_win; 
+        // return $Money_win;
         return $this->responseData("success",$new);
-    } 
+    }
 
     //عرض الدورات التي سجل فيها الطالب
     public function my_course()
@@ -233,8 +233,8 @@ class Student_operationController extends BaseController
     //                             'homework_info' => $h,
     //                             'path' => $homework_path,
     //                             'file_image_info' => $a
-                                
-    //                         ];    
+
+    //                         ];
     //                     }
     //         }
     //     }
@@ -252,7 +252,7 @@ class Student_operationController extends BaseController
     //         ]);
     //     }
 
-        
+
     //     // return $homework;
     // }
 //     public function homework_subject($subject_id)
@@ -276,14 +276,14 @@ class Student_operationController extends BaseController
 //                 $homework_info['file_image_info'][] = [
 //                     'path' => $homework_path,
 //                     'file_image_info' => $a
-//                 ];    
+//                 ];
 //             }
 //         }
 //         if (!empty($homework_info['file_image_info'])) {
 //             $result[] = $homework_info;
 //         }
 //     }
-    
+
 //     if (!empty($result)) {
 //         return $result;
 //     } else {
@@ -349,41 +349,39 @@ class Student_operationController extends BaseController
 //     // $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->with('subject')->get();
 //     return $homework;
 // }
-
 public function homework_subject($subject_id)
 {
-    $user = User::where('id', auth()->user()->id)->first();
+    $user = auth()->user();
 
     if (!$user) {
         return response()->json(['error' => 'user not found'], 404);
     }
 
-    $homework = Homework::where('year', $user->year)->where('subject_id', $subject_id)->get();
+    $homeworks = Homework::where('year', $user->year)
+        ->where('subject_id', $subject_id)
+        ->with('accessories')  // استخدام العلاقة لجلب الملحقات
+        ->get();
+
     $result = [];
 
-    foreach ($homework as $h) {
-        $accessories = Accessories::where('home_work_id', $h->id)->get();
-        $homework_info = [
-            'homework_info' => $h,
-            'file_image_info' => []
-        ];
+    foreach ($homeworks as $homework) {
+        $homework_info = $homework->toArray();  // تحويل homework إلى مصفوفة
+        $homework_info['file_image_info'] = [];
 
-        foreach ($accessories as $a) {
-            $homework_path = str_replace('\\', '/', public_path() . '/upload/' . $a->path);
-            // $h->$a->path;
-            if (file_exists($homework_path)) {
-                $homework_info['file_image_info'][] = [
-                    'path' => $homework_path,
-                    'file_image_info' => $a
-                ];
-            }
+        foreach ($homework->accessories as $accessory) {
+            $accessory_array = $accessory->toArray(); // تحويل accessory إلى مصفوفة
+            $accessory_array['image_url'] = asset('upload/' . $accessory->path);
+            $homework_info['file_image_info'][] = $accessory_array;
         }
 
         $result[] = $homework_info;
     }
 
     if (!empty($result)) {
-        return $result;
+        return response()->json([
+            'status' => 'true',
+            'homeworks' => $result
+        ]);
     } else {
         return response()->json([
             'status' => 'false',
@@ -391,6 +389,7 @@ public function homework_subject($subject_id)
         ]);
     }
 }
+
 
 
 //عرض ملحقات وظيفة محددة
@@ -405,7 +404,7 @@ public function file_image_homework($homework_id)
                             $result[] = [
                                 // 'path' => $imagePath,
                                 'image_file_info' => $i
-                            ];    
+                            ];
                         }
         }
         //عم نشوف إذا في نتائج أو لاء
@@ -499,7 +498,7 @@ public function programe_week()
         //                     $result[] = [
         //                         // 'path' => $imagePath,
         //                         'image_info' => $i
-        //                     ];    
+        //                     ];
         //                 }
         // }
 
@@ -513,7 +512,7 @@ public function programe_week()
                             $result[] = [
                                 // 'path' => $filePath,
                                 'file_info' => $f
-                            ];    
+                            ];
                         }
         }
         //عم نشوف إذا في نتائج أو لاء
@@ -545,7 +544,7 @@ public function programe_week()
                             $result[] = [
                                 // 'path' => $imagePath,
                                 'image_info' => $i
-                            ];    
+                            ];
                         }
         }
 
@@ -586,7 +585,7 @@ public function programe_week()
 
 //     foreach ($images as $i) {
 //         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
-        
+
 //         if (file_exists($imagePath)) {
 //             $i->image_url = asset('/upload/' . $i->path);
 //             $imageData[] = [
@@ -594,7 +593,7 @@ public function programe_week()
 //             ];
 //         }
 //     }
-    
+
 //     $result[] = [
 //         'ad_info' => $p,
 //         'images' => $imageData
@@ -612,7 +611,7 @@ public function programe_week()
 //         'message' => 'No images found'
 //     ]);
 // }
-//     } 
+//     }
 public function publish()
 {
     $publish = Publish::orderBy('created_at', 'desc')->get();
@@ -624,7 +623,7 @@ public function publish()
 
         foreach ($images as $i) {
             $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
-            
+
             if (file_exists($imagePath)) {
                 $i->image_url = asset('/upload/' . $i->path);
                 $imageData[] = [
@@ -632,7 +631,7 @@ public function publish()
                 ];
             }
         }
-        
+
         $result[] = [
             'ad_info' => $p,
             'images' => $imageData
@@ -671,7 +670,7 @@ public function publish()
     //     }
     //     return $user;
     // }
-    
+
     public function show_my_profile()
 {
     $user = User::where('id', auth()->user()->id)->with('student.section.classs')->first();
@@ -733,5 +732,5 @@ public function edit_some_info_profile(Request $request)
     return response()->json(['status' => 'success', 'message' => 'Profile updated successfully']);
 }
 
-    
+
 }

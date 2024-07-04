@@ -2326,6 +2326,68 @@ public function add_section(Request $request, $class_id)
     return response()->json(['sucsssss']);
 }
 
+public function desplay_maturitie_for_teacher($teacher_id, $year, $month)
+{
+    $teacher = Teacher::find($teacher_id);
+    if (!$teacher) {
+        return response()->json(['the teacher not found']);
+    }
+
+    // حساب عدد ساعات العمل والراتب الأساسي
+    $num_work_hour = $this->getteacherworkhour($teacher_id, $year, $month);
+    $basic_salary = $num_work_hour * $teacher->cost_hour;
+
+    // الحصول على السلف لهذا الشهر فقط
+    $solfa = 0;
+    $maturities = $teacher->maturitie()
+        ->whereYear('updated_at', $year)
+        ->whereMonth('updated_at', $month)
+        ->get();
+
+    foreach ($maturities as $mut) {
+        $solfa += $mut->amount;
+    }
+
+    $salary = $basic_salary - $solfa;
+
+    return response()->json([
+        'basic_salary' => $basic_salary,
+        'maturities' => $maturities,
+        'total_solfa' => $solfa,
+        'remaining_salary' => $salary
+    ]);
+}
+
+public function desplay_maturitie_for_employee($employee_id, $year, $month)
+{
+    $employee = Employee::find($employee_id);
+    if (!$employee) {
+        return response()->json(['the employee not found']);
+    }
+
+    // الحصول على الراتب الأساسي للموظف
+    $basic_salary = $employee->salary;
+
+    // الحصول على السلف لهذا الشهر فقط
+    $solfa = 0;
+    $maturities = $employee->maturitie()
+        ->whereYear('updated_at', $year)
+        ->whereMonth('updated_at', $month)
+        ->get();
+
+    foreach ($maturities as $mut) {
+        $solfa += $mut->amount;
+    }
+
+    $salary = $basic_salary - $solfa;
+
+    return response()->json([
+        'basic_salary' => $basic_salary,
+        'maturities' => $maturities,
+        'total_solfa' => $solfa,
+        'remaining_salary' => $salary
+    ]);
+}
 
 
 
