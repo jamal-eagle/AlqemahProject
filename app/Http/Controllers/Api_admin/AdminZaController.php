@@ -190,51 +190,94 @@ public function GiveDate(Request $request, $order_id)
     return 'Appointment created successfully';
 }
 
+// public function programe_week($section_id)
+// {
+//     // $student = Student::where('user_id', auth()->user()->id)->first();
+//     // $section_id = $student->section_id;
+//     //$programe = Program_Student::where('section_id', $student->section_id)->get();
+//     $programe = Program_Student::all();
+
+//     if ($programe) {
+//         $result = [];
+
+//         foreach ($programe as $p) {
+//             if ($p->section_id == $section_id) {
+//                 $img = Image::all();
+//                 foreach ($img as $i) {
+//                     if ($p->id == $i->program_student_id) {
+//                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+//                         if (file_exists($imagePath)) {
+//                             $i->image_file_url = asset('/upload/' . $i->path);
+//                             $result[] = [
+//                                 // 'path' => $imagePath,
+//                                 'image_info' => $i,
+//                                 'program' => $p
+//                             ];
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+
+//         if (!empty($result)) {
+//             return response()->json([
+//                 'status' => 'true',
+//                 'images' => $result
+//             ]);
+//         } else {
+//             return response()->json([
+//                 'status' => 'false',
+//                 'message' => 'No images found'
+//             ]);
+//         }
+//     } else {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'Program not found for this student'
+//         ]);
+//     }
+// }
+
 public function programe_week($section_id)
 {
     // $student = Student::where('user_id', auth()->user()->id)->first();
+
+    // if (!$student) {
+    //     return response()->json(['status' => 'false', 'message' => 'Student not found'], 404);
+    // }
+
     // $section_id = $student->section_id;
-    //$programe = Program_Student::where('section_id', $student->section_id)->get();
-    $programe = Program_Student::all();
+    $programs = Program_Student::where('section_id', $section_id)->get();
 
-    if ($programe) {
-        $result = [];
+    if ($programs->isEmpty()) {
+        return response()->json(['status' => 'false', 'message' => 'Program not found for this student'], 404);
+    }
 
-        foreach ($programe as $p) {
-            if ($p->section_id == $section_id) {
-                $img = Image::all();
-                foreach ($img as $i) {
-                    if ($p->id == $i->program_student_id) {
-                        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
-                        if (file_exists($imagePath)) {
-                            $i->image_file_url = asset('/upload/' . $i->path);
-                            $result[] = [
-                                // 'path' => $imagePath,
-                                'image_info' => $i,
-                                'program' => $p
-                            ];
-                        }
-                    }
-                }
+    $result = [];
+
+    foreach ($programs as $program) {
+        $images = Image::where('program_student_id', $program->id)->get();
+
+        foreach ($images as $image) {
+            $imagePath = public_path('/upload/' . $image->path);
+
+            if (file_exists($imagePath)) {
+                $program->image_file_url = asset('/upload/' . $image->path);
+                $result[] = [
+                    'program' => $program,
+                    // 'image_info' => $image
+                ];
             }
         }
+    }
 
-        if (!empty($result)) {
-            return response()->json([
-                'status' => 'true',
-                'images' => $result
-            ]);
-        } else {
-            return response()->json([
-                'status' => 'false',
-                'message' => 'No images found'
-            ]);
-        }
+    if (!empty($result)) {
+        // return response()->json($result);
+
+        // return $result;
+        return $programs;
     } else {
-        return response()->json([
-            'status' => 'false',
-            'message' => 'Program not found for this student'
-        ]);
+        return response()->json(['status' => 'false', 'message' => 'No images found'], 404);
     }
 }
 
