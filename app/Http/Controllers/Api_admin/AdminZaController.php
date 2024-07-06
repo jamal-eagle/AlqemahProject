@@ -282,6 +282,7 @@ public function programe_week($section_id)
 }
 
 
+
 // public function register_student1(Request $request)
 // {
 //     $academy = Academy::find(1);
