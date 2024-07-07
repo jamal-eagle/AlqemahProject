@@ -2413,27 +2413,54 @@ public function desplay_maturitie_for_teacher($teacher_id, $year, $month)
     ]);
 }
 
-public function desplay_maturitie_for_employee($employee_id, $year, $month)
+// public function desplay_maturitie_for_employee($employee_id, $year, $month)
+// {
+//     $employee = Employee::find($employee_id);
+//     if (!$employee) {
+//         return response()->json(['the employee not found']);
+//     }
+
+//     // الحصول على الراتب الأساسي للموظف
+//     $basic_salary = $employee->salary;
+
+//     // الحصول على السلف لهذا الشهر فقط
+//     $solfa = 0;
+//     $maturities = $employee->maturitie()
+//         ->whereYear('updated_at', $year)
+//         ->whereMonth('updated_at', $month)
+//         ->get();
+
+//     foreach ($maturities as $mut) {
+//         $solfa += $mut->amount;
+//     }
+
+//     $salary = $basic_salary - $solfa;
+
+//     return response()->json([
+//         'basic_salary' => $basic_salary,
+//         'maturities' => $maturities,
+//         'total_solfa' => $solfa,
+//         'remaining_salary' => $salary
+//     ]);
+// }
+
+public function desplay_maturitie_for_employee($employee_id,$year,$month)
 {
     $employee = Employee::find($employee_id);
-    if (!$employee) {
+    if(!$employee)
+    {
         return response()->json(['the employee not found']);
     }
-
-    // الحصول على الراتب الأساسي للموظف
     $basic_salary = $employee->salary;
-
-    // الحصول على السلف لهذا الشهر فقط
     $solfa = 0;
     $maturities = $employee->maturitie()
-        ->whereYear('updated_at', $year)
-        ->whereMonth('updated_at', $month)
-        ->get();
-
-    foreach ($maturities as $mut) {
+    ->whereYear('updated_at', $year)
+    ->whereMonth('updated_at', $month)
+    ->get();
+    foreach($maturities as $mut)
+    {
         $solfa += $mut->amount;
     }
-
     $salary = $basic_salary - $solfa;
 
     return response()->json([
@@ -2442,9 +2469,8 @@ public function desplay_maturitie_for_employee($employee_id, $year, $month)
         'total_solfa' => $solfa,
         'remaining_salary' => $salary
     ]);
+
 }
-
-
 
 
 

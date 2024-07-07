@@ -694,18 +694,13 @@ public function order_on_course($cousre_id)
 }
 
 
-
-
 public function upload_program_section(Request $request, $section_id)
 {
-    $program = new Program_Student;
-    $program->type = $request->type;
-    $program->section_id = $section_id;
-
-    $program->save();
 
     $validator = Validator::make($request->all(),[
-        'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+        'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt',
+        'type' => 'required',
+        'description' => 'nullable|string|max:255'
     ]);
 
     if ($validator->fails()) {
@@ -715,6 +710,11 @@ public function upload_program_section(Request $request, $section_id)
             'errors' => $validator->errors()
         ]);
     }
+    $program = new Program_Student;
+    $program->type = $request->type;
+    $program->section_id = $section_id;
+
+    $program->save();
 
     $img = $request->path;
     $ext = $img->getClientOriginalExtension();
@@ -735,6 +735,47 @@ public function upload_program_section(Request $request, $section_id)
     ]);
 
 }
+
+// //روان ربطت على أساسو
+// public function upload_program_section(Request $request, $section_id)
+// {
+//     $program = new Program_Student;
+//     $program->type = $request->type;
+//     $program->section_id = $section_id;
+
+//     $program->save();
+
+//     $validator = Validator::make($request->all(),[
+//         'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'Please fix the errors',
+//             'errors' => $validator->errors()
+//         ]);
+//     }
+
+//     $img = $request->path;
+//     $ext = $img->getClientOriginalExtension();
+//     $imageName = time().'.'.$ext;
+//     $img->move(public_path().'/upload',$imageName);
+
+//     $image = new Image;
+//     $image->path = $imageName;
+//     $image->description = $request->description ?? null;
+//     $image->program_student_id = $program->id;
+//     $image->save();
+
+//     return response()->json([
+//         'status' => 'true',
+//         'message' => 'image upload success',
+//         'path' => asset('/upload/'.$imageName),
+//         'data' => $image
+//     ]);
+
+// }
 
 //حذف برنامج محدد لشعبة
 public function delete_program($id)
