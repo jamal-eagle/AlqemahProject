@@ -2293,7 +2293,7 @@ public function upload_file_image_for_course(Request $request, $course_id,$acade
     $imgFileName = time().'.'.$ext;
     $img->move(public_path().'/upload',$imgFileName);
 
-    if ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif") {
+    // if ($ext=="png" || $ext=="jpg" || $ext=="jpeg" || $ext=="gif") {
         $image = new File_course();
     $image->name = $imgFileName;
     $image->description = $request->description;
@@ -2302,26 +2302,26 @@ public function upload_file_image_for_course(Request $request, $course_id,$acade
 
     return response()->json([
         'status' => 'true',
-        'message' => 'image upload success',
+        'message' => 'image_file upload success',
         'path' => asset('/upload/'.$imgFileName),
         'data' => $image
     ]);
-    }
+    // }
 
-    elseif ($ext=="pdf" || $ext=="docx" || $ext=="txt") {
-        $file = new File_course();
-    $file->name = $imgFileName;
-    $file->description = $request->description;
-    $file->course_id = $request->course_id;
-    $file->save();
+    // elseif ($ext=="pdf" || $ext=="docx" || $ext=="txt") {
+    //     $file = new File_course();
+    // $file->name = $imgFileName;
+    // $file->description = $request->description;
+    // $file->course_id = $request->course_id;
+    // $file->save();
 
-    return response()->json([
-        'status' => 'true',
-        'message' => 'file upload success',
-        'path' => asset('/upload/'.$imgFileName),
-        'data' => $file
-    ]);
-    }
+    // return response()->json([
+    //     'status' => 'true',
+    //     'message' => 'file upload success',
+    //     'path' => asset('/upload/'.$imgFileName),
+    //     'data' => $file
+    // ]);
+    // }
 
 }
 public function desplay_all_publish()

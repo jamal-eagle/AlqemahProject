@@ -243,7 +243,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //هرض اعلان معين مع التفاصيل
     route::get('/desplay_publish/{publish_id}', [AdminOperationController::class, 'desplay_publish']);
     //اضافة ملفات لدورة
-    route::get('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
+    route::post('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
     //عرض الشعب لصف معين وعرض الطلاب لكل شعبة
     route::get('desplay_section_and_student/{class_id}', [AdminZaController::class, 'desplay_section_and_student']);
     //إضافة دورة za
