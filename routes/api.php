@@ -303,9 +303,12 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/post/{post_id}',[StudentPostController::class,'displayPost']);
     //عرض أساتذة مادة محددة لصف محدد من أجل دورة
     Route::get('/display_teacher_for_course/{name_subject}/{class_id}',[AdminZaController::class,'display_teacher_for_course']);
+    //عرض ملفات و صور دورة محددة
+    Route::get('/display_file_course/{course_id}',[Student_operationController::class,'display_file_course']);
 
 });
 
+/*******************************************************monetor*******************************************************/
 Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){
     //عرض تصنيف الطلاب
     Route::get('/classification/{classification/}',[MonetorController::class,'student_classification']);
@@ -426,6 +429,8 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     Route::get('/show_my_profile',[Student_operationController::class,'show_my_profile']);
     //تعديل معلومات الطالب الرقم العنوان و كلمة السر
     Route::post('/edit_some_info_profile',[Student_operationController::class,'edit_some_info_profile']);
+    //عرض ملفات و صور دورة محددة
+    Route::get('/display_file_course/{course_id}',[Student_operationController::class,'display_file_course']);
 
 
 });

@@ -24,6 +24,7 @@ use App\Models\Accessories;
 use App\Models\Academy;
 use App\Models\Course;
 use App\Models\Expenses;
+use App\Models\File_course;
 
 class Student_operationController extends BaseController
 {
@@ -937,6 +938,14 @@ public function edit_some_info_profile(Request $request)
     $user->save();
 
     return response()->json(['status' => 'success', 'message' => 'Profile updated successfully']);
+}
+
+public function display_file_course($course_id)
+{
+
+    $file = File_course::where('course_id',$course_id)->get();
+    return $file;
+   
 }
 
 
