@@ -940,13 +940,60 @@ public function edit_some_info_profile(Request $request)
     return response()->json(['status' => 'success', 'message' => 'Profile updated successfully']);
 }
 
+// public function display_file_course($course_id)
+// {
+
+//     $file = File_course::where('course_id',$course_id)->get();
+//     // return $file;
+//     // $result[] = [];
+//     foreach ($file as $f) {
+//         $image_file_Path = str_replace('\\', '/', public_path().'/upload/'.$f->name);
+//                     //return response()->file($imagePath);
+//                     if (file_exists($image_file_Path)) {
+//                         $f->image_file_url = asset('/upload/' . $f->name);
+//                         $result[] = [
+//                             // 'path' => $imagePath,
+//                             // 'image_info' => $f
+//                             $f
+//                         ];
+//                     }
+//     }
+
+//     //عم نشوف إذا في نتائج أو لاء
+//     if (!empty($result)) {
+//         return $result;
+//     } else {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'No images found'
+//         ]);
+//     }
+   
+// }
 public function display_file_course($course_id)
 {
-
-    $file = File_course::where('course_id',$course_id)->get();
-    return $file;
-   
+    $files = File_course::where('course_id', $course_id)->get();
+    $result = [];  // تأكد من تهيئة المتغير $result كمصفوفة فارغة
+    
+    foreach ($files as $file) {
+        $imageFilePath = str_replace('\\', '/', public_path() . '/upload/' . $file->name);
+        
+        if (file_exists($imageFilePath)) {
+            $file->image_file_url = asset('/upload/' . $file->name);
+            $result[] = $file;  // أضف الملف مباشرة إلى المصفوفة $result
+        }
+    }
+    
+    if (!empty($result)) {
+        return $result;
+    } else {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'No images found'
+        ]);
+    }
 }
+
 
 
 }
