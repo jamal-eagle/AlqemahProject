@@ -1914,9 +1914,9 @@ public function update_publish(Request $request, $publish_id)
 
 
 
-public function add_to_expensess(Request $request,$academy_id)
+public function add_to_expensess(Request $request)
 {
-    $academy = Academy::find($academy_id);
+    $academy = Academy::find(1);
     $validator = Validator::make($request->all(),[
         'date' => 'required|date',
         'product'=>'required',

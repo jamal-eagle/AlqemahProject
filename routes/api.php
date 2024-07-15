@@ -103,7 +103,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //عرض تصنيف الطلاب
     Route::get('/classification/{calssification}',[AdminOperationController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد
-    route::get('/desplay_all_student/{year}', [AdminZaController::class, 'desplay_all_student_regester']);
+    route::get('/desplay_all_student', [AdminZaController::class, 'desplay_all_student_regester']);
     //عرض الصفوف والشعب
     route::get('/desplay_classs_and_section',[AdminOperationController::class,'desplay_classs_and_section']);
     /// عرض البروفايل للطالب
@@ -169,7 +169,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //تعديل اعلان
     route::post('/update_publish/{publish_id}', [AdminOperationController::class, 'update_publish']);
     //اضافة للمصاريف
-    route::post('/add_to_expensess/{academy_id}', [AdminOperationController::class, 'add_to_expensess']);
+    route::post('/add_to_expensess', [AdminOperationController::class, 'add_to_expensess']);
     //اضافة للبوفيه
     Route::post('/add_to_break/{academy_id}', [AdminOperationController::class, 'add_to_break']);
 

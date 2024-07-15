@@ -47,11 +47,12 @@ use App\Models\Post;
 class AdminZaController extends BaseController
 {
     //j
-    public function desplay_all_student_regester($year)
-{
-    $student = User::where('year',$year)->where('user_type', 'student')->with('student')->get();
-    return response()->json([$student,'all student regester here']);
-}
+    public function desplay_all_student_regester()
+    {
+        $academy = Academy::find(1);
+        $student = User::where('year',$academy->year)->where('user_type', 'student')->where('status','1')->get();
+        return response()->json([$student,'all student regester here']);
+    }
 
 public function desplay_student_marks($student_id)
     {
