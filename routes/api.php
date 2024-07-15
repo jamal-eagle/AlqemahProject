@@ -305,7 +305,9 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/display_teacher_for_course/{name_subject}/{class_id}',[AdminZaController::class,'display_teacher_for_course']);
     //عرض ملفات و صور دورة محددة
     Route::get('/display_file_course/{course_id}',[Student_operationController::class,'display_file_course']);
-
+    //عرض كل الدورات التي لها طلبات تسجيل لم تحدد حالتها بالرفض أو القبول
+    Route::get('/all_course_have_order_yes_no',[AdminZaController::class,'all_course']);
+    
 });
 
 /*******************************************************monetor*******************************************************/

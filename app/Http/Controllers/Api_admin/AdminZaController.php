@@ -1358,6 +1358,19 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
         $post = Post::where('section_id',$section_id)->with('subject')->with('teacher.user')->get();
         return $post;
 }
+
+public function all_course()
+{
+    $courses = Course::with('subject', 'classs', 'teacher.user')
+        ->withCount(['order as orders_with_student_type_12' => function ($query) {
+            $query->where('student_type', 12);
+        }])
+        ->orderBy('orders_with_student_type_12', 'desc')->get();
+
+    return $courses;
+}
+
+
     /**********************************جدوى**********************************/
 
     //المبلغ الذي حصل عليه المعهد من دفعات الطلاب للقسط حسب يوم أو شهر أو سنة أو عام دراسي أو دمج بيناتون
