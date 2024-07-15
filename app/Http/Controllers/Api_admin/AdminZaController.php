@@ -1362,12 +1362,12 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
 public function all_course()
 {
     $courses = Course::with('subject', 'classs', 'teacher.user')->whereHas('order', function ($query) {
-        $query->where('student_type', 12);
+        $query->where('student_type', 10);
     })
-        ->withCount(['order as orders_with_student_type_12' => function ($query) {
-            $query->where('student_type', 12);
+        ->withCount(['order as orders_with_student_type_10' => function ($query) {
+            $query->where('student_type', 10);
         }])
-        ->orderBy('orders_with_student_type_12', 'desc')->get();
+        ->orderBy('orders_with_student_type_10', 'desc')->get();
 
     return $courses;
 }
@@ -1762,6 +1762,190 @@ public function all_course()
 //     return response()->json(['user' => $user, 'student' => $student, 'parentt' => $parentt]);
 // }
 
+// // رابطة روان عليه
+// public function register(Request $request)
+// {
+//     $academy = Academy::find(1);
+
+//     // Validate student data
+//     $validatorStudent = Validator::make($request->all(), [
+//         'first_name_s' => 'required',
+//         'last_name_s' => 'required|string',
+//         'father_name' => 'required|string',
+//         'mother_name' => 'required|string',
+//         'birthday' => 'required|date',
+//         'gender' => 'required',
+//         // 'phone_s' => ['required', 'regex:/^\+963\s?9[0-9]{1}\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/'],
+//         'address_s' => 'required',
+//         'email' => 'required|email|unique:users',
+//         'password_s' => 'required|min:8',
+//         'conf_password_s' => 'required|min:8|same:password_s',
+//         // 'school_tuition' => 'required',
+//         'class_id' => 'required',
+//         'name_section' => 'required|string|exists:sections,num_section',
+//         // 'student_type' => 'required',
+//         // 'calssification' => 'required_if:student_type,0|in:0,1',
+//     ]);
+
+//     // Validate parent data
+//     $validatorParent = Validator::make($request->all(), [
+//         'first_name_p' => 'required|string',
+//         'last_name_p' => 'required|string',
+//         // 'phone_p' => ['required', 'regex:/^\+963\s?9[0-9]{1}\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/'],
+//         'address_p' => 'required',
+//         'email_p' => 'required|email',
+//         'password_p' => 'required|min:8',
+//         'conf_password_p' => 'required|min:8|same:password_p',
+//     ]);
+
+//     // Check if any validation errors occurred
+//     if ($validatorStudent->fails() || $validatorParent->fails()) {
+//         $errors = $validatorStudent->errors()->merge($validatorParent->errors());
+//         return $this->responseError(['errors' => $errors]);
+//     }
+
+//     // Create parent record
+//     $parentt = Parentt::where('email', $request->email_p)->first();
+//     if (!$parentt) {
+//         $parentt = new Parentt();
+//         $parentt->first_name = $request->first_name_p;
+//         $parentt->last_name = $request->last_name_p;
+//         if ($request->has('phone_p') && !empty($request->phone_p)) {
+//             $phone = $request->phone_p;
+//             if (!preg_match('/^(\+?963|0)?9\d{8}$/', $phone)) {
+//                 return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+//             }
+//             $parentt->phone = $request->phone_p;
+//         }
+//         // $parentt->phone = $request->phone_p;
+
+//         $parentt->address = $request->address_p;
+//         $parentt->email = $request->email_p;
+//         $parentt->year = $academy->year;
+//         $parentt->password = Hash::make($request->password_p);
+//         $parentt->conf_password = Hash::make($request->conf_password_p);
+//     }
+
+//     // Create student record
+//     $user = new User();
+//     $user->first_name = $request->first_name_s;
+//     $user->last_name = $request->last_name_s;
+//     $user->father_name = $request->father_name;
+//     $user->mother_name = $request->mother_name;
+//     $user->birthday = $request->birthday;
+//     $user->gender = $request->gender;
+//     if ($request->has('phone_s') && !empty($request->phone_s)) {
+//         $phone = $request->phone_s;
+//         if (!preg_match('/^(\+?963|0)?9\d{8}$/', $phone)) {
+//             return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+//         }
+//         $user->phone = $request->phone_s;
+//     }
+//     // $user->phone = $request->phone_s;
+//     $user->address = $request->address_s;
+//     $user->year = $academy->year;
+//     $user->email = $request->email;
+//     $user->password = Hash::make($request->password_s);
+//     $user->conf_password = Hash::make($request->conf_password_s);
+//     $user->user_type = 'student';
+
+//     // Create student profile
+//     $student = new Student();
+//     $student->class_id = $request->class_id;
+
+//     // تحديد الشعبة للطالب
+//     $section = Section::where('num_section', $request->name_section)->where('class_id', $student->class_id)->first();
+//     if (!$section) {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'Section not found for the specified class_id',
+//         ]);
+//     }
+//     $student->section_id = $section->id;
+
+//     //تحديد قسط الطالب بحيث إذا الو أخ أو ابن مدرس أو ابن شهيد سيكون له حسم و ممكن حسم كامل
+//     $fee_class = Fee_School::where('class_id',$student->class_id)->where('year',$academy->year)->value('amount');
+//     if (!$fee_class) {
+//         return 'You did not specify the annual premium for this class';
+//     }
+//     // return $fee_class;
+//     $student->student_type = $request->student_type;
+//     //قيم ال student_type
+//     //0 قسط الصف دون حسم
+//     //1 ابن شهيد
+//     //2 ابن معلم
+//     //3 حسم أشقاء
+//     //4 حسم كامل
+
+
+//     $son = Student::where('parentt_id',$parentt->id)->get();
+
+//     if ($student->student_type == '1') {
+// // return '1';
+//         $student->school_tuition = $fee_class * (100 - $academy->resolve_martyr) / 100 ;
+//     }
+
+//     elseif ($student->student_type == '2') {
+//         $student->school_tuition = $fee_class * (100 - $academy->resolve_Son_teacher) / 100 ;
+//     }
+
+//     elseif ($student->student_type == '4') {
+//         $student->school_tuition = 0;
+//     }
+//     elseif ((count($son) != 0 && $request->has('student_type') && empty($request->student_type)) || $student->student_type == '3') {
+//         foreach ($son as $s) {
+//             $user_year = User::where('id',$s->user_id)->first();
+//             if ($user_year->year == $academy->year) {
+//                 $student->student_type = 3;
+//                 $student->school_tuition = $fee_class * (100 - $academy->resolve_brother) / 100 ;
+//                 break;
+//             }
+
+//             }
+//     }
+
+//     // //نبحث إن كان له أخوة و لنفس السنة لنعمل له حسم
+//     // // $son = $parentt->student;
+//     // $son = Student::where('parentt_id',$parentt->id)->get();
+//     // // return count($son);
+//     // if (count($son) != 0 && $request->has('student_type') && empty($request->student_type)) {
+//     //     foreach ($son as $s) {
+//     //     $user_year = User::where('id',$s->user_id)->first();
+//     //     if ($user_year->year == $academy->year) {
+//     //         $student->student_type = 3;
+//     //         $student->school_tuition = $fee_class * (100 - $academy->resolve_brother) / 100 ;
+//     //         break;
+//     //     }
+
+//     //     }
+//     // }
+
+//     else {
+//         $student->school_tuition = $fee_class;
+
+//     }
+
+
+//     // $student->student_type = $request->student_type;
+//     // if ($request->student_type != 0 && empty($request->calssification)) {
+//     //     $student->calssification = 2;
+//     // }
+//     // else {
+//     //     $student->calssification = $request->calssification;
+//     // }
+//     // $student->calssification = $request->student_type == 0 ? $request->calssification : null;
+
+
+//     $parentt->save();
+//     $user->save();
+//     $student->user_id = $user->id;
+//     $student->parentt_id = $parentt->id;
+//     $student->save();
+
+//     // Return response with created user, student, and parentt
+//     return response()->json(['user' => $user, 'student' => $student, 'parentt' => $parentt]);
+// }
+
 
 public function register(Request $request)
 {
@@ -1775,23 +1959,18 @@ public function register(Request $request)
         'mother_name' => 'required|string',
         'birthday' => 'required|date',
         'gender' => 'required',
-        // 'phone_s' => ['required', 'regex:/^\+963\s?9[0-9]{1}\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/'],
         'address_s' => 'required',
         'email' => 'required|email|unique:users',
         'password_s' => 'required|min:8',
         'conf_password_s' => 'required|min:8|same:password_s',
-        // 'school_tuition' => 'required',
         'class_id' => 'required',
         'name_section' => 'required|string|exists:sections,num_section',
-        // 'student_type' => 'required',
-        // 'calssification' => 'required_if:student_type,0|in:0,1',
     ]);
 
     // Validate parent data
     $validatorParent = Validator::make($request->all(), [
         'first_name_p' => 'required|string',
         'last_name_p' => 'required|string',
-        // 'phone_p' => ['required', 'regex:/^\+963\s?9[0-9]{1}\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{3}$/'],
         'address_p' => 'required',
         'email_p' => 'required|email',
         'password_p' => 'required|min:8',
@@ -1817,13 +1996,15 @@ public function register(Request $request)
             }
             $parentt->phone = $request->phone_p;
         }
-        // $parentt->phone = $request->phone_p;
 
         $parentt->address = $request->address_p;
         $parentt->email = $request->email_p;
         $parentt->year = $academy->year;
         $parentt->password = Hash::make($request->password_p);
         $parentt->conf_password = Hash::make($request->conf_password_p);
+    }
+    elseif ($parentt->status == '0') {
+        $parentt->status = '1';
     }
 
     // Create student record
@@ -1841,7 +2022,6 @@ public function register(Request $request)
         }
         $user->phone = $request->phone_s;
     }
-    // $user->phone = $request->phone_s;
     $user->address = $request->address_s;
     $user->year = $academy->year;
     $user->email = $request->email;
@@ -1868,7 +2048,6 @@ public function register(Request $request)
     if (!$fee_class) {
         return 'You did not specify the annual premium for this class';
     }
-    // return $fee_class;
     $student->student_type = $request->student_type;
     //قيم ال student_type
     //0 قسط الصف دون حسم
@@ -1877,11 +2056,12 @@ public function register(Request $request)
     //3 حسم أشقاء
     //4 حسم كامل
 
+    $son = Student::where('parentt_id', $parentt->id)->whereHas('user', function ($query) {
+        $query->where('status', '1');
+    })->get();
 
-    $son = Student::where('parentt_id',$parentt->id)->get();
 
     if ($student->student_type == '1') {
-// return '1';
         $student->school_tuition = $fee_class * (100 - $academy->resolve_martyr) / 100 ;
     }
 
@@ -1903,49 +2083,23 @@ public function register(Request $request)
 
             }
     }
-
-    // //نبحث إن كان له أخوة و لنفس السنة لنعمل له حسم
-    // // $son = $parentt->student;
-    // $son = Student::where('parentt_id',$parentt->id)->get();
-    // // return count($son);
-    // if (count($son) != 0 && $request->has('student_type') && empty($request->student_type)) {
-    //     foreach ($son as $s) {
-    //     $user_year = User::where('id',$s->user_id)->first();
-    //     if ($user_year->year == $academy->year) {
-    //         $student->student_type = 3;
-    //         $student->school_tuition = $fee_class * (100 - $academy->resolve_brother) / 100 ;
-    //         break;
-    //     }
-
-    //     }
-    // }
-
     else {
         $student->school_tuition = $fee_class;
-
     }
 
-
-    // $student->student_type = $request->student_type;
-    // if ($request->student_type != 0 && empty($request->calssification)) {
-    //     $student->calssification = 2;
-    // }
-    // else {
-    //     $student->calssification = $request->calssification;
-    // }
-    // $student->calssification = $request->student_type == 0 ? $request->calssification : null;
-
-
+    // تأكد من تحديد قيمة school_tuition قبل الحفظ
+    if (is_null($student->school_tuition)) {
+        $student->school_tuition = $fee_class; // تعيين قيمة افتراضية في حال لم يتم تعيينها
+    }
+    
     $parentt->save();
     $user->save();
     $student->user_id = $user->id;
     $student->parentt_id = $parentt->id;
     $student->save();
 
-    // Return response with created user, student, and parentt
     return response()->json(['user' => $user, 'student' => $student, 'parentt' => $parentt]);
 }
-
 
 
 
