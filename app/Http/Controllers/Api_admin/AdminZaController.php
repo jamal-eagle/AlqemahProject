@@ -1361,7 +1361,9 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
 
 public function all_course()
 {
-    $courses = Course::with('subject', 'classs', 'teacher.user')
+    $courses = Course::with('subject', 'classs', 'teacher.user')->whereHas('order', function ($query) {
+        $query->where('student_type', 12);
+    })
         ->withCount(['order as orders_with_student_type_12' => function ($query) {
             $query->where('student_type', 12);
         }])
