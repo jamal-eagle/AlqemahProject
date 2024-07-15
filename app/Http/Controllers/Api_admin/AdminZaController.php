@@ -50,7 +50,7 @@ class AdminZaController extends BaseController
     public function desplay_all_student_regester()
     {
         $academy = Academy::find(1);
-        $student = User::where('year',$academy->year)->where('user_type', 'student')->where('status','1')->get();
+        $student = User::where('year',$academy->year)->where('user_type', 'student')->where('status','1')->with('student')->get();
         return response()->json([$student,'all student regester here']);
     }
 
@@ -1930,7 +1930,6 @@ public function register(Request $request)
     // Return response with created user, student, and parentt
     return response()->json(['user' => $user, 'student' => $student, 'parentt' => $parentt]);
 }
-
 
 
 
