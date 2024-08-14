@@ -18,11 +18,26 @@ use App\Models\Accessories;
 class ParenttController extends Controller
 {
     //عرض جميع أبنائي المسجلين بالمعهد
+    // public function displayAllBaby(Request $request)
+    // {
+    // $parent = Parentt::where('id', auth()->user()->id)->with('student.user')->get();
+    // return $parent;
+    // }
     public function displayAllBaby(Request $request)
     {
-    $parent = Parentt::where('id', auth()->user()->id)->with('student.user')->get();
+    $parent = Parentt::where('id', auth()->user()->id)
+        // ->whereHas('student.user', function ($query) {
+        //     $query->where('status', '1');
+        // })
+        ->with(['student' => function ($query) {
+            $query->whereHas('user', function ($query) {
+                $query->where('status', '1');
+            });
+        }, 'student.user'])
+        ->get();
     return $parent;
-    }
+}
+
 
     //برنامج الدوام الخاص بالابن المحدد
     public function displayPrograme($student_id)

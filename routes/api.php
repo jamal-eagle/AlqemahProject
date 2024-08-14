@@ -321,10 +321,10 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     /// عرض البروفايل للطالب
     Route::get('show_profile_student/{student_id}',[MonetorController::class,'show_profile_student']);
     //تعديل معلومات الطالب
-    Route::post('update_profile_student/{student_id}',[MonetorController::class,'update_profile_student']);
+    Route::post('update_profile_student/{student_id}',[AdminOperationController::class,'update_profile_student']);
+    //سجل دوام الطالب
+    Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReport']);
 
-    //عرض سجل دوام الطالب
-    Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReport']);
     //عرض علامات طالب
     route::get('desplay_student_marks/{student_id}',[AdminZaController::class,'desplay_student_marks']);
     //عرض الملاحظات تجاه الطال
@@ -332,11 +332,13 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //ارسال انذارات وملاحظات للطالب
     route::post('/create_note/{student_id}', [AdminZaController::class, 'create_note_student']);
     //عرض كل مدرسي المعهد
-    Route::get('/all-teatcher',[MonetorController::class,'all_teatcher']);
+    Route::get('/all-teatcher',[AdminOperationController::class,'all_teatcher']);
+
     //عرض معلومات مدرس معين
     Route::get('/info-teatcher/{teatcher_id}',[MonetorController::class,'info_teatcher']);
     //استعراض الدورات التي يعطي فيها مدرس
-    route::get('/desplay_teacher_course/{teacher_id}',[MonetorController::class,'desplay_teacher_course']);
+    route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
+    
     //تعديل برنامج دوام المدرس
     route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[MonetorController::class,'updateWeeklySchedule']);
     //عرض سجل دوام المدرس
@@ -345,8 +347,11 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     route::get('/get_monthly_attendance_teacher/{teacher_id}/{year}/{month}',[MonetorController::class,'calculatemonthlyattendance']);
     //عرض غيابات المدرس
     route::get('/get_out_of_work_employee/{teacher_id}/{year}/{month}',[MonetorController::class,'getteacherabsences']);
-    //تقرير كامل مفصل عن ايام الشهر
+    //تقرير مفصل عن كامل ايام الشهر
+    route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReportReport']);
+
     route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReportReport']);
+
     //عرض معلومات دورة معينة
     Route::get('/info_course/{id_course}',[MonetorController::class,'info_course']);
     ////  عرض الاعلانات
@@ -366,20 +371,97 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //تعديل علامة طالب
     route::post('/edit_mark_for_student/{student_id}/subject/{subject_id}', [MonetorController::class, 'editMark']);
     //اضافة يوم غياب للطالب
-    route::post('/add_student_out_of_work/{student_id}', [MonetorController::class, 'addAbsence']);
+    route::post('/add_student_out_of_work/{student_id}', [AdminOperationController::class, 'addAbsence']);
+
     //إنهاء و إعادة تفعيل مناقشة
     Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
+
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[AdminZaController::class,'order_on_course']);
     //رفع برنامج لشعبة محددة
     Route::post('upload_program_section/{section_id}',[MonetorController::class,'upload_program_section']);
     //حذف برنامج
     Route::delete('delete_program_section/{id}',[MonetorController::class,'delete_program']);
+
     //تعديل برنامج
     Route::post('update_program_section/{program_id}',[MonetorController::class,'update_program_section']);
+    //عرض الملاحظات المقدمة عن الطالب
+    Route::get('desplay_student_nots/{student_id}',[AdminZaController::class,'desplay_student_nots']);    
+    //الدورات التي سجل فيها الطالب
+    route::get('/student_course/{student_id}',[AdminOperationController::class,'student_course']);
+    //عرض شعب صف معين
+    route::get('display_section_for_class/{class_id}', [AdminZaController::class, 'display_section_for_class']);
+    //عرض طلاب شعبة معينة
+    route::get('display_student_in_section/{section_id}', [AdminZaController::class, 'display_student_in_section']);
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+    //تعديل معلومات موظف
+    Route::post('/update_profile_employee/{employee_id}',[AuthController::class,'update_profile_employee']);
+
+    //تعديل معلومات المدرس
+    route::post('/update_teacher_profile/{teacher_id}',[AuthController::class,'update_teacher_profile']);
+    
+    //اضافة ملفات لدورة
+    route::post('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
+    
+    //عرض تفاصيل دورة za
+    route::get('display_info_course/{course_id}', [AdminZaController::class, 'display_info_course']);
+    //عرض كل الموظفين من معليمن وموجهين وووو
+    route::get('desplay_all_employee_and_others', [AdminZaController::class, 'desplay_all_employee_and_others']);
+    //الموافقة على طلب تسجيل في كورس
+    route::post('ok_order_course/{order_id}', [AdminZaController::class, 'ok_order_course']);
+    //عرض الطلاب في دورة
+    Route::get('/display_student_in_course/{course_id}', [AdminZaController::class, 'display_student_in_course']);
+    //عرض جميع الدورات الموجودة بالمعهد
+    Route::get('/all_course',[DisplayController::class,'all_course']);
+
+    //رفض طلب تسجيل في دورة
+    route::post('no_order_course/{order_id}', [AdminZaController::class, 'no_order_course']);
+
+    //عرض برنامج دوام شعبة
+    Route::get('/programe_week/{section_id}', [AdminZaController::class, 'programe_week']);
+    //عرض برنامج الدوام الاسبوعي للاستاذ
+    route::get('/getWeeklyTeacherSchedule/{teacher_id}',[AdminZaController::class,'getWeeklyTeacherSchedule']);
+    //تسجيل طلب للتسجيل بدورة معينة
+    Route::post('/add-order-course/{course_id}',[OrderController::class,'CreateOrderForCourse']);
+    //عرض كل مناقشات شعبة محددة
+    Route::get('/display_post/{section_id}', [AdminZaController::class, 'display_post']);
+    //عرض مناقشة محددة التعليقات و السؤال
+    Route::get('/post/{post_id}',[StudentPostController::class,'displayPost']);
+    //عرض ملفات و صور دورة محددة
+    Route::get('/display_file_course/{course_id}',[Student_operationController::class,'display_file_course']);
+    //عرض كل الدورات التي لها طلبات تسجيل لم تحدد حالتها بالرفض أو القبول
+    Route::get('/all_course_have_order_yes_no',[AdminZaController::class,'all_course']);
+    //عرض مواد الطالب
+    Route::get('/subject/{class_id}',[AdminZaController::class,'display_subject_for_class']);
+    //عرض صور مواد الطالب
+    Route::get('/img_subject/{subject_id}',[Student_operationController::class,'display_img_subject']);
+    //عرض الملفات للمادة المختارة
+    Route::get('/file_subject/{subject_id}',[Student_operationController::class,'display_file_subject']);
+    //عرض ملفات مادة محددة حسب سنة محددة
+    Route::get('/file_subject_year/{subject_id}/{year}',[Student_operationController::class,'file_subject_year']);
+    //عرض صور مادة محددة حسب سنة محددة
+    Route::get('/img_subject_year/{subject_id}/{year}',[Student_operationController::class,'img_subject_year']);
+    //رفع ملف أو صورة لملفات السنة الحاليةzahraa
+    Route::post('/upload_file_image/{subject_id}',[TeacherController::class,'upload_file_image']);
+    //رفع ملف أو صورة لملفات الأرشيفzahraa
+    Route::post('/upload_file_image_archive/{archive_id}',[TeacherController::class,'upload_file_image_archive']);
+    //حذف ملف أو صورة
+    Route::delete('/delete_file_image/{file_img_id}/{imgFileName}',[TeacherController::class,'delete_file_image']);
+    //تعديل ملف أو صورة
+    Route::post('/update-file-image/{id}', [TeacherController::class,'update_file_image']);    
 });
 
 /*******************************************************student*******************************************************/

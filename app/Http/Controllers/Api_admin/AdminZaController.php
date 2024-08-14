@@ -1372,6 +1372,13 @@ public function all_course()
     return $courses;
 }
 
+public function display_subject_for_class($class_id)
+{
+        $subject = Subject::where('class_id', $class_id)->get();
+
+        return $subject;
+}
+
 
     /**********************************جدوى**********************************/
 
