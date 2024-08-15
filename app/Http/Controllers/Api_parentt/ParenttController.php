@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api_parentt;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Student;
 use App\Models\Parentt;
 use App\Models\Program_Student;
@@ -243,4 +245,70 @@ public function homework_subject_my_sun($student_id,$subject_id)
         $mark = Mark::where('student_id', $student_id)->with('subject')->get();
         return $mark;
     }
+
+
+    public function edit_some_info_profile_parent(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'address' => 'nullable|string',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $parent = Parentt::where('id', auth()->user()->id)->first();
+
+    if ($request->has('phone') && !empty($request->phone)) {
+        $phone = $request->phone;
+        if (!preg_match('/^(\+?963|0)?9\d{8}$/', $phone)) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+        }
+        $parent->phone = $request->phone;
+    }
+
+    if ($request->has('address') && !empty($request->address)) {
+        $parent->address = $request->address;
+    }
+
+    if ($request->has('password')) {
+        if (!$request->has('conf_password') || $request->password !== $request->conf_password) {
+            return response()->json(['status' => 'error', 'message' => 'Passwords do not match'], 400);
+        }
+        $parent->password = Hash::make($request->password);
+        $parent->conf_password = Hash::make($request->conf_password);
+    }
+
+    if ($request->has('image')) {
+        if ($parent->image != null) {
+            $oldImagePath = public_path().'/upload/'.$parent->image;
+    if (file_exists($oldImagePath)) {
+        unlink($oldImagePath);
+    }
+
+    // رفع الصورة الجديدة
+    $img = $request->image;
+    $ext = $img->getClientOriginalExtension();
+    $imageName = time().'.'.$ext;
+    $img->move(public_path().'/upload', $imageName);
+
+    // تحديث مسار الصورة في قاعدة البيانات
+    $parent->image = $imageName;
+        }
+
+        else {
+            $img = $request->image;
+    $ext = $img->getClientOriginalExtension();
+    $imageName = time().'.'.$ext;
+    $img->move(public_path().'/upload',$imageName);
+
+    $parent->image = $imageName;
+        }
+    }
+
+    $parent->save();
+
+    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully']);
+}
 }

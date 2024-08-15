@@ -461,7 +461,12 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //حذف ملف أو صورة
     Route::delete('/delete_file_image/{file_img_id}/{imgFileName}',[TeacherController::class,'delete_file_image']);
     //تعديل ملف أو صورة
-    Route::post('/update-file-image/{id}', [TeacherController::class,'update_file_image']);    
+    Route::post('/update-file-image/{id}', [TeacherController::class,'update_file_image']);
+    //عرض طلبات التسجيل بالمعهد
+    Route::get('/display_order',[AdminOperationController::class,'DisplayOrderNewStudent']);
+    //إعطاء موعد
+    route::post('/give_date/{order_id}',[AdminZaController::class,'GiveDate']);
+
 });
 
 /*******************************************************student*******************************************************/
@@ -512,7 +517,7 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     //عرض معلومات الطالب و صورته
     Route::get('/show_my_profile',[Student_operationController::class,'show_my_profile']);
     //تعديل معلومات الطالب الرقم العنوان و كلمة السر
-    Route::post('/edit_some_info_profile',[Student_operationController::class,'edit_some_info_profile']);
+    Route::post('/edit_some_info_profile',[Student_operationController::class,'edit_some_info_profile']);  
     //عرض ملفات و صور دورة محددة
     Route::get('/display_file_course/{course_id}',[Student_operationController::class,'display_file_course']);
 
@@ -541,6 +546,9 @@ Route::prefix('parent')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/display_mark/{student_id}',[ParenttController::class,'displayMark']);
     //القسط و الدفعات و المتبقي
     Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
+    //تعديل معلومات الأهل الرقم العنوان و كلمة السر
+    Route::post('/edit_some_info_profile_parent',[ParenttController::class,'edit_some_info_profile_parent']);
+
 });
 
 /*******************************************************teacher*******************************************************/

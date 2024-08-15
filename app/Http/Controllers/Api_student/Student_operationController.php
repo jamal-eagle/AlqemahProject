@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api_student;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Order;
 use Illuminate\Http\Request;
