@@ -219,7 +219,7 @@ public function delete_file_image($file_img_id, $imgFileName)
     $img = Image_Archive::find($file_img_id);
     $file = File_Archive::find($file_img_id);
 
-    if ($img->name == $imgFileName) {
+    if ($img != null && $img->name == $imgFileName) {
         // $img->delete();
         // return "delete image";
 
@@ -239,7 +239,7 @@ public function delete_file_image($file_img_id, $imgFileName)
         'message' => 'Image deleted successfully'
     ]);
     }
-    elseif ($file->name == $imgFileName) {
+    elseif ($file != null && $file->name == $imgFileName) {
         // $file->delete();
         // return "delete file";
         // حذفت الملف من المجلد يلي خزنتو في
