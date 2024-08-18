@@ -307,6 +307,15 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/display_file_course/{course_id}',[Student_operationController::class,'display_file_course']);
     //عرض كل الدورات التي لها طلبات تسجيل لم تحدد حالتها بالرفض أو القبول
     Route::get('/all_course_have_order_yes_no',[AdminZaController::class,'all_course']);
+    //البحث عن طالب ضمن كل طلاب العام الدراسي
+    Route::get('/search_student',[AdminZaController::class,'search_student']);
+    //البحث عن أستاذ ضمن كل طلاب العام الدراسي
+    Route::get('/search_teacher',[AdminZaController::class,'search_teacher']);
+    //البحث عن لموظفين ضمن كل طلاب العام الدراسي
+    Route::get('/search_employee',[AdminZaController::class,'search_employee']);
+    //البحث عن طالب ضمن طلاب شعبة محددة
+    Route::get('/search_student_in_section/{section_id}',[AdminZaController::class,'search_student_in_section']);
+
     
 });
 
@@ -399,14 +408,6 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
 
 
 
-
-
-
-
-
-
-
-
     //تعديل معلومات موظف
     Route::post('/update_profile_employee/{employee_id}',[AuthController::class,'update_profile_employee']);
 
@@ -466,6 +467,18 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/display_order',[AdminOperationController::class,'DisplayOrderNewStudent']);
     //إعطاء موعد
     route::post('/give_date/{order_id}',[AdminZaController::class,'GiveDate']);
+    //البحث عن طالب ضمن كل طلاب العام الدراسي
+    Route::get('/search_student',[AdminZaController::class,'search_student']);
+    //البحث عن أستاذ ضمن كل أساتذة العام الدراسي
+    Route::get('/search_teacher',[AdminZaController::class,'search_teacher']);
+    //البحث عن لموظفين ضمن كل موظفي العام الدراسي
+    Route::get('/search_employee',[AdminZaController::class,'search_employee']);
+    //البحث عن طالب ضمن طلاب شعبة محددة
+    Route::get('/search_student_in_section/{section_id}',[AdminZaController::class,'search_student_in_section']);
+
+    
+
+    
 
 });
 

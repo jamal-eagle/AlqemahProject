@@ -1378,7 +1378,148 @@ public function display_subject_for_class($class_id)
 
         return $subject;
 }
+    
+    //البحث عن طالب ضمن كل طلاب العام الدراسي
+    //مثال إذا دخلت زهراء الصوص و بالداتا عندي زهراء الصوص و زهراء محمد و محمد الصوص فالخرج هو جميع يلي ذكرتو بالداتا
+//     public function search_student(Request $request)
+//     {
+//         $student = User::where('user_type', 'student')
+//             ->where('status', '1')
+//             ->where(function ($query) use ($request) {
+//                 $query->where('first_name', 'LIKE', "%{$request->q}%")
+//                       ->orWhere('last_name', 'LIKE', "%{$request->q}%");
+//             })
+//             ->get();
 
+//         return $student;
+// }
+
+    //البحث عن طالب ضمن كل طلاب العام الدراسي
+    //مثال إذا دخلت زهراء الصوص و بالداتا عندي زهراء الصوص و زهراء محمد و محمد الصوص فالخرج هو فقط زهراء الصوص و حتى لو مركب
+public function search_student(Request $request)
+{
+    // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
+    $keywords = explode(' ', $request->q);
+
+    // إعداد استعلام أساسي
+    $query = User::where('user_type', 'student')
+                 ->where('status', '1');
+
+    // إضافة شروط البحث لكل كلمة في الكلمات المفتاحية
+    foreach ($keywords as $keyword) {
+        $query->where(function ($subQuery) use ($keyword) {
+            $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
+                     ->orWhere('last_name', 'LIKE', "%{$keyword}%");
+        });
+    }
+
+    // تنفيذ الاستعلام
+    $student = $query->get();
+
+    return response()->json($student);
+}
+
+// $son = Student::where('parentt_id', $parentt->id)->whereHas('user', function ($query) {
+//     $query->where('status', '1');
+// })->get();
+// public function search_student_in_section(Request $request, $section_id)
+// {
+//     // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
+//     $keywords = explode(' ', $request->q);
+
+//     // إعداد استعلام أساسي
+//     $query = User::where('user_type', 'student')
+//                  ->where('status', '1')->whereHas('student', function ($query1) {
+//                     $query1->whereHas('section',function($query2){
+//                         $query2->where('id', $section_id);
+//                     });
+//                  });
+
+//     // إضافة شروط البحث لكل كلمة في الكلمات المفتاحية
+//     foreach ($keywords as $keyword) {
+//         $query->where(function ($subQuery) use ($keyword) {
+//             $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
+//                      ->orWhere('last_name', 'LIKE', "%{$keyword}%");
+//         });
+//     }
+
+//     // تنفيذ الاستعلام
+//     $student = $query->get();
+
+//     return response()->json($student);
+// }
+public function search_student_in_section(Request $request, $section_id)
+{
+    // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
+    $keywords = explode(' ', $request->q);
+
+    // إعداد استعلام أساسي
+    $query = User::where('user_type', 'student')
+                 ->where('status', '1')->whereHas('student', function ($query1) use ($section_id) {
+                    $query1->whereHas('section', function($query2) use ($section_id) {
+                        $query2->where('id', $section_id);
+                    });
+                 });
+
+    // إضافة شروط البحث لكل كلمة في الكلمات المفتاحية
+    foreach ($keywords as $keyword) {
+        $query->where(function ($subQuery) use ($keyword) {
+            $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
+                     ->orWhere('last_name', 'LIKE', "%{$keyword}%");
+        });
+    }
+
+    // تنفيذ الاستعلام
+    $student = $query->get();
+
+    return response()->json($student);
+}
+
+    //البحث عن أستاذ ضمن كل طلاب العام الدراسي
+    public function search_teacher(Request $request)
+{
+    // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
+    $keywords = explode(' ', $request->q);
+
+    // إعداد استعلام أساسي
+    $query = User::where('user_type', 'teacher')
+                 ->where('status', '1');
+
+    // إضافة شروط البحث لكل كلمة في الكلمات المفتاحية
+    foreach ($keywords as $keyword) {
+        $query->where(function ($subQuery) use ($keyword) {
+            $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
+                     ->orWhere('last_name', 'LIKE', "%{$keyword}%");
+        });
+    }
+
+    // تنفيذ الاستعلام
+    $teacher = $query->get();
+
+    return response()->json($teacher);
+}
+    
+public function search_employee(Request $request)
+{
+    // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
+    $keywords = explode(' ', $request->q);
+
+    // إعداد استعلام أساسي
+    $query = Employee::where('status', '1');
+
+    // إضافة شروط البحث لكل كلمة في الكلمات المفتاحية
+    foreach ($keywords as $keyword) {
+        $query->where(function ($subQuery) use ($keyword) {
+            $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
+                     ->orWhere('last_name', 'LIKE', "%{$keyword}%");
+        });
+    }
+
+    // تنفيذ الاستعلام
+    $employee = $query->get();
+
+    return response()->json($employee);
+}
 
     /**********************************جدوى**********************************/
 

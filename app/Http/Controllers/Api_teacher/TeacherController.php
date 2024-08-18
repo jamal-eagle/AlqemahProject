@@ -264,9 +264,21 @@ public function delete_file_image($file_img_id, $imgFileName)
 public function upload_file_image(Request $request, $subject_id)
 {
     $year_study = Academy::find(1);
-    $archive = Archive::where('year',$year_study->year)->where('subject_id', $subject_id)->first();
+    
+    //إذا الأرشيف مو موجود بساوي واحد
+    if (!$archive = Archive::where('year',$year_study->year)->where('subject_id', $subject_id)->first()) {
+        $new_archive = new Archive;
+
+        $new_archive->year = $year_study->year;
+        $new_archive->subject_id = $subject_id;
+        $subject = Subject::where('id',$subject_id)->first();
+        $new_archive->class_id = $subject->class_id;
+        $new_archive->save();
+
+    }
     $validator = Validator::make($request->all(),[
-        'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+        'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt',
+        'description' => 'required',
     ]);
 
     if ($validator->fails()) {
@@ -658,7 +670,8 @@ public function upload_file_image_archive(Request $request, $archive_id)
 {
     // public function upload_file_image(Request $request, $subject_id)
     $validator = Validator::make($request->all(),[
-        'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+        'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt',
+        'description' => 'required',
     ]);
 
     if ($validator->fails()) {
