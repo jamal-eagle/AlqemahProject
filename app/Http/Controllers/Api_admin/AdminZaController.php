@@ -1419,36 +1419,8 @@ public function search_student(Request $request)
     return response()->json($student);
 }
 
-// $son = Student::where('parentt_id', $parentt->id)->whereHas('user', function ($query) {
-//     $query->where('status', '1');
-// })->get();
-// public function search_student_in_section(Request $request, $section_id)
-// {
-//     // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
-//     $keywords = explode(' ', $request->q);
-
-//     // إعداد استعلام أساسي
-//     $query = User::where('user_type', 'student')
-//                  ->where('status', '1')->whereHas('student', function ($query1) {
-//                     $query1->whereHas('section',function($query2){
-//                         $query2->where('id', $section_id);
-//                     });
-//                  });
-
-//     // إضافة شروط البحث لكل كلمة في الكلمات المفتاحية
-//     foreach ($keywords as $keyword) {
-//         $query->where(function ($subQuery) use ($keyword) {
-//             $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
-//                      ->orWhere('last_name', 'LIKE', "%{$keyword}%");
-//         });
-//     }
-
-//     // تنفيذ الاستعلام
-//     $student = $query->get();
-
-//     return response()->json($student);
-// }
-public function search_student_in_section(Request $request, $section_id)
+    //البحث عن طالب ضمن طلاب شعبة محددة
+    public function search_student_in_section(Request $request, $section_id)
 {
     // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
     $keywords = explode(' ', $request->q);
