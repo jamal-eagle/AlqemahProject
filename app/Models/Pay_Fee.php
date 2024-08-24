@@ -21,7 +21,7 @@ class Pay_Fee extends Model
         'student_id',
         'course_id',
     ];
-
+ 
     public function student(){
         return $this->belongsTo('App\Models\Student',foreignKey:'student_id');
     }

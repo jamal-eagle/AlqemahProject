@@ -1625,13 +1625,116 @@ public function search_employee(Request $request)
 
      }
 
+//المصاريف دون فلترة
+//      public function all_expenses(Request $request)
+// {
+//     // استرداد جميع النفقات
+//     $expenses = Expenses::all();
 
+//     // جمع التكلفة الإجمالية للنفقات
+//     $sum_expenses = $expenses->sum('total_cost');
+
+//     return $sum_expenses;
+// }
+
+    //المبلغ الذي دفعه المعهد مصاريف حسب يوم أو شهر أو سنة أو عام دراسي أو دمج بيناتون
+    public function all_expenses(Request $request)
+{
+    // إنشاء الاستعلام الأساسي
+    $query = Expenses::query();
+
+    // تصفية حسب اليوم
+    if ($request->has('day') && !empty($request->day)) {
+        $query->whereDay('date', $request->day);
+    }
+
+    // تصفية حسب الشهر
+    if ($request->has('month') && !empty($request->month)) {
+        $query->whereMonth('date', $request->month);
+    }
+
+    // تصفية حسب السنة
+    if ($request->has('year') && !empty($request->year)) {
+        $query->whereYear('date', $request->year);
+    }
+
+    // تصفية حسب السنة الدراسية
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        // إضافة شرط السنة الدراسية إلى الاستعلام
+        $query->where('year', $request->year_studey);
+    }
+
+    // الحصول على قائمة النفقات
+    $expenses = $query->get();
+
+    // حساب مجموع التكلفة الإجمالية للنفقات
+    $sum_expenses = $expenses->sum('total_cost');
+
+    // إرجاع النتيجة بصيغة JSON
+    return response()->json([
+        'total_expenses' => $sum_expenses,
+        'expenses' => $expenses,
+    ]);
+}
+
+public function all_Maturitie(Request $request)
+{
+    // إنشاء الاستعلام الأساسي
+    $query = Maturitie::query();
+
+    // تصفية حسب اليوم
+    if ($request->has('day') && !empty($request->day)) {
+        $query->whereDay('created_at', $request->day);
+    }
+
+    // تصفية حسب الشهر
+    if ($request->has('month') && !empty($request->month)) {
+        $query->whereMonth('created_at', $request->month);
+    }
+
+    // تصفية حسب السنة
+    if ($request->has('year') && !empty($request->year)) {
+        $query->whereYear('created_at', $request->year);
+    }
+
+    // // تصفية حسب السنة الدراسية
+    // if ($request->has('year_studey') && !empty($request->year_studey)) {
+    //     // إضافة شرط السنة الدراسية إلى الاستعلام
+    //     $query->where('year', $request->year_studey);
+    // }
+
+    // الحصول على قائمة النفقات
+    $maturities = $query->get();
+
+    // حساب مجموع التكلفة الإجمالية للنفقات
+    $sum_maturities = $maturities->sum('amount');
+
+    // إرجاع النتيجة بصيغة JSON
+    return response()->json([
+        'total_maturities' => $sum_maturities,
+        'maturities' => $maturities,
+    ]);
+}
+
+// public function all_salary_employees(Request $request)
+// {
+//    //استرداد جميع النفقات
+//     $salary = Employee::all();
+
+//     // جمع التكلفة الإجمالية للنفقات
+//     $sum_salary = $salary->sum('salary');
+
+//     return response()->json([
+//         'total_salary_employee' => $sum_salary,
+//         'employee' => $salary,
+//     ]);
+// }
 
 
 
 
     //مجموع دفعات أقساط الطلاب///////////////////////////////////////
-    //مجموع دفعات الدورات
+    //مجموع دفعات الدورات//////////////////////////
     //مجموع البوفيه
     //مجموع النقل
 
@@ -1639,8 +1742,8 @@ public function search_employee(Request $request)
 
     //معاشات الأساتذة
     //معاشات الموظفين
-    //سلف
-    //مصاريف
+    //سلف///////////////////////////////////
+    //مصاريف///////////////////////////
 
 //     public function register_student1(Request $request)
 // {
