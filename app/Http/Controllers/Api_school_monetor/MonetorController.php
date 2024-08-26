@@ -251,12 +251,13 @@ class MonetorController extends Controller
                 'day_of_week' => $scheduleData['day_of_week'],
                 'start_time' => $scheduleData['start_time'],
                 'end_time' => $scheduleData['end_time'],
+                'section_id' => $scheduleData['section_id'],
             ]);
         }
 
         // إرجاع رسالة ناجحة
         return response()->json(['message' => 'Teacher weekly schedule updated successfully'], 200);
-    }
+}
 
 
     public function getTeacherWorkSchedule($teacher_id, $year, $month)
