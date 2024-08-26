@@ -1524,12 +1524,17 @@ public function add_mark_to_student(Request $request, $student_id)
     $mark->exam_med = $request->input('exam_med');
     $mark->exam_final = $request->input('exam_final');
 
+
     // حساب المجموع
     $aggregate = ($mark->ponus ?? 0) + ($mark->homework ?? 0) + ($mark->oral ?? 0) + ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) + ($mark->exam_final ?? 0);
 
     // تحديد حالة الطالب (ناجح/راسب)
     $mark->state = ($aggregate > 50) ? 1 : 0;
 
+    if($mark->exam_final == 0)
+    {
+        $mark->state == 0;
+    }
     $mark->save();
 
     return response()->json(['success' => 'Marks added successfully']);
@@ -2472,6 +2477,86 @@ public function desplay_maturitie_for_employee($employee_id,$year,$month)
     ]);
 
 }
+
+public function add_marks_to_section(Request $request, $section_id)
+{
+    $section = Section::find($section_id);
+    if (!$section) {
+
+        return response()->json(['error' => 'Section not found'], 404);
+    }
+    // التحقق من صحة البيانات المرسلة
+    $validator = Validator::make($request->all(), [
+        'mark_type'=>'required|in:ponus,homework,oral,test1,test2,exam_med,exam_final',
+        'subject_id' => 'required|exists:subjects,id',  // التحقق من وجود المادة
+        'marks' => 'required|array',
+        'marks.*.student_id' => 'required|exists:students,id',  // التحقق من وجود الطالب
+        'marks.*.value' => 'required|numeric',  // قيمة العلامة للجزء المحدد
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    $subject_id = $request->input('subject_id');
+    if (!$subject_id) {
+
+        return response()->json(['error' => 'subject not found'], 404);
+    }
+
+    foreach ($request->marks as $markData) {
+        // البحث عن العلامة الموجودة للطالب في المادة
+        $mark = Mark::where('student_id', $markData['student_id'])
+                    ->where('subject_id', $subject_id)
+                    ->first();
+
+        if (!$mark) {
+            // إذا لم يكن هناك علامة سابقة، قم بإنشاء علامة جديدة
+            $mark = new Mark;
+            $mark->student_id = $markData['student_id'];
+            $mark->subject_id = $subject_id;
+        }
+        $mark_type = $request->input('mark_type');
+        // تحديث الجزء المحدد من العلامة فقط
+        switch ($mark_type) {
+            case 'ponus':
+                $mark->ponus = $markData['value'];
+                break;
+            case 'homework':
+                $mark->homework = $markData['value'];
+                break;
+            case 'oral':
+                $mark->oral = $markData['value'];
+                break;
+            case 'test1':
+                $mark->test1 = $markData['value'];
+                break;
+            case 'test2':
+                $mark->test2 = $markData['value'];
+                break;
+            case 'exam_med':
+                $mark->exam_med = $markData['value'];
+                break;
+            case 'exam_final':
+                $mark->exam_final = $markData['value'];
+                break;
+            default:
+                return response()->json(['error' => 'Invalid mark type'], 400);
+        }
+
+        // حساب المجموع الجديد
+        $aggregate = ($mark->ponus ?? 0) + ($mark->homework ?? 0) + ($mark->oral ?? 0) + ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) + ($mark->exam_final ?? 0);
+
+        // تحديد حالة الطالب (ناجح/راسب)
+        $mark->state = ($aggregate > 50) ? 1 : 0;
+
+        // حفظ العلامة
+        $mark->save();
+    }
+
+    return response()->json(['success' => 'Marks updated successfully for all students in the section']);
+}
+
 
 
 

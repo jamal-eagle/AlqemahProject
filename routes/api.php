@@ -203,8 +203,6 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
 
     ////  عرض الاعلانات
     route::get('/desplay_publish', [AdminOperationController::class, 'desplay_publish']);
-    //اضافة علامة طالب
-    route::post('/add_mark_to_student/{student_id}', [AdminOperationController::class, 'add_mark_to_student']);
     // //اضافة للارشيف ملفات وصور
     // route::post('/add_files_and_paper', [AdminOperationController::class, 'add_files_and_paper']);
     //إنهاء و إعادة تفعيل مناقشة
@@ -291,6 +289,9 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //عرض السلف والباقي من الراتب والراتب للموظف
     route::get('desplay_maturitie_for_employee/{employee_id}/{year}/{month}', [AdminOperationController::class, 'desplay_maturitie_for_employee']);
 
+    //اضافة علامة جزئية معينة لمادة معينة لطلاب شعبة
+    Route::put('/add_marks_to_section/{section_id}',[AdminOperationController::class,'add_marks_to_section']);
+
     //اضافة شعبة لصف معين
     route::post('/add_section_for_class/{class_id}', [AdminOperationController::class, 'add_section']);
     //عرض الاساتذة في دورة معينة
@@ -322,9 +323,9 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/all_salary_employees_teacher', [AdminZaController::class, 'all_salary_employees_teacher']);
     Route::get('/desplay_employee_salary/{employee_id}',[AdminZaController::class,'desplay_employee_salary']);
 
-    
-    
-    
+
+
+
 });
 
 /*******************************************************monetor*******************************************************/
@@ -355,7 +356,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/info-teatcher/{teatcher_id}',[MonetorController::class,'info_teatcher']);
     //استعراض الدورات التي يعطي فيها مدرس
     route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
-    
+
     //تعديل برنامج دوام المدرس
     route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[MonetorController::class,'updateWeeklySchedule']);
     //عرض سجل دوام المدرس
@@ -403,7 +404,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //تعديل برنامج
     Route::post('update_program_section/{program_id}',[MonetorController::class,'update_program_section']);
     //عرض الملاحظات المقدمة عن الطالب
-    Route::get('desplay_student_nots/{student_id}',[AdminZaController::class,'desplay_student_nots']);    
+    Route::get('desplay_student_nots/{student_id}',[AdminZaController::class,'desplay_student_nots']);
     //الدورات التي سجل فيها الطالب
     route::get('/student_course/{student_id}',[AdminOperationController::class,'student_course']);
     //عرض شعب صف معين
@@ -421,10 +422,10 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
 
     //تعديل معلومات المدرس
     route::post('/update_teacher_profile/{teacher_id}',[AuthController::class,'update_teacher_profile']);
-    
+
     //اضافة ملفات لدورة
     route::post('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
-    
+
     //عرض تفاصيل دورة za
     route::get('display_info_course/{course_id}', [AdminZaController::class, 'display_info_course']);
     //عرض كل الموظفين من معليمن وموجهين وووو
@@ -484,9 +485,9 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //البحث عن طالب ضمن طلاب شعبة محددة
     Route::get('/search_student_in_section/{section_id}',[AdminZaController::class,'search_student_in_section']);
 
-    
 
-    
+
+
 
 });
 
@@ -538,7 +539,7 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     //عرض معلومات الطالب و صورته
     Route::get('/show_my_profile',[Student_operationController::class,'show_my_profile']);
     //تعديل معلومات الطالب الرقم العنوان و كلمة السر
-    Route::post('/edit_some_info_profile',[Student_operationController::class,'edit_some_info_profile']);  
+    Route::post('/edit_some_info_profile',[Student_operationController::class,'edit_some_info_profile']);
     //عرض ملفات و صور دورة محددة
     Route::get('/display_file_course/{course_id}',[Student_operationController::class,'display_file_course']);
 
