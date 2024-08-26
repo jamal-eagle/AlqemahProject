@@ -1414,7 +1414,7 @@ public function search_student(Request $request)
     }
 
     // تنفيذ الاستعلام
-    $student = $query->get();
+    $student = $query->with('student')->get();
 
     return response()->json($student);
 }
@@ -1442,34 +1442,58 @@ public function search_student(Request $request)
     }
 
     // تنفيذ الاستعلام
-    $student = $query->get();
+    $student = $query->with('student')->get();
 
     return response()->json($student);
 }
 
     //البحث عن أستاذ ضمن كل طلاب العام الدراسي
-    public function search_teacher(Request $request)
+//     public function search_teacher(Request $request)
+// {
+//     // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
+//     $keywords = explode(' ', $request->q);
+
+//     // إعداد استعلام أساسي
+//     $query = User::where('user_type', 'teacher')
+//                  ->where('status', '1');
+
+//     // إضافة شروط البحث لكل كلمة في الكلمات المفتاحية
+//     foreach ($keywords as $keyword) {
+//         $query->where(function ($subQuery) use ($keyword) {
+//             $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
+//                      ->orWhere('last_name', 'LIKE', "%{$keyword}%");
+//         });
+//     }
+
+//     // تنفيذ الاستعلام
+//     $teacher = $query->with('teacher')->get();
+
+//     return response()->json($teacher);
+// }
+
+public function search_teacher(Request $request)
 {
     // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
     $keywords = explode(' ', $request->q);
 
-    // إعداد استعلام أساسي
-    $query = User::where('user_type', 'teacher')
-                 ->where('status', '1');
+    // إعداد استعلام أساسي لجلب المدرسين فقط
+    $query = Teacher::whereHas('user', function($q) use ($keywords) {
+        $q->where('status', '1'); // التأكد أن المستخدم نشط
+        foreach ($keywords as $keyword) {
+            $q->where(function ($subQuery) use ($keyword) {
+                $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
+                         ->orWhere('last_name', 'LIKE', "%{$keyword}%");
+            });
+        }
+    });
 
-    // إضافة شروط البحث لكل كلمة في الكلمات المفتاحية
-    foreach ($keywords as $keyword) {
-        $query->where(function ($subQuery) use ($keyword) {
-            $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
-                     ->orWhere('last_name', 'LIKE', "%{$keyword}%");
-        });
-    }
+    // تنفيذ الاستعلام مع جلب معلومات المدرس ومعلومات المستخدم المرتبطة
+    $teachers = $query->with('user')->get();
 
-    // تنفيذ الاستعلام
-    $teacher = $query->get();
-
-    return response()->json($teacher);
+    return $teachers;
 }
+
+
     
 public function search_employee(Request $request)
 {
@@ -1492,6 +1516,177 @@ public function search_employee(Request $request)
 
     return response()->json($employee);
 }
+
+
+     //zahraa_edit
+    //معاشات المدرسين و الموظفيين بشكل أوتوماتيكي كل شهر
+    // public function salary_all()
+    // {
+    //     $teachers = User::where('user_type', 'teacher')->where('status', '1')->get();
+    //     $teacher_ids = [];
+    
+    //     foreach ($teachers as $t) {
+    //         $teacher = $t->teacher; // جلب العلاقة teacher
+    //         if ($teacher) {
+    //             $teacher_ids[] = $teacher->id; // جلب الـ id من جدول teacher
+    //         }
+    //     }
+    
+    //     // return $teacher_ids; // إرجاع قائمة الـ ids
+    // }
+//     public function salary_all()
+// {
+//     $teachers = User::where('user_type', 'teacher')->where('status', '1')->get();
+//     $teacher_ids = [];
+//     $salaries = []; // مصفوفة لتخزين الرواتب
+
+//     // استدعاء وحدة التحكم الأخرى
+//     $salaryController = new AdminOperationController(); // استبدل OtherController باسم الوحدة الصحيحة
+
+//     foreach ($teachers as $t) {
+//         $teacher = $t->teacher; // جلب العلاقة teacher
+//         if ($teacher) {
+//             $teacher_ids[] = $teacher->id; // جلب الـ id من جدول teacher
+            
+//             // استدعاء الدالة لحساب الراتب
+//             $year = date('Y'); // أو أي سنة تريدها
+//             $month = date('m'); // أو أي شهر تريد
+//             $salaryData = $salaryController->desplay_teacher_salary($teacher->id, $year, $month);
+
+//             // إضافة بيانات الراتب إلى المصفوفة
+//             $salaries[] = [
+//                 // 'teacher_id' => $teacher->id,
+//                 'salary_data' => $salaryData,
+//             ];
+//         }
+//     }
+
+//     return response()->json($salaries); // إرجاع قائمة الرواتب
+// }
+
+// public function salary_all()
+// {
+//     $teachers = User::where('user_type', 'teacher')->where('status', '1')->get();
+
+//     // استدعاء وحدة التحكم الأخرى
+//     $salaryController = new AdminOperationController(); // استبدل OtherController باسم الوحدة الصحيحة
+
+//     foreach ($teachers as $t) {
+//         $teacher = $t->teacher; // جلب العلاقة teacher
+//         if ($teacher) {
+//             // استدعاء الدالة لحساب الراتب
+//             $year = date('Y'); // السنة الحالية أو يمكنك تخصيصها
+//             $month = date('m'); // الشهر الحالي أو يمكنك تخصيصه
+//             $salaryData = $salaryController->desplay_teacher_salary($teacher->id, $year, $month);
+
+//             // تخزين بيانات الراتب في جدول teacher_salaries
+//             DB::table('teacher_salaries')->insert([
+//                 'salary_of_teacher' => $salaryData['total_salary'], // تأكد من وجود قيمة للراتب في الاستجابة
+//                 'month' => date('Y-m-d', strtotime($year . '-' . $month . '-01')), // تحديد تاريخ الشهر
+//                 'teacher_id' => $teacher->id, // ربط بالمعلم
+//                 'employee_id' => null, // ربط بالموظف (المستخدم)
+//                 'status' => 0, // حالة الراتب (لم يستلم الراتب)
+//                 'created_at' => now(),
+//                 'updated_at' => now(),
+//             ]);
+//         }
+//     }
+
+//     return response()->json(['message' => 'Salaries calculated and stored successfully']);
+// }
+
+
+   //zahraa_edit
+// public function desplay_employee_salary($employee_id, $year, $month)
+// {
+//     $employees = Employee::where('id',$employee_id)->whereHas('maturitie')
+// }
+
+
+//zahraa_edit
+public function desplay_employee_salary($employee_id)
+{
+    // استرجاع الموظف مع العلاقة المرتبطة maturitie
+    $employee = Employee::where('id', $employee_id)
+        ->with('maturitie') // جلب العلاقة maturitie
+        ->first();
+
+    // التأكد من أن الموظف موجود
+    if (!$employee) {
+        return response()->json(['error' => 'Employee not found'], 404);
+    }
+
+    // حساب مجموع المبالغ (amount) من جدول maturities
+    $totalMaturities = $employee->maturitie->sum('amount');
+
+    // حساب الراتب النهائي بعد خصم المبالغ
+    // $finalSalary = $employee->salary - $totalMaturities;
+
+    return response()->json([
+        'employee_id' => $employee->id,
+        'original_salary' => $employee->salary,
+        'total_maturities' => $totalMaturities,
+        // 'final_salary' => $finalSalary,
+    ]);
+}
+public function e ($employee_id)
+{
+    $employee = Employee::where('id', $employee_id)->first();
+    //عدد المعاشات يلي استلمت أو تحدد مصيرها
+    $num_salary = Salary::where('employee_id', $employee_id)->count();
+
+    //معاشه السنوي للأشهر السابقة دون حذف السلف
+    $sum_salary_orginal = $employee->salary * $num_salary;
+    
+
+
+}
+
+
+public function salary_all()
+{
+    $teachers = User::where('user_type', 'teacher')->where('status', '1')->get();
+
+    // استدعاء وحدة التحكم الأخرى
+    $salaryController = new AdminOperationController(); // استبدل OtherController باسم الوحدة الصحيحة
+
+    foreach ($teachers as $t) {
+        $teacher = $t->teacher; // جلب العلاقة teacher
+        if ($teacher) {
+            // استدعاء الدالة لحساب الراتب
+            $year = date('Y'); // السنة الحالية أو يمكنك تخصيصها
+            $month = date('m'); // الشهر الحالي أو يمكنك تخصيصه
+            $salaryResponse = $salaryController->desplay_teacher_salary($teacher->id, $year, $month);
+
+            // تحويل الاستجابة إلى كائن أو مصفوفة
+            $salaryData = $salaryResponse->getData(true); // تحويل الاستجابة إلى مصفوفة
+
+            // التحقق من وجود بيانات الراتب
+            if (isset($salaryData[2])) { // الوصول إلى الراتب (العنصر الثالث في المصفوفة التي يتم إرجاعها)
+                // تخزين بيانات الراتب في جدول teacher_salaries
+                DB::table('salary')->insert([
+                    'salary_of_teacher' => $salaryData[2], // الراتب النهائي
+                    'month' => date('Y-m-d', strtotime($year . '-' . $month . '-01')), // تحديد تاريخ الشهر
+                    'teacher_id' => $teacher->id, // ربط بالمعلم
+                    'employee_id' => null, // ربط بالموظف (المستخدم)
+                    'status' => 0, // حالة الراتب (لم يستلم الراتب)
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                // التعامل مع الحالة إذا لم توجد البيانات المطلوبة
+                return response()->json(['error' => 'Salary data not found'], 404);
+            }
+        }
+    }
+
+    return response()->json(['message' => 'Salaries calculated and stored successfully']);
+}
+
+
+
+
+    
 
     /**********************************جدوى**********************************/
 
@@ -1716,19 +1911,85 @@ public function all_Maturitie(Request $request)
     ]);
 }
 
-// public function all_salary_employees(Request $request)
+// public function all_salary_employees_teacher(Request $request)
 // {
-//    //استرداد جميع النفقات
-//     $salary = Employee::all();
+// //    //استرداد جميع النفقات
+// //     $salary = Employee::all();
 
-//     // جمع التكلفة الإجمالية للنفقات
-//     $sum_salary = $salary->sum('salary');
+// //     // جمع التكلفة الإجمالية للنفقات
+// //     $sum_salary = $salary->sum('salary');
 
-//     return response()->json([
-//         'total_salary_employee' => $sum_salary,
-//         'employee' => $salary,
-//     ]);
+// //     return response()->json([
+// //         'total_salary_employee' => $sum_salary,
+// //         'employee' => $salary,
+// //     ]);
+
+// $employees = Employee::where('status', '1')->whereHas('salary', sum('salary_of_teacher'))->first();
+// return $employees;
+
 // }
+
+// public
+public function all_salary_employees_teacher(Request $request)
+{
+    // استرداد جميع الموظفين الذين لهم رواتب وحالتهم نشطة
+    $employees = Employee::where('status', '1')
+        ->with('salary') // جلب العلاقة salary
+        ->get();
+
+    // جمع التكلفة الإجمالية لرواتب الموظفين
+    $sum_salary = $employees->sum(function($employee) {
+        return $employee->salary->sum('salary_of_teacher');
+    });
+
+    return response()->json([
+        'total_salary_employee' => $sum_salary,
+        'employees' => $employees,
+    ]);
+}
+
+
+
+   //zahraa_edit
+   public function all_money_from_breake_bus()
+   {
+    // إنشاء الاستعلام الأساسي
+    $query = Breake::query();
+
+    // تصفية حسب اليوم
+    // if ($request->has('day') && !empty($request->day)) {
+    //     $query->whereDay('date', $request->day);
+    // }
+
+    // تصفية حسب الشهر
+    if ($request->has('month') && !empty($request->month)) {
+        $query->whereMonth('date', $request->month);
+    }
+
+    // تصفية حسب السنة
+    if ($request->has('year') && !empty($request->year)) {
+        $query->whereYear('date', $request->year);
+    }
+
+    // تصفية حسب السنة الدراسية
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        // إضافة شرط السنة الدراسية إلى الاستعلام
+        $query->where('year', $request->year_studey);
+    }
+
+    // الحصول على قائمة النفقات
+    $expenses = $query->get();
+
+    // حساب مجموع التكلفة الإجمالية للنفقات
+    $sum_expenses = $expenses->sum('total_cost');
+
+    // إرجاع النتيجة بصيغة JSON
+    return response()->json([
+        'total_expenses' => $sum_expenses,
+        'expenses' => $expenses,
+    ]);
+
+   }
 
 
 

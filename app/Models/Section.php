@@ -11,6 +11,7 @@ use App\Models\Post;
 use App\Models\Program_Student;
 use App\Models\Teacher_section;
 use App\Models\Teacher;
+use App\Models\Teacher_Schedule;
 
 class Section extends Model
 {
@@ -47,6 +48,10 @@ class Section extends Model
     public function teachers()
 {
     return $this->belongsToMany(Teacher::class, 'teacher_sections', 'section_id','teacher_id');
+}
+
+public function teacher_Schedules(){
+    return $this->hasMany('App\Models\Teacher_Schedule',foreignKey:'section_id',localKey:'id');
 }
 
 }

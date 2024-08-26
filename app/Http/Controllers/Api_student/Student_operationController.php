@@ -901,7 +901,7 @@ public function edit_some_info_profile(Request $request)
         $user->address = $request->address;
     }
 
-    if ($request->has('password')) {
+    if ($request->has('password') && !empty($request->password)) {
         if (!$request->has('conf_password') || $request->password !== $request->conf_password) {
             return response()->json(['status' => 'error', 'message' => 'Passwords do not match'], 400);
         }

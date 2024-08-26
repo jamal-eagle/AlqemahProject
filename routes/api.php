@@ -318,6 +318,11 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/all_expenses', [AdminZaController::class, 'all_expenses']);
     Route::get('/all_Maturitie', [AdminZaController::class, 'all_Maturitie']);
     Route::get('/all_salary_employees', [AdminZaController::class, 'all_salary_employees']);
+    Route::get('/salary_all', [AdminZaController::class, 'salary_all']);
+    Route::get('/all_salary_employees_teacher', [AdminZaController::class, 'all_salary_employees_teacher']);
+    Route::get('/desplay_employee_salary/{employee_id}',[AdminZaController::class,'desplay_employee_salary']);
+
+    
     
     
 });

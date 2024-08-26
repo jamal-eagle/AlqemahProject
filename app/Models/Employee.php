@@ -34,4 +34,9 @@ public function maturitie()
         return $this->hasMany('App\Models\Maturitie',foreignKey:'employee_id');
     }
 
+    public function salary()
+    {
+        return $this->hasMany('App\Models\Salary',foreignKey:'employee_id',localKey:'id');
+    }
+
 }

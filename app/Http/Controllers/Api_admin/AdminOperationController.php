@@ -785,6 +785,7 @@ public function updateWeeklySchedule(Request $request, $teacher_id)
                 'day_of_week' => $scheduleData['day_of_week'],
                 'start_time' => $scheduleData['start_time'],
                 'end_time' => $scheduleData['end_time'],
+                'section_id' => $scheduleData['section_id'],
             ]);
         }
 

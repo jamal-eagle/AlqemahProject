@@ -58,8 +58,12 @@ class User extends Authenticatable
         return $this->hasMany('App\Models\Note',foreignKey:'user_id',localKey:'id');
     }
 
-    public function teacher(){
-        return $this->hasMany('App\Models\Teacher',foreignKey:'user_id',localKey:'id');
+    // public function teacher(){
+    //     return $this->hasMany('App\Models\Teacher',foreignKey:'user_id',localKey:'id');
+    // }
+    public function teacher()
+    {
+        return $this->hasOne('App\Models\Teacher',foreignKey:'user_id');
     }
 
 
