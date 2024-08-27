@@ -259,8 +259,7 @@ class MonetorController extends Controller
         return response()->json(['message' => 'Teacher weekly schedule updated successfully'], 200);
 }
 
-
-    public function getTeacherWorkSchedule($teacher_id, $year, $month)
+public function getTeacherWorkSchedule($teacher_id, $year, $month)
 {
     // استرجاع سجل غياب المدرس خلال الشهر المحدد
     $absences = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
@@ -284,8 +283,11 @@ class MonetorController extends Controller
     // إضافة أيام العمل التي لم يتم فيها الغياب مع عدد ساعات العمل
     for ($day = 1; $day <= $daysInMonth; $day++) {
         $date = Carbon::create($year, $month, $day);
+        $dayOfWeek = $date->format('l'); // يوم الأسبوع كاسم النصي، مثل "Sunday"
+
         if ($date->dayOfWeek != Carbon::FRIDAY && $date->dayOfWeek != Carbon::SATURDAY) {
-            $workHours = $this->getWorkingHoursForDay($teacher_id, $date);
+            $workHours = $this->getWorkingHoursForDay($teacher_id, $dayOfWeek);
+
             if ($workHours > 0 && !in_array($date->format('Y-m-d'), $absences)) {
                 $workSchedule[] = [
                     'date' => $date->format('Y-m-d'),
@@ -303,29 +305,35 @@ class MonetorController extends Controller
     ]);
 }
 
-    // دالة لاستخراج عدد ساعات العمل ليوم معين
-    private function getWorkingHoursForDay($teacher_id, $dayOfWeek)
+// دالة لاستخراج عدد ساعات العمل ليوم معين
+private function getWorkingHoursForDay($teacher_id, $dayOfWeek)
 {
     // استرجاع بيانات الدوام لهذا اليوم
-    $workSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)
+    $workSchedules = Teacher_Schedule::where('teacher_id', $teacher_id)
         ->where('day_of_week', $dayOfWeek)
-        ->first();
+        ->get();
 
-    if ($workSchedule) {
-        // التحقق من وجود بيانات البداية والنهاية
+    if ($workSchedules->isEmpty()) {
+        // إذا لم يتم العثور على أي جدول دوام لهذا اليوم
+        return 0;
+    }
+
+    $totalWorkingHours = 0;
+
+    foreach ($workSchedules as $workSchedule) {
         if (!empty($workSchedule->start_time) && !empty($workSchedule->end_time)) {
             // حساب عدد ساعات العمل بين وقت البداية ووقت النهاية
             $startTime = Carbon::createFromFormat('H:i:s', $workSchedule->start_time);
             $endTime = Carbon::createFromFormat('H:i:s', $workSchedule->end_time);
             $workingHours = $endTime->diffInHours($startTime);
-            return $workingHours;
-        } else {
-            return 0; // إذا كانت القيم غير متوفرة
+            $totalWorkingHours += $workingHours;
         }
     }
 
-    return 0; // إذا لم يتم العثور على برنامج دوام لهذا اليوم
+    return $totalWorkingHours;
 }
+
+
 public function calculatemonthlyattendance($teacher_id, $year, $month)
 {
     // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
@@ -425,17 +433,25 @@ public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month
         // تحقق مما إذا كان اليوم هو يوم عمل للمعلم وليس عطلة
         $isHoliday = $holidays->contains($date->format('Y-m-d'));
         $isWeekend = in_array($date->format('l'), ['Friday', 'Saturday']);
-        $schedule = $teacherSchedule->firstWhere('day_of_week', $dayOfWeek);
 
-        if ($schedule && !$isHoliday && !$isWeekend) {
-            // حساب عدد ساعات العمل بين وقت البداية ووقت النهاية
-            $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
-            $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
-            $workingHours = $endTime->diffInHours($startTime);
+        if (!$isHoliday && !$isWeekend) {
+            // استرجاع جميع الفترات في اليوم الحالي
+            $schedules = $teacherSchedule->where('day_of_week', $dayOfWeek);
+
+            $totalWorkingHours = 0;
+
+            foreach ($schedules as $schedule) {
+                // حساب عدد ساعات العمل بين وقت البداية ووقت النهاية
+                $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
+                $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
+                $workingHours = $endTime->diffInHours($startTime);
+
+                $totalWorkingHours += $workingHours;
+            }
 
             $attendanceDetails[] = [
                 'date' => $date->format('l d-m-Y'),  // صيغة التاريخ
-                'working_hours' => $workingHours,
+                'working_hours' => $totalWorkingHours,
             ];
         } else {
             $attendanceDetails[] = [

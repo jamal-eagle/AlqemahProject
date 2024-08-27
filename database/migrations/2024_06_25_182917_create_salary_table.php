@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->double('salary_of_teacher');
             $table->date('month');
+            $table->string('year');
             $table->foreignIdFor(Teacher::class,'teacher_id')->nullable();
             $table->foreignIdFor(Teacher::class,'employee_id')->nullable();
             $table->tinyInteger('status')->default(0);//استلم المعاش = 1 ، لم يستلم المعاش = 0;

@@ -13,6 +13,7 @@ class Salary extends Model
     protected $fillable = [
         'salary_of_teacher',
         'month',
+        'year',
         'teacher_id',
         'employee_id',
         'status',

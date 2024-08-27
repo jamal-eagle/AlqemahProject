@@ -136,8 +136,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[AdminOperationController::class,'updateWeeklySchedule']);
     // اضافة يوم غياب للمدرس و الموظف
     Route::post('/add_teachers_and_employee_absence', [AdminOperationController::class, 'addAbsenceForTeacherandemployee']);
-    // استعراض راتب المدرس
-    Route::get('/desplay_teacher_salary/{teacher_id}/){year}/{month}',[AdminOperationController::class,'desplay_teacher_salary']);
+    // استعراض راتب المدرس    هذا مو شغال
+    Route::get('/desplay_teacher_salary/{teacher_id}/{year}/{month}',[AdminOperationController::class,'desplay_teacher_salary']);
     //عدد ساعات العمل لمدرس
     Route::get('/getworkhour/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkhour']);
     //استعراض الدورات التي يعطي فيها مدرس
@@ -186,8 +186,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/get_teacher_profile/{teacher_id}',[AuthController::class,'get_teacher_profile']);
     //تعديل معلومات المدرس
     route::post('/update_teacher_profile/{teacher_id}',[AuthController::class,'update_teacher_profile']);
-    //ادخال برنامج دوام المدرس
-    route::post('/add_Weekly_Schedule_for_teacher/{teacher_id}',[AdminOperationController::class,'addTeacherSchedule']);
+    //ادخال برنامج دوام المدرس   /////  استخدمنا واحد غيره  تبع التعديل
+    //route::post('/add_Weekly_Schedule_for_teacher/{teacher_id}',[AdminOperationController::class,'addTeacherSchedule']);
     //عرض ايام دوام المدرس
     route::get('/get_monthly_attendance_teacher/{teacher_id}/{year}/{month}',[AdminOperationController::class,'calculatemonthlyattendance']);
     //عرض غيابات المدرس
@@ -369,10 +369,10 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //استعراض الدورات التي يعطي فيها مدرس
     route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
 
-    //تعديل برنامج دوام المدرس
+    //  تعديل برنامج دوام المدرس   //  صار الكل بالكل للاضافة والتعديل
     route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[MonetorController::class,'updateWeeklySchedule']);
     //عرض سجل دوام المدرس
-    route::put('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[MonetorController::class,'getteacherworkschedule']);
+    route::get('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[MonetorController::class,'getteacherworkschedule']);
     //عرض ايام دوام المدرس
     route::get('/get_monthly_attendance_teacher/{teacher_id}/{year}/{month}',[MonetorController::class,'calculatemonthlyattendance']);
     //عرض غيابات المدرس
@@ -500,9 +500,8 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/display_all_class',[AdminZaController::class,'display_all_class']);
     //عرض شعب مدرس حسب صف محدد
     Route::get('/display_section_for_class_teacher/{class_id}/{teacher_id}',[AdminZaController::class,'display_section_for_class_teacher']);
-    //ادخال برنامج دوام المدرس
-    route::post('/add_Weekly_Schedule_for_teacher/{teacher_id}',[AdminOperationController::class,'addTeacherSchedule']);
-
+    //تعديل برنامج دوام المدرس
+    route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[AdminOperationController::class,'updateWeeklySchedule']);
     //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
     Route::get('/display_year_archive/{subject_id}',[Student_operationController::class,'display_year_archive']);
 

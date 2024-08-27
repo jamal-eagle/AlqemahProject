@@ -27,8 +27,6 @@ class Teacher extends Model
 
     protected $fillable = [
         'cost_hour',
-        'num_hour_added',
-        'note_hour_added',
         'user_id',
         'course_id',
         'certificate',
@@ -41,6 +39,10 @@ public function classs(){
     return $this->belongsTo('App\Models\Classs',foreignKey:'classs_id');
 }
 
+public function hour_added()
+{
+    return $this->hasMany('App\Models\Hour_Added',foreignKey:'teacher_id',localKey:'id');
+}
 
 
     public function course()
@@ -109,6 +111,11 @@ public function salary()
 public function maturitie()
     {
         return $this->hasMany('App\Models\Maturitie',foreignKey:'teacher_id',localKey:'id');
+    }
+
+    public function totalHoursAdded()
+    {
+        return $this->hour_added->sum('num_hour_added');
     }
 
 }
