@@ -8,6 +8,8 @@ use App\Models\Teacher;
 class Salary extends Model
 {
     use HasFactory;
+    protected $table = 'salary';
+
     protected $fillable = [
         'salary_of_teacher',
         'month',

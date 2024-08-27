@@ -2480,84 +2480,178 @@ public function desplay_maturitie_for_employee($employee_id,$year,$month)
 }
 
 public function add_marks_to_section(Request $request, $section_id)
-{
-    $section = Section::find($section_id);
-    if (!$section) {
+    {
+        $section = Section::find($section_id);
+        if (!$section) {
+            return response()->json(['error' => 'Section not found'], 404);
+        }
 
-        return response()->json(['error' => 'Section not found'], 404);
+        // التحقق من صحة البيانات المرسلة
+        $validator = Validator::make($request->all(), [
+            'mark_type' => 'required|in:ponus,homework,oral,test1,test2,exam_med,exam_final',
+            'subject_id' => 'required|exists:subjects,id',  // التحقق من وجود المادة
+            'marks' => 'required|array',
+            'marks.*.student_id' => 'required|exists:students,id',  // التحقق من وجود الطالب
+            'marks.*.value' => 'required|numeric',  // قيمة العلامة للجزء المحدد
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $subject_id = $request->input('subject_id');
+        if (!$subject_id) {
+            return response()->json(['error' => 'Subject not found'], 404);
+        }
+
+        foreach ($request->marks as $markData) {
+            // البحث عن العلامة الموجودة للطالب في المادة
+            $mark = Mark::where('student_id', $markData['student_id'])
+                        ->where('subject_id', $subject_id)
+                        ->first();
+
+            if (!$mark) {
+                // إذا لم يكن هناك علامة سابقة، قم بإنشاء علامة جديدة
+                $mark = new Mark;
+                $mark->student_id = $markData['student_id'];
+                $mark->subject_id = $subject_id;
+            }
+
+            // تحديث الجزء المحدد من العلامة فقط
+            $mark_type = $request->input('mark_type');
+            switch ($mark_type) {
+                case 'ponus':
+                    $mark->ponus = $markData['value'];
+                    break;
+                case 'homework':
+                    $mark->homework = $markData['value'];
+                    break;
+                case 'oral':
+                    $mark->oral = $markData['value'];
+                    break;
+                case 'test1':
+                    $mark->test1 = $markData['value'];
+                    break;
+                case 'test2':
+                    $mark->test2 = $markData['value'];
+                    break;
+                case 'exam_med':
+                    $mark->exam_med = $markData['value'];
+                    break;
+                case 'exam_final':
+                    $mark->exam_final = $markData['value'];
+                    break;
+                default:
+                    return response()->json(['error' => 'Invalid mark type'], 400);
+            }
+
+            // التحقق من وجود exam_final قبل حساب المحصلة النهائية وتحديد حالة الطالب
+            if ($mark->exam_final !== null) {
+                $finalScore  =  $mark->ponus + $mark->homework + $mark->oral
+                                + $mark->test1 + $mark->test2 + $mark->exam_med + $mark->exam_final;
+
+                $mark->state = ($finalScore >= 50) ? 1 : 0;
+            } else {
+                // إذا لم تكن علامة الامتحان النهائي موجودة، اجعل حقل state null
+                $mark->state = null;
+            }
+
+            // حفظ العلامة
+            $mark->save();
+        }
+
+        return response()->json(['success' => 'Marks updated successfully for all students in the section']);
+}
+
+public function calculateStudentMarks(Request $request, $student_id)
+{
+    // تحقق من وجود الطالب
+    $student = Student::find($student_id);
+    if (!$student) {
+        return response()->json(['error' => 'Student not found'], 404);
     }
-    // التحقق من صحة البيانات المرسلة
+
+    // تحقق من صحة المدخلات
     $validator = Validator::make($request->all(), [
-        'mark_type'=>'required|in:ponus,homework,oral,test1,test2,exam_med,exam_final',
-        'subject_id' => 'required|exists:subjects,id',  // التحقق من وجود المادة
-        'marks' => 'required|array',
-        'marks.*.student_id' => 'required|exists:students,id',  // التحقق من وجود الطالب
-        'marks.*.value' => 'required|numeric',  // قيمة العلامة للجزء المحدد
+        'subject_id' => 'required|exists:subjects,id', // تأكد من أن subject_id موجودة في جدول subjects
     ]);
 
     if ($validator->fails()) {
         return response()->json(['errors' => $validator->errors()], 422);
     }
 
-    $subject_id = $request->input('subject_id');
-    if (!$subject_id) {
+    // البحث عن السجل في جدول marks
+    $mark = Mark::where('student_id', $student_id)
+                ->where('subject_id', $request->input('subject_id'))
+                ->first();
 
-        return response()->json(['error' => 'subject not found'], 404);
+    if (!$mark) {
+        return response()->json(['error' => 'Mark record not found'], 404);
     }
 
-    foreach ($request->marks as $markData) {
-        // البحث عن العلامة الموجودة للطالب في المادة
-        $mark = Mark::where('student_id', $markData['student_id'])
-                    ->where('subject_id', $subject_id)
-                    ->first();
+    if ($mark->exam_final !== null) {
+        $finalScore  =  $mark->ponus + $mark->homework + $mark->oral
+                        + $mark->test1 + $mark->test2 + $mark->exam_med + $mark->exam_final;
 
-        if (!$mark) {
-            // إذا لم يكن هناك علامة سابقة، قم بإنشاء علامة جديدة
-            $mark = new Mark;
-            $mark->student_id = $markData['student_id'];
-            $mark->subject_id = $subject_id;
-        }
-        $mark_type = $request->input('mark_type');
-        // تحديث الجزء المحدد من العلامة فقط
-        switch ($mark_type) {
-            case 'ponus':
-                $mark->ponus = $markData['value'];
-                break;
-            case 'homework':
-                $mark->homework = $markData['value'];
-                break;
-            case 'oral':
-                $mark->oral = $markData['value'];
-                break;
-            case 'test1':
-                $mark->test1 = $markData['value'];
-                break;
-            case 'test2':
-                $mark->test2 = $markData['value'];
-                break;
-            case 'exam_med':
-                $mark->exam_med = $markData['value'];
-                break;
-            case 'exam_final':
-                $mark->exam_final = $markData['value'];
-                break;
-            default:
-                return response()->json(['error' => 'Invalid mark type'], 400);
-        }
-
-        // حساب المجموع الجديد
-        $aggregate = ($mark->ponus ?? 0) + ($mark->homework ?? 0) + ($mark->oral ?? 0) + ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) + ($mark->exam_final ?? 0);
-
-        // تحديد حالة الطالب (ناجح/راسب)
-        $mark->state = ($aggregate > 50) ? 1 : 0;
-
-        // حفظ العلامة
-        $mark->save();
+        $mark->state = ($finalScore >= 50) ? 1 : 0;
+    } else {
+        // إذا لم تكن علامة الامتحان النهائي موجودة، اجعل حقل state null
+        $mark->state = null;
     }
 
-    return response()->json(['success' => 'Marks updated successfully for all students in the section']);
+    // حفظ النتيجة في قاعدة البيانات
+    $mark->save();
+
+    // إرجاع النتيجة النهائية والحالة
+    return response()->json(['final_score' => $finalScore, 'state' => $mark->state]);
 }
 
+
+public function calculateAllStudentMarks($student_id)
+    {
+    // تحقق من وجود الطالب
+    $student = Student::find($student_id);
+    if (!$student) {
+        return response()->json(['error' => 'Student not found'], 404);
+    }
+
+    // جلب جميع السجلات في جدول marks التي تخص الطالب
+    $marks = Mark::where('student_id', $student_id)->get();
+
+    if ($marks->isEmpty()) {
+        return response()->json(['error' => 'No marks found for the student'], 404);
+    }
+
+    $results = [];
+
+    foreach ($marks as $mark) {
+        if ($mark->exam_final !== null) {
+            // حساب النتيجة النهائية
+            $finalScore  =  $mark->ponus + $mark->homework + $mark->oral
+                            + $mark->test1 + $mark->test2 + $mark->exam_med + $mark->exam_final;
+
+            // تحديد حالة النجاح أو الرسوب
+            $mark->state = ($finalScore >= 50) ? 1 : 0;
+        } else {
+            // إذا لم تكن علامة الامتحان النهائي موجودة، اجعل حقل state null
+            $mark->state = null;
+            $finalScore = null; // لا يمكن حساب النتيجة النهائية
+        }
+
+        // حفظ النتيجة في قاعدة البيانات
+        $mark->save();
+
+        // تخزين النتائج في مصفوفة النتائج
+        $results[] = [
+            'subject_id' => $mark->subject_id,
+            'final_score' => $finalScore,
+            'state' => $mark->state
+        ];
+    }
+
+    // إرجاع النتيجة النهائية والحالة لكل مادة
+    return response()->json(['results' => $results]);
+}
 
 
 

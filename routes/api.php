@@ -137,7 +137,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     // اضافة يوم غياب للمدرس و الموظف
     Route::post('/add_teachers_and_employee_absence', [AdminOperationController::class, 'addAbsenceForTeacherandemployee']);
     // استعراض راتب المدرس
-    Route::get('/desplay_teacher_salary/{teacher_id}',[AdminOperationController::class,'desplay_teacher_salary']);
+    Route::get('/desplay_teacher_salary/{teacher_id}/){year}/{month}',[AdminOperationController::class,'desplay_teacher_salary']);
     //عدد ساعات العمل لمدرس
     Route::get('/getworkhour/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkhour']);
     //استعراض الدورات التي يعطي فيها مدرس
@@ -291,6 +291,11 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
 
     //اضافة علامة جزئية معينة لمادة معينة لطلاب شعبة
     Route::put('/add_marks_to_section/{section_id}',[AdminOperationController::class,'add_marks_to_section']);
+    //لمعرفة هل الطالب ناجح ام راسب في مادة معينة
+    Route::post('/calculateStudentMarks/{student_id}',[AdminOperationController::class,'calculateStudentMarks']);
+    //لمعرفة هل الطالب ناجح ام راسب في جميع المواد ة
+    Route::get('/calculateAllStudentMarks/{student_id}',[AdminOperationController::class,'calculateAllStudentMarks']);
+
 
     //اضافة شعبة لصف معين
     route::post('/add_section_for_class/{class_id}', [AdminOperationController::class, 'add_section']);
@@ -324,7 +329,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/desplay_employee_salary/{employee_id}',[AdminZaController::class,'desplay_employee_salary']);
     //عرض جميع صفوف المعهد
     Route::get('/display_all_class',[AdminZaController::class,'display_all_class']);
-    //عرض شعب مدرس حسب صف محدد 
+    //عرض شعب مدرس حسب صف محدد
     Route::get('/display_section_for_class_teacher/{class_id}/{teacher_id}',[AdminZaController::class,'display_section_for_class_teacher']);
     //عرض طلاب سنة محددة
     Route::get('/desplay_all_student_regester_in_year/{year}',[AdminZaController::class,'desplay_all_student_regester_in_year']);
@@ -332,7 +337,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/desplay_all_teacher_regester_in_year/{year}',[AdminZaController::class,'desplay_all_teacher_regester_in_year']);
 
 
-
+    Route::delete('/delete_comment/{comment_id}',[PostController::class,'deleteComment']);
 });
 
 /*******************************************************monetor*******************************************************/
@@ -493,16 +498,16 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/search_student_in_section/{section_id}',[AdminZaController::class,'search_student_in_section']);
     //عرض جميع صفوف المعهد
     Route::get('/display_all_class',[AdminZaController::class,'display_all_class']);
-    //عرض شعب مدرس حسب صف محدد 
+    //عرض شعب مدرس حسب صف محدد
     Route::get('/display_section_for_class_teacher/{class_id}/{teacher_id}',[AdminZaController::class,'display_section_for_class_teacher']);
     //ادخال برنامج دوام المدرس
     route::post('/add_Weekly_Schedule_for_teacher/{teacher_id}',[AdminOperationController::class,'addTeacherSchedule']);
-    
+
     //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
     Route::get('/display_year_archive/{subject_id}',[Student_operationController::class,'display_year_archive']);
 
 
-
+    Route::delete('/delete_comment/{comment_id}',[PostController::class,'deleteComment']);
 
 });
 
