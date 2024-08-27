@@ -210,9 +210,10 @@ if($user){
             $token = $parent->createToken("auth_token")->plainTextToken;
             /// send a response
             return response()->json([
-        'User login successfully',
-        'token'=>$token,
-    ]);
+                'User login successfully',
+                'token'=>$token,
+                'user' => $parent,
+            ]);
         }
     }
     elseif (isset($parent->id) && $parent->status == '0') {

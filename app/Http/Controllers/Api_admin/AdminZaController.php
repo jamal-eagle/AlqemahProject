@@ -43,6 +43,7 @@ use App\Models\Program_Student;
 use App\Models\Teacher_subject;
 use App\Models\Fee_School;
 use App\Models\Post;
+use App\Models\Teacher_section;
 
 class AdminZaController extends BaseController
 {
@@ -1683,7 +1684,55 @@ public function salary_all()
     return response()->json(['message' => 'Salaries calculated and stored successfully']);
 }
 
+    //عرض جميع صفوف المعهد
+public function display_all_class()
+{
+    $class = Classs::all();
 
+    return $class;
+}
+
+    //عرض شعب مدرس حسب صف محدد
+    public function display_section_for_class_teacher($class_id, $teacher_id)
+    {
+        // جلب الأقسام التي يدرسها المدرس
+        $sections_teacher = Teacher_section::where('teacher_id', $teacher_id)
+                                            // ->where('class_id', $class_id)
+                                            ->get();
+    
+        $result = [];
+        foreach ($sections_teacher as $section) {
+            // جلب القسم المرتبط بالفصل وبالمدرس
+            $section_class_teacher = Section::where('id', $section->section_id)
+                                            ->where('class_id', $class_id)
+                                            ->first();
+            if ($section_class_teacher) {
+                $result[] = $section_class_teacher;
+            }
+        }
+    
+        // التحقق إذا كانت النتيجة فارغة
+        if (empty($result)) {
+            return response()->json(["message" => "This teacher does not have sections in this class"], 404);
+        }
+    
+        return response()->json($result);
+    }
+
+
+    //عرض طلاب سنة محددة
+    public function desplay_all_student_regester_in_year($year)
+    {
+        $student = User::where('year',$year)->where('user_type', 'student')->with('student')->get();
+        return response()->json([$student,'all student regester here']);
+    }
+
+    public function desplay_all_teacher_regester_in_year($year)
+    {
+        $student = User::where('year',$year)->where('user_type', 'teacher')->with('teacher')->get();
+        return response()->json([$student,'all teacher regester here']);
+    }
+    
 
 
     

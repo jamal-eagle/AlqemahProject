@@ -322,7 +322,14 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/salary_all', [AdminZaController::class, 'salary_all']);
     Route::get('/all_salary_employees_teacher', [AdminZaController::class, 'all_salary_employees_teacher']);
     Route::get('/desplay_employee_salary/{employee_id}',[AdminZaController::class,'desplay_employee_salary']);
-
+    //عرض جميع صفوف المعهد
+    Route::get('/display_all_class',[AdminZaController::class,'display_all_class']);
+    //عرض شعب مدرس حسب صف محدد 
+    Route::get('/display_section_for_class_teacher/{class_id}/{teacher_id}',[AdminZaController::class,'display_section_for_class_teacher']);
+    //عرض طلاب سنة محددة
+    Route::get('/desplay_all_student_regester_in_year/{year}',[AdminZaController::class,'desplay_all_student_regester_in_year']);
+    //
+    Route::get('/desplay_all_teacher_regester_in_year/{year}',[AdminZaController::class,'desplay_all_teacher_regester_in_year']);
 
 
 
@@ -484,7 +491,15 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/search_employee',[AdminZaController::class,'search_employee']);
     //البحث عن طالب ضمن طلاب شعبة محددة
     Route::get('/search_student_in_section/{section_id}',[AdminZaController::class,'search_student_in_section']);
-
+    //عرض جميع صفوف المعهد
+    Route::get('/display_all_class',[AdminZaController::class,'display_all_class']);
+    //عرض شعب مدرس حسب صف محدد 
+    Route::get('/display_section_for_class_teacher/{class_id}/{teacher_id}',[AdminZaController::class,'display_section_for_class_teacher']);
+    //ادخال برنامج دوام المدرس
+    route::post('/add_Weekly_Schedule_for_teacher/{teacher_id}',[AdminOperationController::class,'addTeacherSchedule']);
+    
+    //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
+    Route::get('/display_year_archive/{subject_id}',[Student_operationController::class,'display_year_archive']);
 
 
 
