@@ -338,6 +338,12 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
 
 
     Route::delete('/delete_comment/{comment_id}',[PostController::class,'deleteComment']);
+    //لاضافة الساعات الاضافية
+    Route::post('/add_extrahour/{teacher_id}',[AdminOperationController::class,'add_extrahour']);
+    //لتعديل الساعات الاضافية
+    Route::put('/update_extrahour/{teacher_id}',[AdminOperationController::class,'update_extrahour']);
+    //لحذف الساعات الاضافية
+    Route::delete('/delete_extrahour/{teacher_id}/{hour_id}',[AdminOperationController::class,'delete_extrahour']);
 });
 
 /*******************************************************monetor*******************************************************/
@@ -450,7 +456,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/all_course',[DisplayController::class,'all_course']);
 
     //رفض طلب تسجيل في دورة
-    route::post('no_order_course/{order_id}', [AdminZaController::class, 'no_order_course']); 
+    route::post('no_order_course/{order_id}', [AdminZaController::class, 'no_order_course']);
 
     //عرض برنامج دوام شعبة
     Route::get('/programe_week/{section_id}', [AdminZaController::class, 'programe_week']);

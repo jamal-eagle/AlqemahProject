@@ -39,7 +39,7 @@ use App\Models\Maturitie;
 use App\Models\Section;
 use App\Models\Subject;
 use App\Models\Teacher_subject;
-
+use App\Models\Hour_Added;
 class AdminOperationController extends BaseController
 {
 
@@ -2713,8 +2713,93 @@ public function calculateAllStudentMarks($student_id)
     return response()->json(['results' => $results]);
 }
 
+public function add_extrahour($teacher_id, Request $request)
+    {
+        // التحقق من صحة البيانات المدخلة
+        $validatedData = $request->validate([
+            'num_hour_added' => 'required|integer|min:1',
+            'note_hour_added' => 'nullable|string',
+        ]);
+
+        // التحقق من وجود المدرس
+        $teacher = Teacher::find($teacher_id);
+        if (!$teacher) {
+            return response()->json(['message' => 'Teacher not found'], 404);
+        }
+
+        // إضافة الساعات الإضافية
+        $hourAdded = Hour_Added::create([
+            'teacher_id' => $teacher_id,
+            'num_hour_added' => $validatedData['num_hour_added'],
+            'note_hour_added' => $validatedData['note_hour_added'],
+        ]);
+
+        return response()->json([
+            'message' => 'Extra hours added successfully',
+            'hour_added' => $hourAdded
+        ], 201);
+    }
 
 
+public function update_extrahour($teacher_id, $id, Request $request)
+    {
+        // التحقق من صحة البيانات المدخلة
+        $validatedData = $request->validate([
+            'num_hour_added' => 'required|integer|min:1',
+            'note_hour_added' => 'nullable|string',
+        ]);
+
+        // التحقق من وجود المدرس
+        $teacher = Teacher::find($teacher_id);
+        if (!$teacher) {
+            return response()->json(['message' => 'Teacher not found'], 404);
+        }
+
+        // التحقق من وجود الساعات الإضافية
+        $hourAdded = Hour_Added::where('id', $id)
+                ->where('teacher_id', $teacher_id)
+                ->first();
+
+        if (!$hourAdded) {
+            return response()->json(['message' => 'Hour record not found or does not belong to this teacher'], 404);
+        }
+
+        // تحديث السجل
+        $hourAdded->update([
+            'num_hour_added' => $validatedData['num_hour_added'],
+            'note_hour_added' => $validatedData['note_hour_added'],
+        ]);
+
+        return response()->json([
+            'message' => 'Extra hours updated successfully',
+            'hour_added' => $hourAdded
+        ], 200);
+    }
+
+public function delete_extrahour($teacher_id, $hour_id)
+    {
+        // التحقق من وجود المدرس
+        $teacher = Teacher::find($teacher_id);
+        if (!$teacher) {
+            return response()->json(['message' => 'Teacher not found'], 404);
+        }
+
+        // التحقق من وجود الساعات الإضافية
+        $hourAdded = Hour_Added::where('id', $hour_id)
+                    ->where('teacher_id', $teacher_id)
+                    ->first();
+
+        if (!$hourAdded) {
+            return response()->json(['message' => 'Hour record not found or does not belong to this teacher'], 404);
+        }
+
+        // حذف السجل
+        $hourAdded->delete();
+
+        return response()->json(['message' => 'Extra hours deleted successfully'], 200);
+    }
 
 
 }
+
+
