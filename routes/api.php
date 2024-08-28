@@ -341,15 +341,19 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //لاضافة الساعات الاضافية
     Route::post('/add_extrahour/{teacher_id}',[AdminOperationController::class,'add_extrahour']);
     //لتعديل الساعات الاضافية
-    Route::put('/update_extrahour/{teacher_id}',[AdminOperationController::class,'update_extrahour']);
+    Route::put('/update_extrahour/{hourid}',[AdminOperationController::class,'update_extrahour']);
     //لحذف الساعات الاضافية
     Route::delete('/delete_extrahour/{teacher_id}/{hour_id}',[AdminOperationController::class,'delete_extrahour']);
     Route::get('/all_salary',[AdminZaController::class,'all_salary']);
     Route::get('/calculate_balance',[AdminZaController::class,'calculate_balance']);
+    Route::get('/showUserActivities',[AdminZaController::class,'showUserActivities']);
+    Route::get('/all_action_for_user/{user_id}',[AdminZaController::class,'all_action_for_user']);
+    
+    
 });
 
 /*******************************************************monetor*******************************************************/
-Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){
+Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor','logUserActivity'])->group(function(){
     //عرض تصنيف الطلاب
     Route::get('/classification/{classification/}',[MonetorController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد

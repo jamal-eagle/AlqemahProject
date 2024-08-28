@@ -46,6 +46,7 @@ use App\Models\Post;
 use App\Models\Teacher_section;
 use App\Models\Bus;
 use App\Models\Salary;
+use App\Models\Actions_log;
 
 class AdminZaController extends BaseController
 {
@@ -2989,6 +2990,55 @@ public function register(Request $request)
 //     // إرجاع بيانات الدخول
 //     return response()->json([$user->email, $password]);
 // }
+
+
+// public function showUserActivities()
+// {
+//     // تحقق من أن المستخدم الحالي هو admin
+//     if (auth()->user()->user_type === 'admin') {
+//         // جلب جميع السجلات من قاعدة البيانات مع معلومات المستخدمين
+//         $logs = ActionLog::with('user')->latest()->get();
+
+//         // تمرير السجلات إلى العرض
+//         return view('admin.activities', compact('logs'));
+//     }
+
+//     // إذا لم يكن المستخدم admin، عرض صفحة خطأ
+//     return abort(403, 'Access Denied');
+// }
+
+public function showUserActivities()
+{
+    // تحقق من أن المستخدم الحالي هو admin
+    if (auth()->user()->user_type === 'admin') {
+        // جلب جميع السجلات مع معلومات المستخدمين المرتبطة
+        $logs = Actions_log::with('user')->latest()->get();
+
+        // إعادة السجلات بصيغة JSON
+        return response()->json([
+            'success' => true,
+            'data' => $logs,
+        ], 200);
+    }
+
+    // إذا لم يكن المستخدم admin، إعادة رسالة خطأ بصيغة JSON
+    return response()->json([
+        'success' => false,
+        'message' => 'Access Denied'
+    ], 403);
+}
+
+
+public function all_action_for_user($user_id)
+{
+    $user = User::find($user_id); // جلب المستخدم برقم ID 1
+$logs = $user->actionLogs; // جلب كل الأنشطة التي قام بها هذا المستخدم
+
+return $logs;
+
+}
+
+//$logs = auth()->user()->actionLogs; // جلب الأنشطة للمستخدم الحالي
 
 
 

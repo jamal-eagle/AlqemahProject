@@ -13,6 +13,7 @@ use App\Models\Note_Student;
 use App\Models\Note;
 use App\Models\Teacher;
 use App\Models\Parentt;
+use App\Models\Actions_log;
 
 
 class User extends Authenticatable
@@ -66,6 +67,16 @@ class User extends Authenticatable
         return $this->hasOne('App\Models\Teacher',foreignKey:'user_id');
     }
 
+    // public function actionLogs(): HasMany
+    // {
+    //     return $this->hasMany(Actions_log::class);
+    // }
+
+    
+    public function actionLogs()
+    {
+        return $this->hasMany('App\Models\Actions_log',foreignKey:'user_id',localKey:'id');
+    }
 
 
 

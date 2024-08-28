@@ -107,5 +107,7 @@ class Kernel extends HttpKernel
         'ckeck_accounting' => \App\Http\Middleware\chech_Accounting::class,
         'ckeck_monetor' => \App\Http\Middleware\chech_Monetor::class,
         'ckeck_student' => \App\Http\Middleware\chech_Student::class,
+        'logUserActivity' => \App\Http\Middleware\LogUserActivity::class, // أضف الـ Middleware هنا
+
     ];
 }
