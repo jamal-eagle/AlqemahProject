@@ -44,6 +44,8 @@ use App\Models\Teacher_subject;
 use App\Models\Fee_School;
 use App\Models\Post;
 use App\Models\Teacher_section;
+use App\Models\Bus;
+use App\Models\Salary;
 
 class AdminZaController extends BaseController
 {
@@ -1619,32 +1621,39 @@ public function desplay_employee_salary($employee_id)
         return response()->json(['error' => 'Employee not found'], 404);
     }
 
-    // حساب مجموع المبالغ (amount) من جدول maturities
-    $totalMaturities = $employee->maturitie->sum('amount');
-
-    // حساب الراتب النهائي بعد خصم المبالغ
-    // $finalSalary = $employee->salary - $totalMaturities;
-
-    return response()->json([
-        'employee_id' => $employee->id,
-        'original_salary' => $employee->salary,
-        'total_maturities' => $totalMaturities,
-        // 'final_salary' => $finalSalary,
-    ]);
+// استرجاع مجموع المبالغ للسلف لهذا الشهر
+$totalSolfaThisMonth = $employee->maturitie()
+->whereYear('created_at', $year)
+->whereMonth('created_at', $month)
+->sum('amount');
+// حساب الراتب النهائي بعد خصم السلف لهذا الشهر
+$finalSalary = $employee->salary - $totalSolfaThisMonth;
+// التحقق من وجود بيانات السلف
+if ($totalSolfaThisMonth === 0) {
+return response()->json([
+    'employee_id' => $employee->id,
+    'original_salary' => $employee->salary,
+    'message' => 'No maturities for this month',
+    'final_salary' => $employee->salary, // إذا لم تكن هناك سلف، يبقى الراتب كما هو
+]);
 }
-public function e ($employee_id)
-{
-    $employee = Employee::where('id', $employee_id)->first();
-    //عدد المعاشات يلي استلمت أو تحدد مصيرها
-    $num_salary = Salary::where('employee_id', $employee_id)->count();
-
-    //معاشه السنوي للأشهر السابقة دون حذف السلف
-    $sum_salary_orginal = $employee->salary * $num_salary;
-
-
-
+// إرجاع البيانات مع الراتب النهائي بعد خصم السلف
+return response()->json([
+'employee_id' => $employee->id,
+'original_salary' => $employee->salary,
+'total_maturities' => $totalSolfaThisMonth,
+'final_salary' => $finalSalary,
+]);
 }
+// public function e ($employee_id)
+// {
+//     $employee = Employee::where('id', $employee_id)->first();
+//     //عدد المعاشات يلي استلمت أو تحدد مصيرها
+//     $num_salary = Salary::where('employee_id', $employee_id)->count();
 
+//     //معاشه السنوي للأشهر السابقة دون حذف السلف
+//     $sum_salary_orginal = $employee->salary * $num_salary;
+// }
 
 public function salary_all()
 {
@@ -1800,76 +1809,138 @@ public function display_all_class()
 }
 
     //المبلغ الذي حصل عليه المعهد من دفعات الطلاب للدورة حسب يوم أو شهر أو سنة أو عام دراسي أو دمج بيناتون
-    public function money_from_all_course(Request $request)
-     {
-        $query = Pay_Fee::query();
+    // public function money_from_all_course(Request $request)
+    //  {
+    //     $query = Pay_Fee::query();
 
+    //     // تصفية حسب اليوم
+    //     if ($request->has('day') && !empty($request->day)) {
+    //         $query->whereDay('date', $request->day);
+    //     }
+
+    //     // تصفية حسب الشهر
+    //     if ($request->has('month') && !empty($request->month)) {
+    //         $query->whereMonth('date', $request->month);
+    //     }
+
+    //     // تصفية حسب السنة
+    //     if ($request->has('year') && !empty($request->year)) {
+    //         $query->whereYear('date', $request->year);
+    //     }
+
+    //     // تصفية حسب السنة الدراسية
+    //     if ($request->has('year_studey') && !empty($request->year_studey)) {
+    //         // جلب المستخدمين الذين يطابقون السنة الدراسية المحددة والنوع "طالب"
+    //         $course = Course::where('year', $request->year_studey)->get();
+
+    //         // التأكد من جلب الدورة بشكل صحيح
+    //         if ($course->isEmpty()) {
+    //             return response()->json(['message' => 'No Courses found'], 404);
+    //         }
+
+    //         // جلب المعرفات فقط
+    //         $courseIds = $course->pluck('id');
+
+    //         // إضافة شرط السنة الدراسية إلى الاستعلام
+    //         $query->whereIn('course_id', $courseIds);
+
+    //     }
+
+    //     // if ($request->has('subject_name') && !empty($request->subject_name)) {
+
+    //     //     $subject = Subject::where('name',$request->subject_name)
+
+    //     //     $course = Course::where('subject_id', $request->subject)->get();
+
+    //     //     // التأكد من جلب الدورة بشكل صحيح
+    //     //     if ($course->isEmpty()) {
+    //     //         return response()->json(['message' => 'No Courses found'], 404);
+    //     //     }
+
+    //     //     // جلب المعرفات فقط
+    //     //     $courseIds = $course->pluck('id');
+
+    //     //     // إضافة شرط السنة الدراسية إلى الاستعلام
+    //     //     $query->whereIn('course_id', $courseIds);
+
+    //     // }
+
+
+
+    //     $query->whereNotNull('course_id');
+    //     $pays = $query->get();
+
+    //     // حساب المجموع
+    //     $total_amount = $pays->sum('amount_money');
+
+    //     return response()->json([
+    //         'total_amount' => $total_amount,
+    //         'pays' => $pays,
+    //     ]);
+
+    //  }
+
+
+
+    public function money_from_all_course(Request $request)
+    {
+        $query = Pay_Fee::query();
+    
         // تصفية حسب اليوم
         if ($request->has('day') && !empty($request->day)) {
             $query->whereDay('date', $request->day);
         }
-
+    
         // تصفية حسب الشهر
         if ($request->has('month') && !empty($request->month)) {
             $query->whereMonth('date', $request->month);
         }
-
+    
         // تصفية حسب السنة
         if ($request->has('year') && !empty($request->year)) {
             $query->whereYear('date', $request->year);
         }
-
+    
         // تصفية حسب السنة الدراسية
         if ($request->has('year_studey') && !empty($request->year_studey)) {
-            // جلب المستخدمين الذين يطابقون السنة الدراسية المحددة والنوع "طالب"
             $course = Course::where('year', $request->year_studey)->get();
-
-            // التأكد من جلب الدورة بشكل صحيح
+    
             if ($course->isEmpty()) {
                 return response()->json(['message' => 'No Courses found'], 404);
             }
-
-            // جلب المعرفات فقط
+    
+            // جلب معرفات الدورات
             $courseIds = $course->pluck('id');
-
-            // إضافة شرط السنة الدراسية إلى الاستعلام
             $query->whereIn('course_id', $courseIds);
-
         }
-
-        // if ($request->has('subject_name') && !empty($request->subject_name)) {
-
-        //     $subject = Subject::where('name',$request->subject_name)
-
-        //     $course = Course::where('subject_id', $request->subject)->get();
-
-        //     // التأكد من جلب الدورة بشكل صحيح
-        //     if ($course->isEmpty()) {
-        //         return response()->json(['message' => 'No Courses found'], 404);
-        //     }
-
-        //     // جلب المعرفات فقط
-        //     $courseIds = $course->pluck('id');
-
-        //     // إضافة شرط السنة الدراسية إلى الاستعلام
-        //     $query->whereIn('course_id', $courseIds);
-
-        // }
-
-
-
+    
+        // تأكد من جلب الدفعات المرتبطة بالدورات فقط
         $query->whereNotNull('course_id');
         $pays = $query->get();
-
-        // حساب المجموع
-        $total_amount = $pays->sum('amount_money');
-
+    
+        // حساب المجموع بعد طرح نسبة المدرس
+        $total_amount = 0;
+    
+        foreach ($pays as $pay) {
+            $course = Course::find($pay->course_id);
+    
+            if ($course) {
+                // نسبة المدرسة من المبلغ (100% - نسبة المدرس)
+                $school_percent = 100 - $course->percent_teacher;
+    
+                // حساب المبلغ الذي تحصل عليه المدرسة
+                $school_amount = ($pay->amount_money * $school_percent) / 100;
+    
+                // إضافة المبلغ إلى المجموع
+                $total_amount += $school_amount;
+            }
+        }
+    
         return response()->json([
             'total_amount' => $total_amount,
             'pays' => $pays,
         ]);
-
-     }
+    }
 
 //المصاريف دون فلترة
 //      public function all_expenses(Request $request)
@@ -1961,6 +2032,203 @@ public function all_Maturitie(Request $request)
         'maturities' => $maturities,
     ]);
 }
+
+public function all_salary(Request $request)
+{
+    // إنشاء الاستعلام الأساسي
+    $query = Salary::query();
+
+    // تصفية حسب اليوم
+    if ($request->has('day') && !empty($request->day)) {
+        $query->whereDay('created_at', $request->day);
+    }
+
+    // تصفية حسب الشهر
+    if ($request->has('month') && !empty($request->month)) {
+        $query->whereMonth('created_at', $request->month);
+    }
+
+    // تصفية حسب السنة
+    if ($request->has('year') && !empty($request->year)) {
+        $query->whereYear('created_at', $request->year);
+    }
+
+    // تصفية حسب السنة الدراسية
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        $query->where('year', $request->year_studey);
+    }
+
+    // الحصول على قائمة الرواتب
+    $salary = $query->get();
+
+    // حساب مجموع الرواتب
+    $sum_salary = $salary->sum('salary_of_teacher');
+
+    // إرجاع النتيجة بصيغة JSON
+    return response()->json([
+        'total_salary' => $sum_salary,
+        'salary' => $salary,
+    ]);
+}
+
+public function calculate_balance(Request $request)
+{
+    // 1. الحصول على المدفوعات من الأقساط
+    $query_fee = Pay_Fee::query();
+
+    // تصفية حسب اليوم
+    if ($request->has('day') && !empty($request->day)) {
+        $query_fee->whereDay('date', $request->day);
+    }
+
+    // تصفية حسب الشهر
+    if ($request->has('month') && !empty($request->month)) {
+        $query_fee->whereMonth('date', $request->month);
+    }
+
+    // تصفية حسب السنة
+    if ($request->has('year') && !empty($request->year)) {
+        $query_fee->whereYear('date', $request->year);
+    }
+
+    // تصفية حسب السنة الدراسية
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        $students = User::where('year', $request->year_studey)
+                        ->where('user_type', 'student')
+                        ->with('student:id,user_id')
+                        ->get();
+
+        if ($students->isNotEmpty()) {
+            $studentIds = $students->pluck('student.id')->toArray();
+            $query_fee->whereIn('student_id', $studentIds);
+        }
+    }
+
+    // تصفية المدفوعات التي ليس لها course_id
+    $query_fee->whereNull('course_id');
+    $pays_fee = $query_fee->get();
+    $total_fee = $pays_fee->sum('amount_money');
+
+    // 2. الحصول على المدفوعات من الدورات
+    $query_course = Pay_Fee::query();
+
+    // نفس الفلاتر السابقة (اليوم، الشهر، السنة، السنة الدراسية)
+    if ($request->has('day') && !empty($request->day)) {
+        $query_course->whereDay('date', $request->day);
+    }
+
+    if ($request->has('month') && !empty($request->month)) {
+        $query_course->whereMonth('date', $request->month);
+    }
+
+    if ($request->has('year') && !empty($request->year)) {
+        $query_course->whereYear('date', $request->year);
+    }
+
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        $courses = Course::where('year', $request->year_studey)->get();
+
+        if ($courses->isNotEmpty()) {
+            $courseIds = $courses->pluck('id')->toArray();
+            $query_course->whereIn('course_id', $courseIds);
+        }
+    }
+
+    $query_course->whereNotNull('course_id');
+    $pays_course = $query_course->get();
+
+    // تعديل حساب المجموع بعد طرح نسبة المدرس
+    $total_course = 0;
+    foreach ($pays_course as $pay) {
+        $course = Course::find($pay->course_id);
+
+        if ($course) {
+            // حساب نسبة المدرسة
+            $school_percent = 100 - $course->percent_teacher;
+
+            // حساب المبلغ الصافي الذي تحصل عليه المدرسة
+            $school_amount = ($pay->amount_money * $school_percent) / 100;
+
+            // إضافة المبلغ إلى المجموع
+            $total_course += $school_amount;
+        }
+    }
+
+    // 3. حساب مجموع النفقات
+    $query_expenses = Expenses::query();
+
+    if ($request->has('day') && !empty($request->day)) {
+        $query_expenses->whereDay('date', $request->day);
+    }
+
+    if ($request->has('month') && !empty($request->month)) {
+        $query_expenses->whereMonth('date', $request->month);
+    }
+
+    if ($request->has('year') && !empty($request->year)) {
+        $query_expenses->whereYear('date', $request->year);
+    }
+
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        $query_expenses->where('year', $request->year_studey);
+    }
+
+    $expenses = $query_expenses->get();
+    $total_expenses = $expenses->sum('total_cost');
+
+    // 4. حساب مجموع الرواتب
+    $query_salary = Salary::query();
+
+    if ($request->has('day') && !empty($request->day)) {
+        $query_salary->whereDay('created_at', $request->day);
+    }
+
+    if ($request->has('month') && !empty($request->month)) {
+        $query_salary->whereMonth('created_at', $request->month);
+    }
+
+    if ($request->has('year') && !empty($request->year)) {
+        $query_salary->whereYear('created_at', $request->year);
+    }
+
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        $query_salary->where('year', $request->year_studey);
+    }
+
+    $salaries = $query_salary->get();
+    $total_salary = $salaries->sum('salary_of_teacher');
+
+    // 5. الحصول على مجموع الكلف من جدول 'breake' و 'bus'
+    $total_break_cost = 0;
+    $total_bus_cost = 0;
+
+    if ($request->has('year') && !empty($request->year)) {
+        $total_break_cost += Breake::whereYear('created_at', $request->year)
+                                   ->sum('cost_from_breake');
+        $total_bus_cost += Bus::whereYear('created_at', $request->year)
+                                   ->sum('cost_from_bus');
+    }
+
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        $total_break_cost += Breake::where('year', $request->year_studey)
+                                   ->sum('cost_from_breake');
+        $total_bus_cost += Bus::where('year', $request->year_studey)
+                                   ->sum('cost_from_bus');
+    }
+
+    // 6. حساب الربح أو الخسارة
+    $total_income = $total_fee + $total_course + $total_break_cost + $total_bus_cost;
+    $total_expenses_salary = $total_expenses + $total_salary;
+    $balance = $total_income - $total_expenses_salary;
+
+    // إرجاع النتيجة بصيغة JSON
+    return response()->json([
+        'total_income' => $total_income,
+        'total_expenses_salary' => $total_expenses_salary,
+        'balance' => $balance
+    ]);
+}
+
 
 // public function all_salary_employees_teacher(Request $request)
 // {

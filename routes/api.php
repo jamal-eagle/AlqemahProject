@@ -344,6 +344,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::put('/update_extrahour/{teacher_id}',[AdminOperationController::class,'update_extrahour']);
     //لحذف الساعات الاضافية
     Route::delete('/delete_extrahour/{teacher_id}/{hour_id}',[AdminOperationController::class,'delete_extrahour']);
+    Route::get('/all_salary',[AdminZaController::class,'all_salary']);
+    Route::get('/calculate_balance',[AdminZaController::class,'calculate_balance']);
 });
 
 /*******************************************************monetor*******************************************************/
