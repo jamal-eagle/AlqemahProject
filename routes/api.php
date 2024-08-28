@@ -348,8 +348,13 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/calculate_balance',[AdminZaController::class,'calculate_balance']);
     Route::get('/showUserActivities',[AdminZaController::class,'showUserActivities']);
     Route::get('/all_action_for_user/{user_id}',[AdminZaController::class,'all_action_for_user']);
-    
-    
+
+        // حذف يوم غياب للاستاذ
+        Route::delete('/delete_absence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'deleteAbsenceforteacher']);
+        //تعديل تبير الغياب
+        Route::put('/updatenoteforabsence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'updatenoteforabsence_for_teacher']);
+        //تعديل تبرير الغياب عند الطالب
+        route::put('/updateAbsence_for_student/{student_id}/{absence_id}', [AdminOperationController::class, 'updateAbsence_for_student']);
 });
 
 /*******************************************************monetor*******************************************************/
@@ -520,6 +525,13 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor','logUserAct
 
     Route::delete('/delete_comment/{comment_id}',[PostController::class,'deleteComment']);
 
+
+        // حذف يوم غياب للاستاذ
+        Route::delete('/delete_absence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'deleteAbsenceforteacher']);
+        //تعديل تبير الغياب
+        Route::put('/updatenoteforabsence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'updatenoteforabsence_for_teacher']);
+        //تعديل تبرير الغياب عند الطالب
+        route::put('/updateAbsence_for_student/{student_id}/{absence_id}', [AdminOperationController::class, 'updateAbsence_for_student']);
 });
 
 /*******************************************************student*******************************************************/

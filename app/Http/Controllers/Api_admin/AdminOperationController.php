@@ -797,6 +797,7 @@ public function addAbsenceForTeacherandemployee(Request $request)
         $validator = Validator::make($request->all(), [
             'date' => 'required|date',
             'num_hour_out' => 'required|integer',
+            'note'=>'nullable',
             'teacher_id' => 'nullable|exists:teachers,id',
             'employee_id' => 'nullable|exists:employees,id',
         ]);
@@ -814,6 +815,7 @@ public function addAbsenceForTeacherandemployee(Request $request)
         $absence = new Out_Of_Work_Employee();
         $absence->date = $request->date;
         $absence->num_hour_out = $request->num_hour_out;
+        $absence->note = $request->note;
         $absence->teacher_id = $request->teacher_id;
         $absence->employee_id = $request->employee_id;
         $absence->save();
@@ -1546,6 +1548,34 @@ public function deleteAbsence($student_id, $absence_id)
     $absence->delete();
 
     return response()->json(['message' => 'Absence record deleted successfully'], 200);
+}
+
+public function updateAbsence_for_student(Request $request, $student_id,$absence_id)
+{
+    // التحقق من وجود الطالب
+    $student = Student::find($student_id);
+    if (!$student) {
+        return response()->json(['message' => 'Student not found'], 404);
+    }
+    $absence = Out_Of_Work_Student::where('student_id', $student_id)->find($absence_id);
+    if (!$absence) {
+        return response()->json(['message' => 'Absence record not found'], 404);
+    }
+    // التحقق من صحة البيانات المدخلة
+    $validator = Validator::make($request->all(), [
+        'justification' => 'nullable|string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // إنشاء سجل الغياب
+    $absence->Update([
+        'justification'=>$request->justification,
+    ]);
+
+    return response()->json(['message' => 'Absence added successfully'], 200);
 }
 
 
@@ -2799,6 +2829,53 @@ public function delete_extrahour($teacher_id, $hour_id)
         return response()->json(['message' => 'Extra hours deleted successfully'], 200);
     }
 
+
+public function deleteAbsenceforteacher($teacher_id, $absence_id)
+    {
+        $teacher = Teacher::find($teacher_id);
+        if (!$teacher) {
+            return response()->json(['message' => 'teacher not found'], 404);
+        }
+
+        $absence = Out_Of_Work_Employee::where('teacher_id', $teacher_id)->find($absence_id);
+        if (!$absence) {
+            return response()->json(['message' => 'Absence not found in this day'], 404);
+        }
+
+        // حذف سجل الغياب
+        $absence->delete();
+
+        return response()->json(['message' => 'Absence record deleted successfully'], 200);
+    }
+
+public function updatenoteforabsence_for_teacher(Request $request,$teacher_id,$absence_id)
+    {
+        $teacher = Teacher::find($teacher_id);
+        if (!$teacher) {
+            return response()->json(['message' => 'Student not found'], 404);
+        }
+
+        $absence = Out_Of_Work_Employee::find($absence_id);
+        if (!$absence) {
+            return response()->json(['message' => 'Absence not found in this day'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'note' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return $this->responseError(['errors' => $validator->errors()]);
+        }
+
+
+        $absence->update([
+            'note'=>$request->note,
+        ]);
+
+        return response()->json(['updated successfuly']);
+
+
+    }
 
 }
 
