@@ -578,7 +578,7 @@ Route::prefix('parent')->middleware(['auth:sanctum'])->group(function () {
     //عرض جميع أبنائي المسجلين بالمعهد
     Route::get('/displayAllBaby',[ParenttController::class,'displayAllBaby']);
     //برنامج الدوام الخاص بالابن المحدد
-    Route::get('/display_Programe_my_sun/{student_id}',[ParenttController::class,'displayPrograme']);
+    Route::get('/display_Programe_my_sun/{student_id}',[ParenttController::class,'programe_week']);
     //عرض مواد ابني
     Route::get('/display_Subject_Sun/{student_id}',[ParenttController::class,'displaySubjectSun']);
     //عرض وظائف ابني لمادة محددة

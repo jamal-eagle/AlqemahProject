@@ -42,51 +42,94 @@ class ParenttController extends Controller
 
 
     //برنامج الدوام الخاص بالابن المحدد
-    public function displayPrograme($student_id)
-    {
-        $student = Student::where('id', $student_id)->first();
-        $section_id = $student->section_id;
-    $programe = Program_Student::all();
+    // public function displayPrograme($student_id)
+    // {
+    //     $student = Student::where('id', $student_id)->first();
+    //     $section_id = $student->section_id;
+    // $programe = Program_Student::all();
 
-    if ($programe) {
-        $result = [];
+    // if ($programe) {
+    //     $result = [];
 
-        foreach ($programe as $p) {
-            if ($p->section_id == $student->section_id) {
-                $img = Image::all();
-                foreach ($img as $i) {
-                    if ($p->id == $i->program_student_id) {
-                        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
-                        if (file_exists($imagePath)) {
-                            $i->image_url = asset('/upload/' . $i->path);
-                            $result[] = [
-                                'info_program' => $p,
-                                'image_info' => $i
-                            ];
-                        }
-                    }
-                }
+    //     foreach ($programe as $p) {
+    //         if ($p->section_id == $student->section_id) {
+    //             $img = Image::all();
+    //             foreach ($img as $i) {
+    //                 if ($p->id == $i->program_student_id) {
+    //                     $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+    //                     if (file_exists($imagePath)) {
+    //                         $i->image_url = asset('/upload/' . $i->path);
+    //                         $result[] = [
+    //                             'info_program' => $p,
+    //                             'image_info' => $i
+    //                         ];
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if (!empty($result)) {
+    //         return response()->json([
+    //             'status' => 'true',
+    //             'images' => $result
+    //         ]);
+    //     } else {
+    //         return response()->json([
+    //             'status' => 'false',
+    //             'message' => 'No images found'
+    //         ]);
+    //     }
+    // } else {
+    //     return response()->json([
+    //         'status' => 'false',
+    //         'message' => 'Program not found for this student'
+    //     ]);
+    // }
+    // }
+
+    public function programe_week($student_id)
+{
+    $student = Student::where('id', $student_id)->first();
+
+    if (!$student) {
+        return response()->json(['status' => 'false', 'message' => 'Student not found'], 404);
+    }
+
+    $section_id = $student->section_id;
+    $programs = Program_Student::where('section_id', $section_id)->get();
+
+    if ($programs->isEmpty()) {
+        return response()->json(['status' => 'false', 'message' => 'Program not found for this student'], 404);
+    }
+
+    $result = [];
+
+    foreach ($programs as $program) {
+        $images = Image::where('program_student_id', $program->id)->get();
+
+        foreach ($images as $image) {
+            $imagePath = public_path('/upload/' . $image->path);
+
+            if (file_exists($imagePath)) {
+                $program->image_file_url = asset('/upload/' . $image->path);
+                $result[] = [
+                    'program' => $program,
+                    // 'image_info' => $image
+                ];
             }
         }
+    }
 
-        if (!empty($result)) {
-            return response()->json([
-                'status' => 'true',
-                'images' => $result
-            ]);
-        } else {
-            return response()->json([
-                'status' => 'false',
-                'message' => 'No images found'
-            ]);
-        }
+    if (!empty($result)) {
+        // return response()->json($result);
+
+        // return $result;
+        return $programs;
     } else {
-        return response()->json([
-            'status' => 'false',
-            'message' => 'Program not found for this student'
-        ]);
+        return response()->json(['status' => 'false', 'message' => 'No images found'], 404);
     }
-    }
+}
 
     //عرض مواد ابني
     public function displaySubjectSun($student_id)
