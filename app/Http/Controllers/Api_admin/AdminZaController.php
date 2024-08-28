@@ -132,8 +132,9 @@ public function getWeeklyTeacherSchedule($teacher_id)
         return response()->json(['message' => 'Teacher not found'], 404);
     }
 
-    // استرجاع الجدول الزمني للأستاذ
-    $schedules = Teacher_Schedule::where('teacher_id', $teacher_id)
+    // استرجاع الجدول الزمني للأستاذ مع تفاصيل الشعبة
+    $schedules = Teacher_Schedule::with('section')
+                                ->where('teacher_id', $teacher_id)
                                 ->orderBy('day_of_week')
                                 ->orderBy('start_time')
                                 ->get();
@@ -155,6 +156,7 @@ public function getWeeklyTeacherSchedule($teacher_id)
         $weekly_schedule[$schedule->day_of_week][] = [
             'start_time' => $schedule->start_time,
             'end_time' => $schedule->end_time,
+            'section' => $schedule->section ? $schedule->section->num_section : 'N/A',
         ];
     }
 
@@ -418,7 +420,7 @@ public function edit_year(Request $request,$id)
     //إذا أنشأ مادة فيأمشئ أرشيف لها تلقائياً
 
     //إنشاء قسط جديد
-    
+
 
 
 
@@ -426,7 +428,7 @@ public function edit_year(Request $request,$id)
     $info->save();
 
     return $info;
-    
+
 }
 
 
@@ -1379,7 +1381,7 @@ public function display_subject_for_class($class_id)
 
         return $subject;
 }
-    
+
     //البحث عن طالب ضمن كل طلاب العام الدراسي
     //مثال إذا دخلت زهراء الصوص و بالداتا عندي زهراء الصوص و زهراء محمد و محمد الصوص فالخرج هو جميع يلي ذكرتو بالداتا
 //     public function search_student(Request $request)
@@ -1495,7 +1497,7 @@ public function search_teacher(Request $request)
 }
 
 
-    
+
 public function search_employee(Request $request)
 {
     // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
@@ -1525,14 +1527,14 @@ public function search_employee(Request $request)
     // {
     //     $teachers = User::where('user_type', 'teacher')->where('status', '1')->get();
     //     $teacher_ids = [];
-    
+
     //     foreach ($teachers as $t) {
     //         $teacher = $t->teacher; // جلب العلاقة teacher
     //         if ($teacher) {
     //             $teacher_ids[] = $teacher->id; // جلب الـ id من جدول teacher
     //         }
     //     }
-    
+
     //     // return $teacher_ids; // إرجاع قائمة الـ ids
     // }
 //     public function salary_all()
@@ -1548,7 +1550,7 @@ public function search_employee(Request $request)
 //         $teacher = $t->teacher; // جلب العلاقة teacher
 //         if ($teacher) {
 //             $teacher_ids[] = $teacher->id; // جلب الـ id من جدول teacher
-            
+
 //             // استدعاء الدالة لحساب الراتب
 //             $year = date('Y'); // أو أي سنة تريدها
 //             $month = date('m'); // أو أي شهر تريد
@@ -1638,7 +1640,7 @@ public function e ($employee_id)
 
     //معاشه السنوي للأشهر السابقة دون حذف السلف
     $sum_salary_orginal = $employee->salary * $num_salary;
-    
+
 
 
 }
@@ -1699,7 +1701,7 @@ public function display_all_class()
         $sections_teacher = Teacher_section::where('teacher_id', $teacher_id)
                                             // ->where('class_id', $class_id)
                                             ->get();
-    
+
         $result = [];
         foreach ($sections_teacher as $section) {
             // جلب القسم المرتبط بالفصل وبالمدرس
@@ -1710,12 +1712,12 @@ public function display_all_class()
                 $result[] = $section_class_teacher;
             }
         }
-    
+
         // التحقق إذا كانت النتيجة فارغة
         if (empty($result)) {
             return response()->json(["message" => "This teacher does not have sections in this class"], 404);
         }
-    
+
         return response()->json($result);
     }
 
@@ -1732,10 +1734,10 @@ public function display_all_class()
         $student = User::where('year',$year)->where('user_type', 'teacher')->with('teacher')->get();
         return response()->json([$student,'all teacher regester here']);
     }
-    
 
 
-    
+
+
 
     /**********************************جدوى**********************************/
 
@@ -2624,7 +2626,7 @@ public function register(Request $request)
     if (is_null($student->school_tuition)) {
         $student->school_tuition = $fee_class; // تعيين قيمة افتراضية في حال لم يتم تعيينها
     }
-    
+
     $parentt->save();
     $user->save();
     $student->user_id = $user->id;

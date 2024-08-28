@@ -450,7 +450,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/all_course',[DisplayController::class,'all_course']);
 
     //رفض طلب تسجيل في دورة
-    route::post('no_order_course/{order_id}', [AdminZaController::class, 'no_order_course']);
+    route::post('no_order_course/{order_id}', [AdminZaController::class, 'no_order_course']); 
 
     //عرض برنامج دوام شعبة
     Route::get('/programe_week/{section_id}', [AdminZaController::class, 'programe_week']);

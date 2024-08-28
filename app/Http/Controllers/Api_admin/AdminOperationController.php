@@ -1054,6 +1054,7 @@ public function add_absence_for_employee($request)
 
 public function getTeacherWorkSchedule($teacher_id, $year, $month)
 {
+
     // استرجاع سجل غياب المدرس خلال الشهر المحدد
     $absences = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
         ->whereYear('date', $year)
@@ -1067,24 +1068,26 @@ public function getTeacherWorkSchedule($teacher_id, $year, $month)
         $workSchedule[] = [
             'date' => $day,
             'hours' => 0, // عدد الساعات للأيام التي تم فيها الغياب هو صفر
+            'sections' => [], // لن يكون هناك شعب لهذا اليوم
         ];
     }
 
     // حساب عدد الأيام في الشهر
     $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
 
-    // إضافة أيام العمل التي لم يتم فيها الغياب مع عدد ساعات العمل
+    // إضافة أيام العمل التي لم يتم فيها الغياب مع عدد ساعات العمل والشعبة
     for ($day = 1; $day <= $daysInMonth; $day++) {
         $date = Carbon::create($year, $month, $day);
         $dayOfWeek = $date->format('l'); // يوم الأسبوع كاسم النصي، مثل "Sunday"
 
         if ($date->dayOfWeek != Carbon::FRIDAY && $date->dayOfWeek != Carbon::SATURDAY) {
-            $workHours = $this->getWorkingHoursForDay($teacher_id, $dayOfWeek);
+            $workDetails = $this->getWorkingHoursAndSectionsForDay($teacher_id, $dayOfWeek);
 
-            if ($workHours > 0 && !in_array($date->format('Y-m-d'), $absences)) {
+            if ($workDetails['hours'] > 0 && !in_array($date->format('Y-m-d'), $absences)) {
                 $workSchedule[] = [
                     'date' => $date->format('Y-m-d'),
-                    'hours' => $workHours,
+                    'hours' => $workDetails['hours'],
+                    'sections' => $workDetails['sections'],
                 ];
             }
         }
@@ -1096,6 +1099,43 @@ public function getTeacherWorkSchedule($teacher_id, $year, $month)
         'month' => $month,
         'work_schedule' => $workSchedule,
     ]);
+}
+
+private function getWorkingHoursAndSectionsForDay($teacher_id, $dayOfWeek)
+{
+    // استرجاع بيانات الدوام لهذا اليوم مع الشعبة المرتبطة
+    $workSchedules = Teacher_Schedule::where('teacher_id', $teacher_id)
+        ->where('day_of_week', $dayOfWeek)
+        ->with('section')  // تحميل بيانات الشعبة
+        ->get();
+
+    if ($workSchedules->isEmpty()) {
+        return [
+            'hours' => 0,
+            'sections' => [],
+        ];
+    }
+
+    $totalWorkingHours = 0;
+    $sections = [];
+
+    foreach ($workSchedules as $workSchedule) {
+        if (!empty($workSchedule->start_time) && !empty($workSchedule->end_time)) {
+            // حساب عدد ساعات العمل
+            $startTime = Carbon::createFromFormat('H:i:s', $workSchedule->start_time);
+            $endTime = Carbon::createFromFormat('H:i:s', $workSchedule->end_time);
+            $workingHours = $endTime->diffInHours($startTime);
+            $totalWorkingHours += $workingHours;
+
+            // إضافة اسم الشعبة أو "N/A" إذا لم تكن موجودة
+            $sections[] = $workSchedule->section ? $workSchedule->section->num_section : 'N/A';
+        }
+    }
+
+    return [
+        'hours' => $totalWorkingHours,
+        'sections' => $sections,
+    ];
 }
 
 // دالة لاستخراج عدد ساعات العمل ليوم معين
@@ -1203,10 +1243,12 @@ private function getWorkingHoursForDay($teacher_id, $dayOfWeek)
 
     public function generateMonthlyAttendanceReportReport($teacher_id, $year, $month)
     {
-        // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
-        $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+        // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم مع ربطه بالشعب
+        $teacherSchedule = Teacher_Schedule::with('section')
+            ->where('teacher_id', $teacher_id)
+            ->get();
 
-        // استرجاع قائمة الأيام العطل في الشهر (يمكن تركها فارغة في حال لم يكن لديك بيانات)
+        // استرجاع قائمة الأيام العطل في الشهر
         $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
@@ -1231,33 +1273,43 @@ private function getWorkingHoursForDay($teacher_id, $dayOfWeek)
                 // استرجاع جميع الفترات في اليوم الحالي
                 $schedules = $teacherSchedule->where('day_of_week', $dayOfWeek);
 
+                $dailySchedule = [];
                 $totalWorkingHours = 0;
 
                 foreach ($schedules as $schedule) {
+                    // التحقق من وجود بيانات الشعبة
+                    $sectionName = $schedule->section ? $schedule->section->num_section	: 'N/A';
+
                     // حساب عدد ساعات العمل بين وقت البداية ووقت النهاية
                     $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
                     $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
                     $workingHours = $endTime->diffInHours($startTime);
 
                     $totalWorkingHours += $workingHours;
+
+                    // إضافة تفاصيل الشعبة مع ساعات العمل
+                    $dailySchedule[] = [
+                        'section' => $sectionName,
+                        'start_time' => $startTime->format('H:i'),
+                        'end_time' => $endTime->format('H:i'),
+                        'working_hours' => $workingHours,
+                    ];
                 }
+                return $sectionName;
 
                 $attendanceDetails[] = [
                     'date' => $date->format('l d-m-Y'),  // صيغة التاريخ
                     'working_hours' => $totalWorkingHours,
+                    'daily_schedule' => $dailySchedule,
                 ];
             } else {
                 $attendanceDetails[] = [
                     'date' => $date->format('l d-m-Y'),  // صيغة التاريخ
                     'working_hours' => 0, // لا يوجد ساعات عمل في أيام العطل أو نهاية الأسبوع
+                    'daily_schedule' => [],
                 ];
             }
         }
-
-        // ترتيب الأيام بترتيب تصاعدي
-        usort($attendanceDetails, function ($a, $b) {
-            return strtotime($a['date']) - strtotime($b['date']);
-        });
 
         return response()->json([
             'teacher_id' => $teacher_id,
@@ -1266,10 +1318,6 @@ private function getWorkingHoursForDay($teacher_id, $dayOfWeek)
             'attendance_details' => $attendanceDetails,
         ]);
     }
-
-
-
-
 
 public function desplay_section_for_classs($class_id,$year)
 {
