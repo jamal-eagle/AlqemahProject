@@ -359,7 +359,22 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
 });
 
 /*******************************************************monetor*******************************************************/
-Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor','logUserActivity'])->group(function(){
+Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(function(){
+    Route::middleware(['logUserActivity'])->group(function () {
+        //تعديل معلومات الطالب
+        Route::post('update_profile_student/{student_id}',[AdminOperationController::class,'update_profile_student']);
+        //إنهاء و إعادة تفعيل مناقشة
+        Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
+        //رفع برنامج لشعبة محددة
+        Route::post('upload_program_section/{section_id}',[MonetorController::class,'upload_program_section']);
+        //حذف برنامج
+        Route::delete('delete_program_section/{id}',[MonetorController::class,'delete_program']);
+        //تعديل برنامج
+        Route::post('update_program_section/{program_id}',[MonetorController::class,'update_program_section']);
+        //تعديل معلومات موظف
+        Route::post('/update_profile_employee/{employee_id}',[AuthController::class,'update_profile_employee']);
+
+    });
     //عرض تصنيف الطلاب
     Route::get('/classification/{classification/}',[MonetorController::class,'student_classification']);
     //عرض الطلاب المنتمين للمعهد
@@ -368,11 +383,8 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor','logUserAct
     route::get('/desplay_classs_and_section',[MonetorController::class,'desplay_classs_and_section']);
     /// عرض البروفايل للطالب
     Route::get('show_profile_student/{student_id}',[MonetorController::class,'show_profile_student']);
-    //تعديل معلومات الطالب
-    Route::post('update_profile_student/{student_id}',[AdminOperationController::class,'update_profile_student']);
     //سجل دوام الطالب
     Route::get('report_for_user_work_on/{student_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReport']);
-
     //عرض علامات طالب
     route::get('desplay_student_marks/{student_id}',[AdminZaController::class,'desplay_student_marks']);
     //عرض الملاحظات تجاه الطال
@@ -421,18 +433,10 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor','logUserAct
     //اضافة يوم غياب للطالب
     route::post('/add_student_out_of_work/{student_id}', [AdminOperationController::class, 'addAbsence']);
 
-    //إنهاء و إعادة تفعيل مناقشة
-    Route::post('off_on_post/{post_id}',[PostController::class,'off_on_post']);
-
+    
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[AdminZaController::class,'order_on_course']);
-    //رفع برنامج لشعبة محددة
-    Route::post('upload_program_section/{section_id}',[MonetorController::class,'upload_program_section']);
-    //حذف برنامج
-    Route::delete('delete_program_section/{id}',[MonetorController::class,'delete_program']);
 
-    //تعديل برنامج
-    Route::post('update_program_section/{program_id}',[MonetorController::class,'update_program_section']);
     //عرض الملاحظات المقدمة عن الطالب
     Route::get('desplay_student_nots/{student_id}',[AdminZaController::class,'desplay_student_nots']);
     //الدورات التي سجل فيها الطالب
@@ -447,8 +451,6 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor','logUserAct
 
 
 
-    //تعديل معلومات موظف
-    Route::post('/update_profile_employee/{employee_id}',[AuthController::class,'update_profile_employee']);
 
     //تعديل معلومات المدرس
     route::post('/update_teacher_profile/{teacher_id}',[AuthController::class,'update_teacher_profile']);

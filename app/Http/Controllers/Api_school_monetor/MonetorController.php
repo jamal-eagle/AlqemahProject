@@ -861,19 +861,19 @@ public function update_program_section(Request $request, $program_id)
 {
     $program = Program_Student::find($program_id);
     // $program->type = $request->type ?? $program->type;
-    if ($request->has('type')) {
+    if ($request->has('type') && !empty($request->type)) {
         $program->type = $request->type;
         $program->save();
     }
 
     $image = Image::where('program_student_id', $program_id)->first();
 
-    if ($request->has('description')) {
+    if ($request->has('description') && !empty($request->description)) {
         $image->description = $request->description;
         $image->save();
     }
 
-    if ($request->has('path')) {
+    if ($request->has('path') && !empty($request->path)) {
         $validator = Validator::make($request->all(),[
             'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
         ]);

@@ -2767,7 +2767,7 @@ public function add_extrahour($teacher_id, Request $request)
         return response()->json([
             'message' => 'Extra hours added successfully',
             'hour_added' => $hourAdded
-        ], 201);
+        ], 200);
     }
 
 

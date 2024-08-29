@@ -188,8 +188,6 @@ public function get_teacher_profile($teacher_id)
 
         $validator = validator::make($request->all(),[
             'cost_hour'=>'required',
-            'num_our_added'=>'required',
-            'note_hour_added'=>'required',
             'certificate'=>'required',
             'class_id'=>'required',
             'name_subject' => 'required|string|exists:subjects,name',
