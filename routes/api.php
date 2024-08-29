@@ -355,6 +355,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
         Route::put('/updatenoteforabsence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'updatenoteforabsence_for_teacher']);
         //تعديل تبرير الغياب عند الطالب
         route::put('/updateAbsence_for_student/{student_id}/{absence_id}', [AdminOperationController::class, 'updateAbsence_for_student']);
+    Route::get('/class_s/{s_id}',[AdminZaController::class,'class_s']);
 });
 
 /*******************************************************monetor*******************************************************/

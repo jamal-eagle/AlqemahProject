@@ -1745,6 +1745,11 @@ public function display_all_class()
         return response()->json([$student,'all teacher regester here']);
     }
 
+    public function class_s($s_id)
+{
+ $s=Section::where('id', $s_id)->with('classs')->first();
+return $s;}
+
 
 
 
@@ -3032,7 +3037,7 @@ public function showUserActivities()
 public function all_action_for_user($user_id)
 {
     $user = User::find($user_id); // جلب المستخدم برقم ID 1
-$logs = $user->actionLogs; // جلب كل الأنشطة التي قام بها هذا المستخدم
+    $logs = $user->actionLogs; // جلب كل الأنشطة التي قام بها هذا المستخدم
 
 return $logs;
 

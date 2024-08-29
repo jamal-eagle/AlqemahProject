@@ -25,9 +25,25 @@ class ParenttController extends Controller
     // $parent = Parentt::where('id', auth()->user()->id)->with('student.user')->get();
     // return $parent;
     // }
+
+    //رابطة سرى عليه
+    // public function displayAllBaby(Request $request)
+    // {
+    //  $parent = Parentt::where('id', auth()->user()->id)
+    //     // ->whereHas('student.user', function ($query) {
+    //     //     $query->where('status', '1');
+    //     // })
+    //     ->with(['student' => function ($query) {
+    //         $query->whereHas('user', function ($query) {
+    //             $query->where('status', '1');
+    //         });
+    //     }, 'student.user'])
+    //     ->get();
+    //  return $parent;
+    // }
     public function displayAllBaby(Request $request)
     {
-    $parent = Parentt::where('id', auth()->user()->id)
+     $parent = Parentt::where('id', auth()->user()->id)
         // ->whereHas('student.user', function ($query) {
         //     $query->where('status', '1');
         // })
@@ -35,10 +51,11 @@ class ParenttController extends Controller
             $query->whereHas('user', function ($query) {
                 $query->where('status', '1');
             });
-        }, 'student.user'])
+        }, 'student.user','student.classs','student.section'])
         ->get();
-    return $parent;
-}
+     return $parent;
+    }
+
 
 
     //برنامج الدوام الخاص بالابن المحدد
