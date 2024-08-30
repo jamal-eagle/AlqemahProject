@@ -13,7 +13,8 @@ class Academy extends Model
 
     protected $fillable = [
         'name',
-        'phone',
+        'phone1',
+        'phone2',
         'address',
         'facebook_link',
         'description',

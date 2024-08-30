@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             
             $table->string('name');
-            $table->string('phone');
+            $table->string('phone1')->nullable();
+            $table->string('phone2')->nullable();
             $table->string('address');
             $table->string('facebook_link')->nullable();
             $table->string('description')->nullable();

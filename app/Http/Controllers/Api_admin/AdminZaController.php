@@ -526,16 +526,27 @@ public function edit_info_academy(Request $request)
     //     $info->phone = $request->phone;
     // }
 
-    // if ($request->has('phone') && !empty($request->phone)) {
-    //     $phone = $request->phone;
+    if ($request->has('phone1') && !empty($request->phone1)) {
+        $phone1 = $request->phone1;
     
-    //     // تعبير عادي للأرقام السورية
-    //     if (!preg_match('/^(\+?963|0)?9\d{8}$|^0(11|21|31|41|51|61|71|81|91)\d{7}$/', $phone)) {
-    //         return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
-    //     }
+        // تعبير عادي للأرقام السورية
+        if (!preg_match('/^(\+?963|0)?9\d{8}$|^0(11|21|31|41|51|61|71|81|91)\d{7}$/', $phone1)) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+        }
     
-    //     $info->phone = $request->phone;
-    // }
+        $info->phone1 = $request->phone1;
+    }
+
+    if ($request->has('phone2') && !empty($request->phone2)) {
+        $phone2 = $request->phone2;
+    
+        // تعبير عادي للأرقام السورية
+        if (!preg_match('/^(\+?963|0)?9\d{8}$|^0(11|21|31|41|51|61|71|81|91)\d{7}$/', $phone2)) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+        }
+    
+        $info->phone2 = $request->phone2;
+    }
 
     // if ($request->has('phone') && !empty($request->phone)) {
     //     $phone = $request->phone;
@@ -547,16 +558,16 @@ public function edit_info_academy(Request $request)
     
     //     $info->phone = $request->phone;
     // }
-    if ($request->has('phone') && !empty($request->phone)) {
-        $phone = $request->phone;
+    // if ($request->has('phone') && !empty($request->phone)) {
+    //     $phone = $request->phone;
     
-        // تعبير عادي للأرقام السورية بدون تنسيق محدد
-        if (!preg_match('/^(09\d{8}|011\d{7})$/', str_replace(' ', '', $phone))) {
-            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
-        }
+    //     // تعبير عادي للأرقام السورية بدون تنسيق محدد
+    //     if (!preg_match('/^(09\d{8}|011\d{7})$/', str_replace(' ', '', $phone))) {
+    //         return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+    //     }
     
-        $info->phone = $phone;
-    }
+    //     $info->phone = $phone;
+    // }
     
     
     
