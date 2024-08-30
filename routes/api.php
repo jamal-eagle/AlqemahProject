@@ -223,7 +223,13 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //الدورات التي سجل فيها الطالب
     route::get('/student_course/{student_id}',[AdminOperationController::class,'student_course']);
     //تعديل السنة الدراسية
-    Route::post('edit_year/{id}',[AdminZaController::class,'edit_year']);
+    Route::post('edit_year',[AdminZaController::class,'edit_year']);
+    //تعديل القسط السنوي
+    Route::post('edit_fee_class/{year}/{class_id}',[AdminZaController::class,'edit_fee_class']);
+    //تعديل الحسومات
+    Route::post('edit_resolve/{year}',[AdminZaController::class,'edit_resolve']);
+    Route::post('edit_info_academy',[AdminZaController::class,'edit_info_academy']);
+    
     // //عرض طلبات التسجيل في دورة معينة
     // Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
 
@@ -535,7 +541,9 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
         Route::put('/updatenoteforabsence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'updatenoteforabsence_for_teacher']);
         //تعديل تبرير الغياب عند الطالب
         route::put('/updateAbsence_for_student/{student_id}/{absence_id}', [AdminOperationController::class, 'updateAbsence_for_student']);
-});
+        //تعديل تبرير الغياب عند الطالب
+        route::post('/updateAbsence_for_student/{student_id}/{date}', [AdminZaController::class, 'updateAbsence_for_student']);
+    });
 
 /*******************************************************student*******************************************************/
 Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(function () {

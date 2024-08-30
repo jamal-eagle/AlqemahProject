@@ -408,9 +408,9 @@ public function programe_week($section_id)
 // }
 
 
-public function edit_year(Request $request,$id)
+public function edit_year(Request $request)
 {
-    $info = Academy::find($id);
+    $info = Academy::find('1');
 
     //عدلنا العام الدراسي
     $info->year = $request->year ?? $info->year;
@@ -424,13 +424,160 @@ public function edit_year(Request $request,$id)
 
     //إنشاء قسط جديد
 
-
-
-
-
     $info->save();
 
     return $info;
+
+}
+
+public function edit_fee_class(Request $request, $year, $class_id)
+{
+    $validator = Validator::make($request->all(), [
+        'amount' => 'required|numeric',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $have = Fee_School::where('year', $year)->where('class_id', $class_id)->first();
+
+    if ($have) {
+        $have->amount = $request->amount;
+        if ($have->save()) {
+            return response()->json(['message' => 'update fee successfully'], 200);
+        }
+        
+    }
+
+    $fee = new Fee_School();
+
+    $fee->year = $year;
+    $fee->amount = $request->amount;
+    $fee->class_id = $class_id;
+
+    if ($fee->save()) {
+        return response()->json(['message' => 'add fee successfully'], 200);
+    }
+
+    return response()->json(['message' => 'add fee fail'], 200);
+
+}
+
+
+public function edit_resolve(Request $request, $year)
+{
+    $info = Academy::where('year', $year)->first();
+
+    if (!$info) {
+        return response()->json(['message' => 'you do not have this year'], 200);
+    }
+
+    $validator = Validator::make($request->all(), [
+        'resolve_brother' => 'numeric|between:0,100',
+        'resolve_martyr' => 'numeric|between:0,100',
+        'resolve_Son_teacher' => 'numeric|between:0,100',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $info->resolve_brother = $request->resolve_brother;
+    $info->resolve_martyr = $request->resolve_martyr;
+    $info->resolve_Son_teacher = $request->resolve_Son_teacher;
+
+    if ($info->save()) {
+        return response()->json(['message' => 'you update resolve successfully'], 200);
+    }
+    return response()->json(['message' => 'you update resolve fail'], 200);
+
+}
+
+public function edit_info_academy(Request $request)
+{
+    $info = Academy::find('1');
+
+    $validator = Validator::make($request->all(), [
+        'name' => 'nullable|string',
+        // 'phone' => 'nullable|numeric',
+        'address' => 'nullable|string',
+        'facebook_link' => 'nullable|string',
+        'description' => 'nullable|string',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    if ($request->has('name') && !empty($request->name)) {
+        $info->name = $request->name;
+    }
+
+    // if ($request->has('phone') && !empty($request->phone)) {
+    //     $info->phone = $request->phone;
+    // }
+
+    // if ($request->has('phone') && !empty($request->phone)) {
+    //     $phone = $request->phone;
+    //     if (!preg_match('/^(\+?963|0)?9\d{8}$/', $phone)) {
+    //         return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+    //     }
+    //     $info->phone = $request->phone;
+    // }
+
+    // if ($request->has('phone') && !empty($request->phone)) {
+    //     $phone = $request->phone;
+    
+    //     // تعبير عادي للأرقام السورية
+    //     if (!preg_match('/^(\+?963|0)?9\d{8}$|^0(11|21|31|41|51|61|71|81|91)\d{7}$/', $phone)) {
+    //         return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+    //     }
+    
+    //     $info->phone = $request->phone;
+    // }
+
+    // if ($request->has('phone') && !empty($request->phone)) {
+    //     $phone = $request->phone;
+    
+    //     // تعبير عادي للأرقام السورية مع الشرطات
+    //     if (!preg_match('/^(09\d{2}-\d{3}-\d{3}|011-\d{3}-\d{4})$/', $phone)) {
+    //         return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+    //     }
+    
+    //     $info->phone = $request->phone;
+    // }
+    if ($request->has('phone') && !empty($request->phone)) {
+        $phone = $request->phone;
+    
+        // تعبير عادي للأرقام السورية بدون تنسيق محدد
+        if (!preg_match('/^(09\d{8}|011\d{7})$/', str_replace(' ', '', $phone))) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+        }
+    
+        $info->phone = $phone;
+    }
+    
+    
+    
+
+    if ($request->has('address') && !empty($request->address)) {
+        $info->address = $request->address;
+    }
+
+    if ($request->has('facebook_link') && !empty($request->facebook_link)) {
+        $info->facebook_link = $request->facebook_link;
+    }
+
+    if ($request->has('description') && !empty($request->description)) {
+        $info->description = $request->description;
+    }
+
+    if ($info->save()) {
+        return response()->json(['message' => 'you update info successfully'], 200);
+    }
+
+    return response()->json(['message' => 'you update info fail'], 200);
 
 }
 
@@ -1749,6 +1896,32 @@ public function display_all_class()
 {
  $s=Section::where('id', $s_id)->with('classs')->first();
 return $s;}
+
+public function updateAbsence_for_student(Request $request, $student_id, $date)
+{
+    $absence = Out_Of_Work_Student::where('student_id', $student_id)->where('date',$date)->first();
+
+    $validator = Validator::make($request->all(), [
+        'justification' => 'string',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    if ($request->has('justification') && !empty($request->justification)) {
+        $absence->justification = $request->justification;
+    }
+
+    if ($absence->save()) {
+        return response()->json(['message' => 'Absence justification updated successfully'], 200);
+    }
+
+    
+
+}
+
+
 
 
 
