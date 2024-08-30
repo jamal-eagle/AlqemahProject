@@ -514,18 +514,6 @@ public function edit_info_academy(Request $request)
         $info->name = $request->name;
     }
 
-    // if ($request->has('phone') && !empty($request->phone)) {
-    //     $info->phone = $request->phone;
-    // }
-
-    // if ($request->has('phone') && !empty($request->phone)) {
-    //     $phone = $request->phone;
-    //     if (!preg_match('/^(\+?963|0)?9\d{8}$/', $phone)) {
-    //         return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
-    //     }
-    //     $info->phone = $request->phone;
-    // }
-
     if ($request->has('phone1') && !empty($request->phone1)) {
         $phone1 = $request->phone1;
     
@@ -547,31 +535,7 @@ public function edit_info_academy(Request $request)
     
         $info->phone2 = $request->phone2;
     }
-
-    // if ($request->has('phone') && !empty($request->phone)) {
-    //     $phone = $request->phone;
     
-    //     // تعبير عادي للأرقام السورية مع الشرطات
-    //     if (!preg_match('/^(09\d{2}-\d{3}-\d{3}|011-\d{3}-\d{4})$/', $phone)) {
-    //         return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
-    //     }
-    
-    //     $info->phone = $request->phone;
-    // }
-    // if ($request->has('phone') && !empty($request->phone)) {
-    //     $phone = $request->phone;
-    
-    //     // تعبير عادي للأرقام السورية بدون تنسيق محدد
-    //     if (!preg_match('/^(09\d{8}|011\d{7})$/', str_replace(' ', '', $phone))) {
-    //         return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
-    //     }
-    
-    //     $info->phone = $phone;
-    // }
-    
-    
-    
-
     if ($request->has('address') && !empty($request->address)) {
         $info->address = $request->address;
     }
