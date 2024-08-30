@@ -222,6 +222,16 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::post('/edit_info_academy/{id}',[AdminOperationController::class,'edit_info_academy']);
     //الدورات التي سجل فيها الطالب
     route::get('/student_course/{student_id}',[AdminOperationController::class,'student_course']);
+    //عرض السنة الدراسية
+    Route::get('/display_year',[AdminZaController::class,'display_year']);
+    //عرض الحسومات للعام الدراسي الحالي
+    Route::get('/display_resolve',[AdminZaController::class,'display_resolve']);
+    //عرض القسط لسنة دراسية محددة
+    Route::get('/display_fee_class/{year}',[AdminZaController::class,'display_fee_class']);
+    //عرض معلومات المعهد
+    Route::get('/display_info_academy',[AdminZaController::class,'display_info_academy']);
+
+    
     //تعديل السنة الدراسية
     Route::post('edit_year',[AdminZaController::class,'edit_year']);
     //تعديل القسط السنوي

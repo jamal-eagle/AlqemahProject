@@ -407,6 +407,35 @@ public function programe_week($section_id)
 //     return response()->json([$user, $student, $parentt]);
 // }
 
+public function display_year()
+{
+    $info = Academy::find('1');
+    
+    return $info->year;
+}
+
+public function display_resolve()
+{
+    $info = Academy::find('1');
+
+    return response()->json(['resolve_brother' =>  $info->resolve_brother, 'resolve_martyr' => $info->resolve_martyr, 'resolve_Son_teacher' => $info->resolve_Son_teacher]);
+}
+
+public function display_fee_class($year)
+{
+    $fee = Fee_School::where('year', $year)->with('classs')->get();
+
+    return $fee;
+
+}
+
+public function display_info_academy()
+{
+    $info = Academy::find('1');
+    
+    return $info;
+}
+
 
 public function edit_year(Request $request)
 {
