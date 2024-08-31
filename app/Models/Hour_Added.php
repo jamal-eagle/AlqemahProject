@@ -25,4 +25,12 @@ class Hour_Added extends Model
     }
 
 
+    public static function getTeacherHoursForMonth($teacherId, $month)
+    {
+        return self::where('teacher_id', $teacherId)
+                    ->whereMonth('created_at', $month)
+                    ->sum('num_hour_added');
+    }
+
+
 }

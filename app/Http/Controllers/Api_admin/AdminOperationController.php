@@ -2876,6 +2876,31 @@ public function updatenoteforabsence_for_teacher(Request $request,$teacher_id,$a
 
 
     }
+public function getTeacherExtraHours(Request $request,$teacher_id)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'month' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return $this->responseError(['errors' => $validator->errors()]);
+        }
+        $teacher = Teacher::find($teacher_id);
+        if(!$teacher)
+        {
+            return response()->json(['the teacher not found']);
+        }
+        $month = $request->month;
+
+        $totalHours = Hour_Added::getTeacherHoursForMonth($teacher_id, $month);
+
+
+        return response()->json([
+            'teacher_id' => $teacher->id,
+            'month' => $month,
+            'total_hours' => $totalHours,
+        ]);
+    }
 
 }
 

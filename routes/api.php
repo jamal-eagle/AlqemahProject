@@ -231,7 +231,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //عرض معلومات المعهد
     Route::get('/display_info_academy',[AdminZaController::class,'display_info_academy']);
 
-    
+
     //تعديل السنة الدراسية
     Route::post('edit_year',[AdminZaController::class,'edit_year']);
     //تعديل القسط السنوي
@@ -239,7 +239,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //تعديل الحسومات
     Route::post('edit_resolve/{year}',[AdminZaController::class,'edit_resolve']);
     Route::post('edit_info_academy',[AdminZaController::class,'edit_info_academy']);
-    
+
     // //عرض طلبات التسجيل في دورة معينة
     // Route::get('order_on_course/{course_id}',[MonetorController::class,'order_on_course']);
 
@@ -360,24 +360,28 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::put('/update_extrahour/{hourid}',[AdminOperationController::class,'update_extrahour']);
     //لحذف الساعات الاضافية
     Route::delete('/delete_extrahour/{teacher_id}/{hour_id}',[AdminOperationController::class,'delete_extrahour']);
+    //عرض الساعات الافتراضية للشهرمعين
+    Route::get('/getTeacherExtraHours/{teacher_id}',[AdminOperationController::class,'getTeacherExtraHours']);
+
     Route::get('/all_salary',[AdminZaController::class,'all_salary']);
     Route::get('/calculate_balance',[AdminZaController::class,'calculate_balance']);
     Route::get('/showUserActivities',[AdminZaController::class,'showUserActivities']);
     Route::get('/all_action_for_user/{user_id}',[AdminZaController::class,'all_action_for_user']);
 
-        // حذف يوم غياب للاستاذ
-        Route::delete('/delete_absence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'deleteAbsenceforteacher']);
-        //تعديل تبير الغياب
-        Route::put('/updatenoteforabsence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'updatenoteforabsence_for_teacher']);
-        //تعديل تبرير الغياب عند الطالب
-        route::put('/updateAbsence_for_student/{student_id}/{absence_id}', [AdminOperationController::class, 'updateAbsence_for_student']);
+    // حذف يوم غياب للاستاذ
+    Route::delete('/delete_absence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'deleteAbsenceforteacher']);
+    //تعديل تبير الغياب
+    Route::put('/updatenoteforabsence_for_teacher/{teacher_id}/{absence_id}',[AdminOperationController::class,'updatenoteforabsence_for_teacher']);
+    //تعديل تبرير الغياب عند الطالب
+    route::put('/updateAbsence_for_student/{student_id}/{absence_id}', [AdminOperationController::class, 'updateAbsence_for_student']);
     Route::get('/class_s/{s_id}',[AdminZaController::class,'class_s']);
     //عرض الطلاب المنتمين للمعهد
     route::get('/desplay_all_student/{year}', [MonetorController::class, 'desplay_all_student_regester']);
     //عرض مواد الطالب
     Route::get('/subject/{class_id}',[AdminZaController::class,'display_subject_for_class']);
-    //تعديل تبرير الغياب عند الطالب 
+    //تعديل تبرير الغياب عند الطالب
     route::post('/updateAbsence_for_student/{student_id}/{date}', [AdminZaController::class, 'updateAbsence_for_student']);
+
 });
 
 /*******************************************************monetor*******************************************************/
@@ -455,7 +459,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     //اضافة يوم غياب للطالب
     route::post('/add_student_out_of_work/{student_id}', [AdminOperationController::class, 'addAbsence']);
 
-    
+
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[AdminZaController::class,'order_on_course']);
 
