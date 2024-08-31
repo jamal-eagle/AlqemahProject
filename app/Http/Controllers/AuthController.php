@@ -296,6 +296,30 @@ public function update_profile_employee(Request $request , $employee_id)
 
 }
 
+// public function display_notification()
+// {
+//     $user = User::find(auth()->user()->id); // استبدل بمعرف المستخدم المناسب
+//     $notifications = $user->unreadNotifications;
+//     return response()->json($notifications);
+// }
+
+public function display_notification()
+{
+    $user = auth()->user(); // يجلب المستخدم الذي قام بتسجيل الدخول
+
+    // تحقق ما إذا كان المستخدم هو Parent أو User
+    if (Parentt::where("email", auth()->user()->email)) {
+        $notifications = $user->unreadNotifications;
+    } elseif (User::where("email", auth()->user()->email)) {
+        $notifications = $user->unreadNotifications;
+    } else {
+        return response()->json(['error' => 'Invalid user type'], 403);
+    }
+
+    return response()->json($notifications);
+}
+
+
 
 
 }

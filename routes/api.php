@@ -78,6 +78,8 @@ Route::group(['middleware'=>'auth:sanctum'], function(){
         Route::get('all_publish', [Student_operationController::class, 'publish']);
         //عرض معلومات المعهد
         Route::get('/display_info_academy',[Student_operationController::class,'display_info_academy']);
+        Route::get('/display_notification',[AuthController::class,'display_notification']);
+        
 });
 
 /*******************************************************admin*******************************************************/
@@ -645,7 +647,8 @@ Route::prefix('parent')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
     //تعديل معلومات الأهل الرقم العنوان و كلمة السر
     Route::post('/edit_some_info_profile_parent',[ParenttController::class,'edit_some_info_profile_parent']);
-
+    //عرض الكورسات يلي مسجل فيها ابني
+    Route::get('/course_my_sun/{student_id}',[ParenttController::class,'course_my_sun']);
 });
 
 /*******************************************************teacher*******************************************************/

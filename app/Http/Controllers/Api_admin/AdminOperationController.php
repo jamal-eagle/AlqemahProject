@@ -190,6 +190,9 @@ if($user){
                 // create a token
                 $token = $user->createToken("auth_token")->plainTextToken;
                 /// send a response
+                if (isset($user->image)) {
+                $user->image_file_url = asset('/upload/' . $user->image);
+                }
                 return response()->json([
             'User login successfully',
             'token'=>$token,
@@ -208,6 +211,9 @@ if($user){
         if(Hash::check($request->password, $parent->password)){
             // create a token
             $token = $parent->createToken("auth_token")->plainTextToken;
+            if (isset($parent->image)) {
+            $parent->image_file_url = asset('/upload/' . $parent->image);
+            }
             /// send a response
             return response()->json([
                 'User login successfully',

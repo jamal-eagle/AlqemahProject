@@ -16,6 +16,7 @@ use App\Models\Note_Student;
 use App\Models\Mark;
 use App\Models\Image;
 use App\Models\Accessories;
+use App\Models\Order;
 
 class ParenttController extends Controller
 {
@@ -41,20 +42,44 @@ class ParenttController extends Controller
     //     ->get();
     //  return $parent;
     // }
+    // public function displayAllBaby(Request $request)
+    // {
+    //  $parent = Parentt::where('id', auth()->user()->id)
+    //     // ->whereHas('student.user', function ($query) {
+    //     //     $query->where('status', '1');
+    //     // })
+    //     ->with(['student' => function ($query) {
+    //         $query->whereHas('user', function ($query) {
+    //             $query->where('status', '1');
+    //         });
+    //     }, 'student.user','student.classs','student.section'])
+    //     ->get();
+    //  return $parent;
+    // }
     public function displayAllBaby(Request $request)
-    {
-     $parent = Parentt::where('id', auth()->user()->id)
-        // ->whereHas('student.user', function ($query) {
-        //     $query->where('status', '1');
-        // })
+{
+    // Fetch the parent and associated data
+    $parent = Parentt::where('id', auth()->user()->id)
         ->with(['student' => function ($query) {
             $query->whereHas('user', function ($query) {
                 $query->where('status', '1');
             });
-        }, 'student.user','student.classs','student.section'])
+        }, 'student.user', 'student.classs', 'student.section'])
         ->get();
-     return $parent;
+
+    // Assign the image_file_url to each student's user data
+    foreach ($parent as $p) {
+        foreach ($p->student as $student) {
+            if (isset($student->user->image)) {
+                // Set the image file URL
+                $student->user->image_file_url = asset('/upload/' . $student->user->image);
+            }
+        }
     }
+
+    return $parent;
+}
+
 
 
 
@@ -393,4 +418,14 @@ public function homework_subject_my_sun($student_id,$subject_id)
 
     return response()->json(['status' => 'success', 'message' => 'Profile updated successfully']);
 }
+
+//الكورسات يلي مسجل فيها ابني
+public function course_my_sun($student_id)
+    {
+        $order = Order::where('student_id', $student_id)->with('course.subject')->with('course.teacher.user')->get();
+
+        return $order;
+    }
+
+
 }

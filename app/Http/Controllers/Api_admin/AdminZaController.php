@@ -212,50 +212,50 @@ public function GiveDate(Request $request, $order_id)
 
 // public function programe_week($section_id)
 // {
-//     // $student = Student::where('user_id', auth()->user()->id)->first();
-//     // $section_id = $student->section_id;
-//     //$programe = Program_Student::where('section_id', $student->section_id)->get();
-//     $programe = Program_Student::all();
+ //     // $student = Student::where('user_id', auth()->user()->id)->first();
+ //     // $section_id = $student->section_id;
+ //     //$programe = Program_Student::where('section_id', $student->section_id)->get();
+ //     $programe = Program_Student::all();
 
-//     if ($programe) {
-//         $result = [];
+ //     if ($programe) {
+ //         $result = [];
 
-//         foreach ($programe as $p) {
-//             if ($p->section_id == $section_id) {
-//                 $img = Image::all();
-//                 foreach ($img as $i) {
-//                     if ($p->id == $i->program_student_id) {
-//                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
-//                         if (file_exists($imagePath)) {
-//                             $i->image_file_url = asset('/upload/' . $i->path);
-//                             $result[] = [
-//                                 // 'path' => $imagePath,
-//                                 'image_info' => $i,
-//                                 'program' => $p
-//                             ];
-//                         }
-//                     }
-//                 }
-//             }
-//         }
+ //         foreach ($programe as $p) {
+ //             if ($p->section_id == $section_id) {
+ //                 $img = Image::all();
+ //                 foreach ($img as $i) {
+ //                     if ($p->id == $i->program_student_id) {
+ //                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+ //                         if (file_exists($imagePath)) {
+ //                             $i->image_file_url = asset('/upload/' . $i->path);
+ //                             $result[] = [
+ //                                 // 'path' => $imagePath,
+ //                                 'image_info' => $i,
+ //                                 'program' => $p
+ //                             ];
+ //                         }
+ //                     }
+ //                 }
+ //             }
+ //         }
 
-//         if (!empty($result)) {
-//             return response()->json([
-//                 'status' => 'true',
-//                 'images' => $result
-//             ]);
-//         } else {
-//             return response()->json([
-//                 'status' => 'false',
-//                 'message' => 'No images found'
-//             ]);
-//         }
-//     } else {
-//         return response()->json([
-//             'status' => 'false',
-//             'message' => 'Program not found for this student'
-//         ]);
-//     }
+ //         if (!empty($result)) {
+ //             return response()->json([
+ //                 'status' => 'true',
+ //                 'images' => $result
+ //             ]);
+ //         } else {
+ //             return response()->json([
+ //                 'status' => 'false',
+ //                 'message' => 'No images found'
+ //             ]);
+ //         }
+ //     } else {
+ //         return response()->json([
+ //             'status' => 'false',
+ //             'message' => 'Program not found for this student'
+ //         ]);
+ //     }
 // }
 
 public function programe_week($section_id)
@@ -1260,7 +1260,7 @@ public function add_publish(Request $request)
         else {
             return response()->json(['sucssscceccs']);
         }
-    }
+}
 
     //إضافة دفعة لطالب محدد
     public function add_pay(Request $request, $student_id)
@@ -1412,7 +1412,33 @@ public function order_on_course($course_id)
 
         if ($Money_win >= $course->Minimum_win) {
             $course->Course_status = 1;
-            $course->save();
+            // $course->save();
+
+            // if ($note_student->save()) {
+            //     $user = User::find($student->user_id);  // استبدل بمعرف المستخدم المناسب
+            //     $parentt = Parentt::find($student->parentt_id);
+            // $message = 'This is a test notification!';
+            // if ($user) {
+            //     $user->notify(new MyNotification($message));
+            // }
+            
+            // if ($parentt) {
+            //     $parentt->notify(new MyNotification($message));
+            // }
+            // }
+            //إرسال إشعارات
+            if ($course->save()) {
+                $users = User::where('user_type','admin')->get();
+                $message = 'تم إكتمال العدد للدورة (' . $course->name_course . ') و تم فتحها';
+
+                foreach ($users as $user) {
+                    $user->notify(new MyNotification($message));
+                }
+
+                
+
+
+            }
         }
 
 
