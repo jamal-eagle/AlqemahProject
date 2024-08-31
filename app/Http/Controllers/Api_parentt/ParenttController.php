@@ -287,9 +287,31 @@ public function homework_subject_my_sun($student_id,$subject_id)
     $student = Student::where('id', $student_id)->first();
     $year = $student->user->year;
 
-    $homework = Homework::where('year', $year)->where('subject_id', $subject_id)->with('subject')->get();
+    // $homework = Homework::where('year', $year)->where('subject_id', $subject_id)->with('subject')->get();
 
-    return $homework;
+    $homework = Homework::where('year', $year)->where('subject_id', $subject_id)->with('subject')->with('accessories')->get();
+
+    $result = [];
+
+    foreach ($homework as $h) {
+        $homework_info = $h->toArray();
+        $homework_info['accessories'] = [];
+
+        foreach ($h->accessories as $a) {
+            $a->image_file_url = asset('/upload/' . $a->path);
+            $homework_info['accessories'][] = $a;
+        }
+
+        $result[] = ['homework_info' => $homework_info];
+    }
+
+    if (!empty($result)) {
+        // return response()->json(['status' => 'success', 'data' => $result]);
+
+        return $result;
+    } else {
+        return response()->json(['status' => 'false', 'message' => 'No images found']);
+    }
 }
 
     //عرض الملاحظات التي بحق الابن

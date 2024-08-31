@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api_admin;
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Notifications\MyNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -101,11 +102,23 @@ public function desplay_student_marks($student_id)
         $note_student->student_id = $student_id;
         $note_student->user_id = auth()->user()->id;
 
-        $note_student->save();
+        if ($note_student->save()) {
+            $user = User::find($student->user_id);  // استبدل بمعرف المستخدم المناسب
+            $parentt = Parentt::find($student->parentt_id);
+        $message = 'This is a test notification!';
+        if ($user) {
+            $user->notify(new MyNotification($message));
+        }
+        
+        if ($parentt) {
+            $parentt->notify(new MyNotification($message));
+        }
+        }
 
         return response()->json(['successssss']);
 
 }
+
 
 public function desplay_section_and_student($class_id)
 {
