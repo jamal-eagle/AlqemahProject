@@ -32,5 +32,11 @@ class Hour_Added extends Model
                     ->sum('num_hour_added');
     }
 
+    public static function getTeacherHoursForDay($teacherId, $day)
+    {
+        return self::where('teacher_id', $teacherId)
+                    ->whereDay('created_at', $day)
+                    ->sum('num_hour_added');
+    }
 
 }

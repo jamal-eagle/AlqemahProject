@@ -2893,12 +2893,16 @@ public function getTeacherExtraHours(Request $request,$teacher_id)
         $month = $request->month;
 
         $totalHours = Hour_Added::getTeacherHoursForMonth($teacher_id, $month);
-
+        $hoursDetails = Hour_Added::where('teacher_id', $teacher_id)
+        ->whereMonth('created_at', $month)
+        ->get();
 
         return response()->json([
             'teacher_id' => $teacher->id,
             'month' => $month,
             'total_hours' => $totalHours,
+            'hours_details' => $hoursDetails,
+
         ]);
     }
 
