@@ -131,7 +131,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //تعديل علامة طالب
     route::post('/edit_mark_for_student/{student_id}/subject/{subject_id}', [AdminOperationController::class, 'editMark']);
     //عرض كل مدرسي المعهد
-    Route::get('/all-teatcher',[AdminOperationController::class,'all_teatcher']);
+    Route::get('/all-teatcher',[AdminZaController::class,'all_teatcher']);
     // يرجع ايام العطل  مع عدد الاسعات التي غاب فيها  عرض سجل دوام المدرس
     route::get('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[AdminOperationController::class,'getteacherworkschedule']);
     //تعديل برنامج دوام المدرس
@@ -566,7 +566,9 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
         route::post('/updateAbsence_for_student/{student_id}/{date}', [AdminZaController::class, 'updateAbsence_for_student']);
         //اضافة علامة جزئية معينة لمادة معينة لطلاب شعبة
     Route::put('/add_marks_to_section/{section_id}',[AdminOperationController::class,'add_marks_to_section']);
-    });
+    //عرض السنة الدراسية
+    Route::get('/display_year',[AdminZaController::class,'display_year']);    
+});
 
 /*******************************************************student*******************************************************/
 Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(function () {
