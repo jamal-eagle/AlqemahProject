@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Actions_log; // استدعاء موديل ActionLog لتسجيل الأنشطة
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class LogUserActivity
 {
@@ -34,7 +35,7 @@ class LogUserActivity
             $user = Auth::user();
 
             // إنشاء وصف مخصص بناءً على الـ path
-            $description = $this->getActionDescription($request->path());
+            $description = $this->getActionDescription($request->path(), $request);
 
             // تسجيل النشاط
             Actions_log::create([
@@ -108,8 +109,9 @@ class LogUserActivity
 // }
 
 
-private function getActionDescription($path)
+private function getActionDescription($path, $request)
 {
+    //تم تجريبه
     // تحديث معلومات طالب
     if (preg_match('/^api\/monetor\/update_profile_student\/(\d+)$/', $path, $matches)) {
         // استخراج معرف الطالب من الـ path
@@ -117,22 +119,54 @@ private function getActionDescription($path)
 
         // جلب بيانات الطالب عبر العلاقة بين User و Student
         $student = \App\Models\Student::find($studentId);
-
+        $data = $request->input();
         // إذا كان الطالب موجودًا، جلب المستخدم المرتبط بالطالب وعرض اسمه
         if ($student && $student->user) {
             $user = $student->user;
-            return 'تم تحديث معلومات الطالب: ' . $user->first_name . ' ' . $user->last_name;
+            $newClass = \App\Models\Classs::find($data['class_id']);
+            $newSection = \App\Models\Section::find($data['section_id']);
+            return 'تم تحديث معلومات الطالب: ' . $user->first_name .' ' .$user->father_name.  ' ' . $user->last_name . ' ' . $user->mother_name . ' ' .$user->phone . ' ' . $user->address . ' ' . $user->school_tuition. ' '.$student->classs->name .' '.$student->section->num_section   .'\n ((إلى)) \n' . $data['first_name'] . ' ' . $data['father_name'] . ' ' . $data['last_name'] . ' ' . $data['mother_name'] . ' ' . $data['phone'] . ' ' . $data['address'] . ' ' . $data['school_tuition'] . ' ' . ($newClass ? $newClass->name : 'غير معروف') . ' ' . ($newSection ? $newSection->num_section : 'غير معروف');
         } else {
             return 'تم تحديث معلومات طالب غير معروف (ID: ' . $studentId . ')';
         }
     }
 
-    // تحقق من المسارات التي تحتوي على معرفات ديناميكية باستخدام التعبيرات النمطية
+
+    //تم تجريبه
+    // إرسال إنذار أو ثناء ...لطالب
+    // if (preg_match('/^api\/monetor\/create_note\/(\d+)$/', $path, $matches)) {
+    //     $studentId = $matches[1];
+    //     $student = \App\Models\Student::find($studentId);
+    //     return $student ? 'تم إرسال ملاحظة /إنذار للطالب: ' . $student->user->first_name . ' ' . $student->user->last_name : 'تم إرسال ملاحظة لطالب غير معروف';
+    // }
     if (preg_match('/^api\/monetor\/create_note\/(\d+)$/', $path, $matches)) {
         $studentId = $matches[1];
         $student = \App\Models\Student::find($studentId);
-        return $student ? 'تم إرسال ملاحظة /إنذار للطالب: ' . $student->user->first_name . ' ' . $student->user->last_name : 'تم إرسال ملاحظة لطالب غير معروف';
+    
+        // التحقق من وجود الطالب
+        if (!$student) {
+            return 'تم إرسال ملاحظة لطالب غير معروف';
+        }
+    
+        // الحصول على البيانات المرسلة
+        $data = $request->input(); // الحصول على البيانات المرسلة عبر الـ API
+    
+        // عرض التفاصيل المخزنة
+        $details = '';
+        if (isset($data['note_details']) && is_array($data['note_details'])) {
+            foreach ($data['note_details'] as $detail) {
+                $details .= ' [' . $detail['key'] . ': ' . $detail['value'] . ']';
+            }
+        }
+    
+        // عرض النتيجة النهائية
+        return 'تم إرسال ' . ($data['type'] ?? 'ملاحظة') . ' للطالب: ' 
+            . $student->user->first_name . ' ' . $student->user->last_name 
+            . ' بالتفاصيل التالية: ' . ($data['text'] ?? ' ');
     }
+
+
+    
 
     if (preg_match('/^api\/monetor\/update_Weekly_Schedule_for_student\/(\d+)$/', $path, $matches)) {
         $teacherId = $matches[1];
@@ -218,7 +252,10 @@ private function getActionDescription($path)
     if (preg_match('/^api\/monetor\/update_profile_employee\/(\d+)$/', $path, $matches)) {
         $employeeId = $matches[1];
         $employee = \App\Models\Employee::find($employeeId);
-        return $employee ? 'تم تعديل معلومات الموظف ' . $employee->first_name . ' ' . $employee->last_name : 'تم تعديل معلومات موظف غير معروف';
+        $data = $request->input();
+        return $employee ? 'تم تعديل معلومات الموظف ' . $employee->first_name . ' ' . $employee->last_name . ' ' .$employee->phone . ' ' . $employee->address . ' ' . $employee->salary . ' ' . $employee->type . '\n ((إلى)) \n' . $data['first_name'] . ' ' . 
+        $data['last_name'] . ' ' . $data['phone'] . ' ' . $data['address'] . ' ' . $data['salary'] . ' ' . $data['type'] : 'تم تعديل معلومات موظف غير معروف';
+    
     }
 
     if (preg_match('/^api\/monetor\/update_teacher_profile\/(\d+)$/', $path, $matches)) {

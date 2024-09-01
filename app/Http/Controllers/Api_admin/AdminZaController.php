@@ -1976,6 +1976,25 @@ public function all_teatcher()
 }
 
 
+public function deleteAbsence($student_id, $date)
+{
+    $student = Student::find($student_id);
+    if (!$student) {
+        return response()->json(['message' => 'Student not found'], 404);
+    }
+
+    $absence = Out_Of_Work_Student::where('student_id', $student_id)->where('date',$date);
+    if (!$absence) {
+        return response()->json(['message' => 'Absence record not found'], 404);
+    }
+
+    // حذف سجل الغياب
+    $absence->delete();
+
+    return response()->json(['message' => 'Absence record deleted successfully'], 200);
+}
+
+
 
 
 

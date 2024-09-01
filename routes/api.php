@@ -124,8 +124,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //التعديل على سجل دوام الطالب يعني اضافة غياب او حذف غياب
     //اضافة يوم غياب للطالب
     route::post('/add_student_out_of_work/{student_id}', [AdminOperationController::class, 'addAbsence']);
-    //حذف سجل غياب
-    Route::delete('delete_student_out_of_work/{student_id}/{absence_id}', [AdminOperationController::class, 'deleteAbsence']);
+    // //حذف سجل غياب
+    // Route::delete('delete_student_out_of_work/{student_id}/{absence_id}', [AdminOperationController::class, 'deleteAbsence']);
     //اضافة علامة طالب
     route::post('/add_mark_to_student/{student_id}', [AdminOperationController::class, 'add_mark_to_student']);
     //تعديل علامة طالب
@@ -359,7 +359,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //لاضافة الساعات الاضافية
     Route::post('/add_extrahour/{teacher_id}',[AdminOperationController::class,'add_extrahour']);
     //لتعديل الساعات الاضافية
-    Route::put('/update_extrahour/{hourid}',[AdminOperationController::class,'update_extrahour']);
+    Route::post('/update_extrahour/{teacher_id}/{hourid}',[AdminOperationController::class,'update_extrahour']);
     //لحذف الساعات الاضافية
     Route::delete('/delete_extrahour/{teacher_id}/{hour_id}',[AdminOperationController::class,'delete_extrahour']);
     //عرض الساعات الافتراضية للشهرمعين
@@ -383,6 +383,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/subject/{class_id}',[AdminZaController::class,'display_subject_for_class']);
     //تعديل تبرير الغياب عند الطالب
     route::post('/updateAbsence_for_student/{student_id}/{date}', [AdminZaController::class, 'updateAbsence_for_student']);
+    //حذف سجل غياب
+    Route::delete('delete_student_out_of_work/{student_id}/{date}', [AdminZaController::class, 'deleteAbsence']);
 
 });
 
@@ -401,7 +403,8 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
         Route::post('update_program_section/{program_id}',[MonetorController::class,'update_program_section']);
         //تعديل معلومات موظف
         Route::post('/update_profile_employee/{employee_id}',[AuthController::class,'update_profile_employee']);
-
+        //ارسال انذارات وملاحظات للطالب
+        route::post('/create_note/{student_id}', [AdminZaController::class, 'create_note_student']);
     });
     //عرض تصنيف الطلاب
     Route::get('/classification/{classification/}',[MonetorController::class,'student_classification']);
@@ -417,8 +420,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     route::get('desplay_student_marks/{student_id}',[AdminZaController::class,'desplay_student_marks']);
     //عرض الملاحظات تجاه الطال
     route::get('desplay_student_note/{student_id}',[MonetorController::class,'desplay_student_note']);
-    //ارسال انذارات وملاحظات للطالب
-    route::post('/create_note/{student_id}', [AdminZaController::class, 'create_note_student']);
+    
     //عرض كل مدرسي المعهد
     Route::get('/all-teatcher',[AdminOperationController::class,'all_teatcher']);
 
@@ -567,7 +569,17 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
         //اضافة علامة جزئية معينة لمادة معينة لطلاب شعبة
     Route::put('/add_marks_to_section/{section_id}',[AdminOperationController::class,'add_marks_to_section']);
     //عرض السنة الدراسية
-    Route::get('/display_year',[AdminZaController::class,'display_year']);    
+    Route::get('/display_year',[AdminZaController::class,'display_year']); 
+    //عرض الساعات الافتراضية للشهرمعين
+    Route::get('/getTeacherExtraHours/{teacher_id}',[AdminOperationController::class,'getTeacherExtraHours']);
+    //لاضافة الساعات الاضافية
+    Route::post('/add_extrahour/{teacher_id}',[AdminOperationController::class,'add_extrahour']);
+    //لتعديل الساعات الاضافية
+    Route::post('/update_extrahour/{teacher_id}/{hourid}',[AdminOperationController::class,'update_extrahour']);
+    //لحذف الساعات الاضافية
+    Route::delete('/delete_extrahour/{teacher_id}/{hour_id}',[AdminOperationController::class,'delete_extrahour']);   
+    //حذف سجل غياب
+    Route::delete('delete_student_out_of_work/{student_id}/{date}', [AdminZaController::class, 'deleteAbsence']);
 });
 
 /*******************************************************student*******************************************************/
