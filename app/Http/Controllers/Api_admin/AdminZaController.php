@@ -1968,7 +1968,7 @@ public function all_teatcher()
 {
     $academy = Academy::find(1);
 
-    $teachers = Teacher::with('user')->whereHas('user', function ($query) use ($academy) {
+    $teachers = Teacher::with('subject')->with('user')->whereHas('user', function ($query) use ($academy) {
         $query->where('year', $academy->year);
     })->get();
 
