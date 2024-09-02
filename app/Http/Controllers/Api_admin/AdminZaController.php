@@ -1372,7 +1372,7 @@ public function add_publish(Request $request)
     //عرض طلاب شعبة معينة
     public function display_student_in_section($section_id)
     {
-       $student =  Student::where('section_id', $section_id)->with('user')->get();
+       $student =  Student::where('section_id', $section_id)->with('user')->with('classs')->with('section')->get();
        return $student;
 
     }
