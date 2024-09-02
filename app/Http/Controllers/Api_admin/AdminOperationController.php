@@ -2930,7 +2930,7 @@ public function getTeacherExtraHours(Request $request,$teacher_id)
 
         $totalHours = Out_Of_Work_Employee::totalHoursOutOfWork($teacher_id, $month);
         $hoursDetails = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
-        ->whereMonth('created_at', $month)
+        ->whereMonth('date', $month)
         ->get();
 
         return response()->json([

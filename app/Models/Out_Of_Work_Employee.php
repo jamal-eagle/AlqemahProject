@@ -25,7 +25,7 @@ class Out_Of_Work_Employee extends Model
     public static function totalHoursOutOfWork($teacherId, $month)
     {
         return self::where('teacher_id', $teacherId)
-                    ->whereMonth('created_at', $month)
+                    ->whereMonth('date', $month)
                     ->sum('num_hour_out');
     }
 
