@@ -259,7 +259,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //هرض اعلان معين مع التفاصيل
     route::get('/desplay_publish/{publish_id}', [AdminOperationController::class, 'desplay_publish']);
     //اضافة ملفات لدورة
-    route::post('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
+    route::post('/upload_file_image_for_course/{course_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
     //عرض الشعب لصف معين وعرض الطلاب لكل شعبة
     route::get('desplay_section_and_student/{class_id}', [AdminZaController::class, 'desplay_section_and_student']);
     //إضافة دورة za
@@ -416,6 +416,14 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
         route::delete('/delete_publish/{publish_id}', [MonetorController::class, 'delete_publish']);
         //تعديل اعلان
         route::post('/update_publish/{publish_id}', [AdminOperationController::class, 'update_publish']);
+        //  تعديل برنامج دوام المدرس   //  صار الكل بالكل للاضافة والتعديل
+        route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[MonetorController::class,'updateWeeklySchedule']);
+        //اضافو اعلان
+        route::post('/add_publish', [AdminZaController::class, 'add_publish']);
+        //تسجيل طلب للتسجيل بدورة معينة
+        Route::post('/add-order-course/{course_id}',[OrderController::class,'CreateOrderForCourse']);
+        //اضافة يوم غياب للطالب
+        route::post('/add_student_out_of_work/{student_id}', [AdminOperationController::class, 'addAbsence']);
     });
     //عرض تصنيف الطلاب
     Route::get('/classification/{classification/}',[MonetorController::class,'student_classification']);
@@ -431,17 +439,12 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     route::get('desplay_student_marks/{student_id}',[AdminZaController::class,'desplay_student_marks']);
     //عرض الملاحظات تجاه الطال
     route::get('desplay_student_note/{student_id}',[MonetorController::class,'desplay_student_note']);
-
     //عرض كل مدرسي المعهد
     Route::get('/all-teatcher',[AdminZaController::class,'all_teatcher']);
-
     //عرض معلومات مدرس معين
     Route::get('/info-teatcher/{teatcher_id}',[MonetorController::class,'info_teatcher']);
     //استعراض الدورات التي يعطي فيها مدرس
     route::get('/desplay_teacher_course/{teacher_id}',[AdminOperationController::class,'desplay_teacher_course']);
-
-    //  تعديل برنامج دوام المدرس   //  صار الكل بالكل للاضافة والتعديل
-    route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[MonetorController::class,'updateWeeklySchedule']);
     //عرض سجل دوام المدرس
     route::get('/get_teacher_schedule_in_mounth/{teacher_id}/{year}/{month}',[MonetorController::class,'getteacherworkschedule']);
     //عرض ايام دوام المدرس
@@ -450,9 +453,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     route::get('/get_out_of_work_employee/{teacher_id}/{year}/{month}',[MonetorController::class,'getteacherabsences']);
     //تقرير مفصل عن كامل ايام الشهر
     route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[AdminOperationController::class,'generateMonthlyAttendanceReportReport']);
-
     route::get('/get_out_of_work_employee_report/{teacher_id}/{year}/{month}',[MonetorController::class,'generateMonthlyAttendanceReportReport']);
-
     //عرض معلومات دورة معينة
     Route::get('/info_course/{id_course}',[MonetorController::class,'info_course']);
     ////  عرض الاعلانات
@@ -461,19 +462,16 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/display_order',[MonetorController::class,'DisplayOrderNewStudent']);
     // //عرض طلبات التسجيل في دورة معينة
     // route::get('/display_order_for_course/{course_id}',[MonetorController::class,'display_order_for_course']);
-    //اضافو اعلان
-    route::post('/add_publish', [AdminZaController::class, 'add_publish']);
+    
+
     //اضافة علامة طالب
     route::post('/add_mark_to_student/{student_id}', [MonetorController::class, 'add_mark_to_student']);
     //تعديل علامة طالب
-    route::post('/edit_mark_for_student/{student_id}/subject/{subject_id}', [MonetorController::class, 'editMark']);
-    //اضافة يوم غياب للطالب
-    route::post('/add_student_out_of_work/{student_id}', [AdminOperationController::class, 'addAbsence']);
+    route::post('/edit_mark_for_student_for_subject/{student_id}/{subject_id}', [MonetorController::class, 'editMark']);
 
 
     //عرض طلبات التسجيل في دورة معينة
     Route::get('order_on_course/{course_id}',[AdminZaController::class,'order_on_course']);
-
     //عرض الملاحظات المقدمة عن الطالب
     Route::get('desplay_student_nots/{student_id}',[AdminZaController::class,'desplay_student_nots']);
     //الدورات التي سجل فيها الطالب
@@ -484,15 +482,10 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     route::get('display_student_in_section/{section_id}', [AdminZaController::class, 'display_student_in_section']);
 
 
-
-
-
-
     //تعديل معلومات المدرس
     route::post('/update_teacher_profile/{teacher_id}',[AuthController::class,'update_teacher_profile']);
-
     //اضافة ملفات لدورة
-    route::post('/upload_file_image_for_course/{course_id}/{academy_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
+    route::post('/upload_file_image_for_course/{course_id}', [AdminOperationController::class, 'upload_file_image_for_course']);
 
     //عرض تفاصيل دورة za
     route::get('display_info_course/{course_id}', [AdminZaController::class, 'display_info_course']);
@@ -512,8 +505,6 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/programe_week/{section_id}', [AdminZaController::class, 'programe_week']);
     //عرض برنامج الدوام الاسبوعي للاستاذ
     route::get('/getWeeklyTeacherSchedule/{teacher_id}',[AdminZaController::class,'getWeeklyTeacherSchedule']);
-    //تسجيل طلب للتسجيل بدورة معينة
-    Route::post('/add-order-course/{course_id}',[OrderController::class,'CreateOrderForCourse']);
     //عرض كل مناقشات شعبة محددة
     Route::get('/display_post/{section_id}', [AdminZaController::class, 'display_post']);
     //عرض مناقشة محددة التعليقات و السؤال
@@ -556,8 +547,8 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/display_all_class',[AdminZaController::class,'display_all_class']);
     //عرض شعب مدرس حسب صف محدد
     Route::get('/display_section_for_class_teacher/{class_id}/{teacher_id}',[AdminZaController::class,'display_section_for_class_teacher']);
-    //تعديل برنامج دوام المدرس
-    route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[AdminOperationController::class,'updateWeeklySchedule']);
+    // //تعديل برنامج دوام المدرس
+    // route::put('/update_Weekly_Schedule_for_student/{teacher_id}',[AdminOperationController::class,'updateWeeklySchedule']);
     //عرض السنوات التي تحتوي ملفات للأرشيف حسب المادة
     Route::get('/display_year_archive/{subject_id}',[Student_operationController::class,'display_year_archive']);
 
@@ -587,6 +578,8 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::delete('/delete_extrahour/{teacher_id}/{hour_id}',[AdminOperationController::class,'delete_extrahour']);
     //حذف سجل غياب
     Route::delete('delete_student_out_of_work/{student_id}/{date}', [AdminZaController::class, 'deleteAbsence']);
+    // اضافة يوم غياب للمدرس و الموظف
+    Route::post('/add_teachers_and_employee_absence', [AdminOperationController::class, 'addAbsenceForTeacherandemployee']);
 });
 
 /*******************************************************student*******************************************************/

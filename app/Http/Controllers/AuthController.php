@@ -212,7 +212,7 @@ public function get_teacher_profile($teacher_id)
         'class_id'=>$request->class_id,
     ]);
 
-    $teacher_subject = Teacher_subject::with('teacher');
+    $teacher_subject = Teacher_subject::where('teacher_id',$teacher_id)->with('teacher');
     $teacher_subject->update([
     'subject_id' => $subject->id,
     'teacher_id' => $teacher->id,

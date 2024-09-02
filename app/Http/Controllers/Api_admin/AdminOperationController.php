@@ -2377,7 +2377,7 @@ public function Add_course(Request $request,$academy_id)
 
 
 
-public function upload_file_image_for_course(Request $request, $course_id,$academy_id)
+public function upload_file_image_for_course(Request $request, $course_id)
 {
     $validator = Validator::make($request->all(),[
         'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'

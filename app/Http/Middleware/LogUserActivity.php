@@ -131,7 +131,6 @@ private function getActionDescription($path, $request)
         }
     }
 
-
     //تم تجريبه
     // إرسال إنذار أو ثناء ...لطالب
     // if (preg_match('/^api\/monetor\/create_note\/(\d+)$/', $path, $matches)) {
@@ -165,17 +164,22 @@ private function getActionDescription($path, $request)
             . ' بالتفاصيل التالية: ' . ($data['text'] ?? ' ');
     }
 
-
-    
-
+    //تم تجربته
+    //تعديل أو إضافة برنامج مدرس
     if (preg_match('/^api\/monetor\/update_Weekly_Schedule_for_student\/(\d+)$/', $path, $matches)) {
         $teacherId = $matches[1];
         $teacher = \App\Models\Teacher::find($teacherId);
         return $teacher ? 'تم تعديل برنامج دوام المدرس: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name : 'تم تعديل برنامج لأستاذ غير معروف';
     }
 
+    //تم تجربته
+    //إضافة إعلان
     if (preg_match('/^api\/monetor\/add_publish$/', $path)) {
-        return 'تم إضافة إعلان جديد';
+        $data = $request->input();
+        if ($request->path) {
+            return 'تم إضافة إعلان جديد و هو ' . $data['description'] . ' مع إرفاق صورة للإعلان ';
+        }
+        return 'تم إضافة إعلان جديد و هو ' . $data['description'];
     }
 
     //تم تجربته
@@ -240,10 +244,16 @@ private function getActionDescription($path, $request)
         return $student ? 'تم تعديل علامة الطالب: ' . $student->user->first_name . ' ' . $student->user->last_name . ' في المادة رقم: ' . $subjectId : 'تم تعديل علامة لطالب غير معروف';
     }
 
+    //تم تجريبه
+    //إضافة غياب لطالب
     if (preg_match('/^api\/monetor\/add_student_out_of_work\/(\d+)$/', $path, $matches)) {
         $studentId = $matches[1];
         $student = \App\Models\Student::find($studentId);
-        return $student ? 'تم إضافة غياب للطالب: ' . $student->user->first_name . ' ' . $student->user->last_name : 'تم إضافة غياب لطالب غير معروف';
+
+        if ($request->justification) {
+            return $student ? 'تم إضافة غياب للطالب: ' . $student->user->first_name . ' ' . $student->user->last_name . ' في اليوم ' . $request->date . ' و قد تم تبريره بالتالي ' . $request->justification : 'تم إضافة غياب لطالب غير معروف';
+        }
+        return $student ? 'تم إضافة غياب للطالب: ' . $student->user->first_name . ' ' . $student->user->last_name . ' في اليوم ' . $request->date : 'تم إضافة غياب لطالب غير معروف';
     }
 
     
@@ -296,6 +306,23 @@ private function getActionDescription($path, $request)
         $data['last_name'] . ' ' . $data['phone'] . ' ' . $data['address'] . ' ' . $data['salary'] . ' ' . $data['type'] : 'تم تعديل معلومات موظف غير معروف';
     
     }
+
+    //تم تجربته
+    //تسجيل طالب خارجي في كورس
+    if (preg_match('/^api\/monetor\/add-order-course\/(\d+)$/', $path, $matches)) {
+        $data = $request->input();
+
+        $courseId = $matches[1];
+    
+        $course = \App\Models\Course::find($courseId);
+
+        if ($course) {
+            return 'تم تسجيل الطالب ' .$data['first_name'] . ' '.$data['last_name'] .' ابن '. $data['father_name'] . ' في دورة '. $course->name_course;
+        } else {
+            return 'تم تسجيل طالب في دورة غير معروفة (ID: ' . $courseId . ')';
+        }
+    }
+    
 
     if (preg_match('/^api\/monetor\/update_teacher_profile\/(\d+)$/', $path, $matches)) {
         $teacherId = $matches[1];
