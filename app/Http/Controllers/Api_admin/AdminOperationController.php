@@ -2912,6 +2912,173 @@ public function getTeacherExtraHours(Request $request,$teacher_id)
         ]);
     }
 
+    public function getTeacherOutOfWorkHour(Request $request,$teacher_id)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'month' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return $this->responseError(['errors' => $validator->errors()]);
+        }
+        $teacher = Teacher::find($teacher_id);
+        if(!$teacher)
+        {
+            return response()->json(['the teacher not found']);
+        }
+        $month = $request->month;
+
+        $totalHours = Out_Of_Work_Employee::totalHoursOutOfWork($teacher_id, $month);
+        $hoursDetails = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+        ->whereMonth('created_at', $month)
+        ->get();
+
+        return response()->json([
+            'teacher_id' => $teacher->id,
+            'month' => $month,
+            'total_hours' => $totalHours,
+            '   ' => $hoursDetails,
+
+        ]);
+    }
+
+public function getStudentResult($student_id, $subject_id)
+    {
+        // التحقق من صحة المعلمات المستلمة
+        $student = Student::find($student_id);
+        if (!$student) {
+            return response()->json(['error' => 'Student not found'], 404);
+        }
+
+        $subject = Subject::find($subject_id);
+        if (!$subject) {
+            return response()->json(['error' => 'Subject not found'], 404);
+        }
+
+        // البحث عن العلامات الخاصة بالطالب والمادة
+        $mark = Mark::where('student_id', $student_id)
+                    ->where('subject_id', $subject_id)
+                    ->first();
+
+        if (!$mark) {
+            return response()->json(['error' => 'Marks not found for the given student and subject'], 404);
+        }
+
+        // حساب المجموع الكلي
+        $aggregate = ($mark->homework ?? 0) + ($mark->oral ?? 0) +
+        ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) +
+        ($mark->exam_final ?? 0);
+
+        // التحقق من إضافة الـ ponus
+        if ($mark->ponus !== null && $mark->ponus > 0) {
+        $remainingToHundred = 100 - $aggregate;
+
+        // إذا كانت المحصلة الحالية أقل من 100، أضف الجزء المناسب من الـ ponus
+        if ($remainingToHundred > 0) {
+        $mark->ponus = min($mark->ponus, $remainingToHundred);
+        $aggregate += $mark->ponus;
+
+        // تحديد حالة الطالب (ناجح/راسب)
+        $isPassed = ($aggregate > 50 && $mark->exam_final != 0) ? true : false;
+
+        return response()->json([
+            'student_id' => $student_id,
+            'subject_id' => $subject_id,
+            'total_marks' => $aggregate,
+            'is_passed' => $isPassed ? 'Passed' : 'Failed',
+        ]);
+            }
+        }
+    }
+
+public function get_state($student_id, $subject_id)
+    {
+        // التحقق من صحة المعلمات المستلمة
+        $student = Student::find($student_id);
+        if (!$student) {
+            return response()->json(['error' => 'Student not found'], 404);
+        }
+
+        $subject = Subject::find($subject_id);
+        if (!$subject) {
+            return response()->json(['error' => 'Subject not found'], 404);
+        }
+
+        // البحث عن العلامات الخاصة بالطالب والمادة
+        $mark = Mark::where('student_id', $student_id)
+                    ->where('subject_id', $subject_id)
+                    ->first();
+
+        if (!$mark) {
+            return response()->json(['error' => 'Marks not found for the given student and subject'], 404);
+        }
+        $isPassed = ($mark->state == 1) ? true : false;
+        return response()->json(['is_passed' => $isPassed ? 'Passed' : 'Failed']);
 }
 
+
+
+public function getStudentOverallResult($student_id)
+    {
+        // التحقق من وجود الطالب
+        $student = Student::find($student_id);
+        if (!$student) {
+            return response()->json(['error' => 'Student not found'], 404);
+        }
+
+        // جلب جميع العلامات الخاصة بالطالب
+        $marks = Mark::where('student_id', $student_id)->get();
+
+        if ($marks->isEmpty()) {
+            return response()->json(['error' => 'No marks found for the student'], 404);
+        }
+
+        // التحقق من حالة النجاح أو الرسوب
+        $isPassed = true;
+        $subjectDetails = [];
+
+        foreach ($marks as $mark) {
+            $subject = Subject::find($mark->subject_id);
+
+            // حساب المجموع بدون الـ ponus
+            $aggregate = ($mark->homework ?? 0) + ($mark->oral ?? 0) +
+                        ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) +
+                        ($mark->exam_final ?? 0);
+
+            // التحقق من إضافة الـ ponus
+            if ($mark->ponus !== null && $mark->ponus > 0) {
+                $remainingToHundred = 100 - $aggregate;
+
+                // إذا كانت المحصلة الحالية أقل من 100، أضف الجزء المناسب من الـ ponus
+                if ($remainingToHundred > 0) {
+                    $aggregate += min($mark->ponus, $remainingToHundred);
+                }
+            }
+
+            // تحديد حالة المادة
+            $isSubjectPassed = $aggregate > 50 && $mark->exam_final != 0;
+
+            // إضافة تفاصيل المادة
+            $subjectDetails[] = [
+                'subject_id' => $subject->id,
+                'subject_name' => $subject->name,
+                'total_marks' => $aggregate,
+                'is_passed' => $isSubjectPassed ? 'Passed' : 'Failed',
+            ];
+
+            // إذا كان الطالب راسبًا في مادة واحدة على الأقل، يكون راسبًا بشكل عام
+            if (!$isSubjectPassed) {
+                $isPassed = false;
+            }
+        }
+
+        return response()->json([
+            'student_id' => $student_id,
+            'overall_result' => $isPassed ? 'Passed' : 'Failed',
+            'subjects' => $subjectDetails,
+        ]);
+    }
+
+
+}
 

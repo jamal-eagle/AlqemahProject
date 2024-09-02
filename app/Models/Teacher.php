@@ -118,4 +118,5 @@ public function maturitie()
         return $this->hour_added->sum('num_hour_added');
     }
 
+    
 }
