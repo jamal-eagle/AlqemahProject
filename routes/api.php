@@ -412,6 +412,10 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
         Route::post('/update_profile_employee/{employee_id}',[AuthController::class,'update_profile_employee']);
         //ارسال انذارات وملاحظات للطالب
         route::post('/create_note/{student_id}', [AdminZaController::class, 'create_note_student']);
+        //حذف اعلان
+        route::delete('/delete_publish/{publish_id}', [MonetorController::class, 'delete_publish']);
+        //تعديل اعلان
+        route::post('/update_publish/{publish_id}', [AdminOperationController::class, 'update_publish']);
     });
     //عرض تصنيف الطلاب
     Route::get('/classification/{classification/}',[MonetorController::class,'student_classification']);
@@ -429,7 +433,7 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     route::get('desplay_student_note/{student_id}',[MonetorController::class,'desplay_student_note']);
 
     //عرض كل مدرسي المعهد
-    Route::get('/all-teatcher',[AdminOperationController::class,'all_teatcher']);
+    Route::get('/all-teatcher',[AdminZaController::class,'all_teatcher']);
 
     //عرض معلومات مدرس معين
     Route::get('/info-teatcher/{teatcher_id}',[MonetorController::class,'info_teatcher']);
@@ -459,10 +463,6 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     // route::get('/display_order_for_course/{course_id}',[MonetorController::class,'display_order_for_course']);
     //اضافو اعلان
     route::post('/add_publish', [AdminZaController::class, 'add_publish']);
-    //حذف اعلان
-    route::delete('/delete_publish/{publish_id}', [MonetorController::class, 'delete_publish']);
-    //تعديل اعلان
-    route::post('/update_publish/{publish_id}', [AdminOperationController::class, 'update_publish']);
     //اضافة علامة طالب
     route::post('/add_mark_to_student/{student_id}', [MonetorController::class, 'add_mark_to_student']);
     //تعديل علامة طالب

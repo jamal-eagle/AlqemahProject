@@ -1610,7 +1610,7 @@ public function search_student(Request $request)
     }
 
     // تنفيذ الاستعلام
-    $student = $query->with('student')->get();
+    $student = $query->with('student')->with('student.classs')->with('student.section')->get();
 
     return response()->json($student);
 }
@@ -1638,7 +1638,7 @@ public function search_student(Request $request)
     }
 
     // تنفيذ الاستعلام
-    $student = $query->with('student')->get();
+    $student = $query->with('student')->with('student.classs')->with('student.section')->get();
 
     return response()->json($student);
 }
@@ -1673,7 +1673,7 @@ public function search_teacher(Request $request)
     $keywords = explode(' ', $request->q);
 
     // إعداد استعلام أساسي لجلب المدرسين فقط
-    $query = Teacher::whereHas('user', function($q) use ($keywords) {
+    $query = Teacher::with('subject')->whereHas('user', function($q) use ($keywords) {
         $q->where('status', '1'); // التأكد أن المستخدم نشط
         foreach ($keywords as $keyword) {
             $q->where(function ($subQuery) use ($keyword) {

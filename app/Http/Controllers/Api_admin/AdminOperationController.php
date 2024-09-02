@@ -1993,7 +1993,7 @@ public function update_publish(Request $request, $publish_id)
     }
 
     // تحديث الوصف في كائن Image إذا كان موجودًا في الطلب
-    if ($request->has('description')) {
+    if ($request->has('description') && $image) {
         $image->description = $request->description;
     }
 

@@ -178,15 +178,54 @@ private function getActionDescription($path, $request)
         return 'تم إضافة إعلان جديد';
     }
 
+    //تم تجربته
+    //حذف إعلان
     if (preg_match('/^api\/monetor\/delete_publish\/(\d+)$/', $path, $matches)) {
         $publishId = $matches[1];
-        return 'تم حذف الإعلان رقم: ' . $publishId;
-    }
+        $publish = \App\Models\Publish::find($publishId);
+        if ($publish->course_id == null) {
+            return 'تم حذف الإعلان : ' . $publish->description;
+        }
+        $course = \App\Models\Course::find($publish->course_id);
 
+        return 'تم حذف الإعلان : ' . $publish->description . ' للدورة '. $course->name_course;
+    }
+        // }
+        
+
+    //تم تجربته   
+    //تعديل إعلان
     if (preg_match('/^api\/monetor\/update_publish\/(\d+)$/', $path, $matches)) {
         $publishId = $matches[1];
-        return 'تم تعديل الإعلان رقم: ' . $publishId;
+        $publish = \App\Models\Publish::find($publishId);
+        $data = $request->input();
+        if ($publish->course_id == null) {
+            if ($request->path && $request->description) {
+                return 'تم تعديل الإعلان : ' . $publish->description . ' إلى ' . $data['description'] . ' و قد تم تعديل صورة ';
+            }
+            if ($request->path) {
+                return 'تم تعديل الإعلان : ' . $publish->description . ' حيث تم تعديل صورة ';
+            }
+            if ($request->description) {
+                return 'تم تعديل الإعلان : ' . $publish->description . ' إلى ' . $data['description'];
+            }
+
+             
+        }
+        $course = \App\Models\Course::find($publish->course_id);
+
+        if ($request->path && $request->description) {
+            return 'تم تعديل الإعلان : ' . $publish->description . ' للدورة '. $course->name_course . ' إلى ' . $data['description'] . ' و قد تم تعديل صورة ';
+        }
+
+        if ($request->path) {
+            return 'تم تعديل الإعلان : ' . $publish->description . ' للدورة '. $course->name_course . ' حيث تم تعديل صورة ';
+        }
+        if ($request->description) {
+            return 'تم تعديل الإعلان : ' . $publish->description . ' للدورة '. $course->name_course . ' إلى ' . $data['description'];
+        }
     }
+    
 
     if (preg_match('/^api\/monetor\/add_mark_to_student\/(\d+)$/', $path, $matches)) {
         $studentId = $matches[1];
