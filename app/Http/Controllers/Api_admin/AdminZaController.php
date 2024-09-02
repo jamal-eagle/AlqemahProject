@@ -1372,7 +1372,7 @@ public function add_publish(Request $request)
     //عرض طلاب شعبة معينة
     public function display_student_in_section($section_id)
     {
-       $student =  Student::where('section_id', $section_id)->with('user')->get();
+       $student =  Student::where('section_id', $section_id)->with('user')->with('classs')->with('section')->get();
        return $student;
 
     }
@@ -1968,7 +1968,7 @@ public function all_teatcher()
 {
     $academy = Academy::find(1);
 
-    $teachers = Teacher::with('user')->whereHas('user', function ($query) use ($academy) {
+    $teachers = Teacher::with('subject')->with('user')->whereHas('user', function ($query) use ($academy) {
         $query->where('year', $academy->year);
     })->get();
 

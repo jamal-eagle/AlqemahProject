@@ -41,7 +41,7 @@ class MonetorController extends Controller
 
     public function desplay_all_student_regester($year)
 {
-    $student = User::where('year',$year)->where('user_type', 'student')->with('student')->get();
+    $student = User::where('year',$year)->where('user_type', 'student')->with('student.classs')->with('student.section')->get();
     return response()->json([$student,'all student regester here']);
 }
 
