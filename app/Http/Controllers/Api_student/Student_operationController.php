@@ -887,7 +887,7 @@ public function edit_some_info_profile(Request $request)
         return $this->responseError(['errors' => $validator->errors()]);
     }
 
-    $user = User::where('id', auth()->user()->id)->first();
+    $user = User::where('id', auth()->user()->id)->with('student')->first();
 
     if ($request->has('phone') && !empty($request->phone)) {
         $phone = $request->phone;
@@ -938,7 +938,7 @@ public function edit_some_info_profile(Request $request)
 
     $user->save();
 
-    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully']);
+    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully', 'student' => $user]);
 }
 
 // public function display_file_course($course_id)

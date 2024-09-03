@@ -1003,9 +1003,69 @@ public function update_image(Request $request, $id)
 }
 
 
-public function add_course()
+public function edit_some_info_teacher_profile(Request $request)
 {
+    $validator = Validator::make($request->all(), [
+        'address' => 'nullable|string',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+    ]);
 
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $user = User::where('id', auth()->user()->id)->with('teacher')->first();
+
+    if ($request->has('phone') && !empty($request->phone)) {
+        $phone = $request->phone;
+        if (!preg_match('/^(\+?963|0)?9\d{8}$/', $phone)) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+        }
+        $user->phone = $request->phone;
+    }
+
+    if ($request->has('address') && !empty($request->address)) {
+        $user->address = $request->address;
+    }
+
+    if ($request->has('password') && !empty($request->password)) {
+        if (!$request->has('conf_password') || $request->password !== $request->conf_password) {
+            return response()->json(['status' => 'error', 'message' => 'Passwords do not match'], 400);
+        }
+        $user->password = Hash::make($request->password);
+        $user->conf_password = Hash::make($request->conf_password);
+    }
+
+    if ($request->has('image')) {
+        if ($user->image != null) {
+            $oldImagePath = public_path().'/upload/'.$user->image;
+    if (file_exists($oldImagePath)) {
+        unlink($oldImagePath);
+    }
+
+    // رفع الصورة الجديدة
+    $img = $request->image;
+    $ext = $img->getClientOriginalExtension();
+    $imageName = time().'.'.$ext;
+    $img->move(public_path().'/upload', $imageName);
+
+    // تحديث مسار الصورة في قاعدة البيانات
+    $user->image = $imageName;
+        }
+
+        else {
+            $img = $request->image;
+    $ext = $img->getClientOriginalExtension();
+    $imageName = time().'.'.$ext;
+    $img->move(public_path().'/upload',$imageName);
+
+    $user->image = $imageName;
+        }
+    }
+
+    $user->save();
+
+    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully', 'student' => $user]);
 }
 
 

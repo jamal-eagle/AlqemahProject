@@ -803,7 +803,7 @@ public function addAbsenceForTeacherandemployee(Request $request)
         $validator = Validator::make($request->all(), [
             'date' => 'required|date',
             'num_hour_out' => 'required|integer',
-            'note'=>'nullable',
+            // 'note'=>'nullable',
             'teacher_id' => 'nullable|exists:teachers,id',
             'employee_id' => 'nullable|exists:employees,id',
         ]);
@@ -821,7 +821,7 @@ public function addAbsenceForTeacherandemployee(Request $request)
         $absence = new Out_Of_Work_Employee();
         $absence->date = $request->date;
         $absence->num_hour_out = $request->num_hour_out;
-        $absence->note = $request->note;
+        // $absence->note = $request->note;
         $absence->teacher_id = $request->teacher_id;
         $absence->employee_id = $request->employee_id;
         $absence->save();

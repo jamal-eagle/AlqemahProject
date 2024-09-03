@@ -365,7 +365,7 @@ public function homework_subject_my_sun($student_id,$subject_id)
         return $this->responseError(['errors' => $validator->errors()]);
     }
 
-    $parent = Parentt::where('id', auth()->user()->id)->first();
+    $parent = Parentt::where('id', auth()->user()->id)->with('student.user')->first();
 
     if ($request->has('phone') && !empty($request->phone)) {
         $phone = $request->phone;
@@ -416,7 +416,7 @@ public function homework_subject_my_sun($student_id,$subject_id)
 
     $parent->save();
 
-    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully']);
+    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully', 'parent' => $parent]);
 }
 
 //الكورسات يلي مسجل فيها ابني

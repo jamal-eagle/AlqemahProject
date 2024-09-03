@@ -330,6 +330,176 @@ private function getActionDescription($path, $request)
         return $teacher ? 'تم تعديل معلومات المدرس: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name : 'تم تعديل معلومات مدرس غير معروف';
     }
 
+    //تم تجربته
+    //رفع مرفق لدورة محددة
+    if (preg_match('/^api\/monetor\/upload_file_image_for_course\/(\d+)$/', $path, $matches)) {
+        $courseId = $matches[1];
+    
+        $course = \App\Models\Course::find($courseId);
+    
+        if ($course) {
+            if ($request->description) {
+                return 'تم رفع مرفق للدورة: ' . $course->name_course . ' بالوصف التالي ' . $request->description;
+            }
+            else {
+                return 'تم رفع مرفق للدورة: ' . $course->name_course . ' دون وصف ';
+            }
+        } else {
+            return 'تم رفع مرفق لدورة غير معروفة (ID: ' . $courseId . ')';
+        }
+    }
+
+    //تم تجربته
+    //رفع مرفق لعام دراسي الحالي
+    if (preg_match('/^api\/monetor\/upload_file_image\/(\d+)$/', $path, $matches)) {
+        $academy = \App\Models\Academy::find('1');
+        $subjectId = $matches[1];
+    
+        $subject = \App\Models\Subject::find($subjectId);
+    
+        if ($subject) {
+                return 'تم رفع مرفق لمادة: ' . $subject->name . ' للصف ' . $subject->classs->name .' للعام الدراسي الحالي '.$academy->year . ' بالوصف التالي ' . $request->description;
+        } else {
+            return 'تم رفع مرفق للعام الدراسي الحالي غير معروفة (ID: ' . $courseId . ')';
+        }
+    }
+
+    //تم تجربته
+    //رفع مرفق لعام دراسي محدد أي أرشيف
+    if (preg_match('/^api\/monetor\/upload_file_image_archive\/(\d+)$/', $path, $matches)) {
+        // استخراج معرف الأرشيف من الـ path
+        $archiveId = $matches[1];
+    
+        // جلب بيانات الأرشيف عبر معرف الأرشيف
+        $archive = \App\Models\Archive::find($archiveId);
+    
+        // إذا كان الأرشيف موجودًا، يمكن عرض تفاصيله أو عرض رسالة عند عدم وجود الأرشيف
+        if ($archive) {
+            return 'تم رفع مرفق للأرشيف : ' . $archive->year . ' للمادة: ' . $archive->subject->name . ' للصف: ' . $archive->class->name . ' بالوصف التالي ' . $request->description;
+        } else {
+            return 'تم رفع مرفق لأرشيف غير معروف (ID: ' . $archiveId . ')';
+        }
+    }
+    
+
+    //تم تجربته
+    //الموافقة على طلب التسجيل لطالب في كورس
+    if (preg_match('/^api\/monetor\/ok_order_course\/(\d+)$/', $path, $matches)) {
+        $orderId = $matches[1];
+    
+        $order = \App\Models\Order::find($orderId);
+    
+        if ($order) {
+            return 'تمت الموافقة على طلب التسجيل للطالب: ' . $order->student->user->first_name . ' ' . $order->student->user->last_name . ' في الدورة ' . $order->course->name_course;
+        } else {
+            return 'تمت الموافقة على طلب التسجيل غير معروف (ID: ' . $orderId . ')';
+        }
+    }
+    
+    //تم تجربته
+    //تم رفض طلب التسجيل لطالب في كورس
+    if (preg_match('/^api\/monetor\/no_order_course\/(\d+)$/', $path, $matches)) {
+        $orderId = $matches[1];
+    
+        $order = \App\Models\Order::find($orderId);
+    
+        if ($order) {
+            return 'تمت رفض طلب التسجيل للطالب: ' . $order->student->user->first_name . ' ' . $order->student->user->last_name . ' في الدورة ' . $order->course->name_course;
+        } else {
+            return 'تمت رفض طلب التسجيل غير معروف (ID: ' . $orderId . ')';
+        }
+    }
+
+    //تم تجربته
+    //حذف ملف لمادة 
+    if (preg_match('/^api\/monetor\/delete_file_image\/(\d+)\/(.+)$/', $path, $matches)) {
+        $fileImgId = $matches[1];
+    
+        $file = \App\Models\File_Archive::find($fileImgId);
+    
+        if ($file) {
+                return 'تم حذف المرفق: ' . $file->description . ' للمادة ' . $file->archive->subject->name . ' الصف ' . $file->archive->class->name . ' من العام الدراسي ' . $file->archive->year;
+           
+        } else {
+            return 'تم حذف مرفق غير معروف (ID: ' . $fileImgId . ')';
+        }
+    }
+
+    // if (preg_match('/^api\/monetor\/update-file-image\/(\d+)$/', $path, $matches)) {
+    //     $fileImgId = $matches[1];
+    
+    //     $file = \App\Models\File_Archive::find($fileImgId);
+    
+    //     if ($file) {
+    //         $data = $request->all();
+
+    //         if ($request->description) {
+    //             return 'تم تحديث المرفق: ' . $file->description . ' (  ' . ', الوصف السابق: ' . $file->description  . ', الوصف الجديد: ' . $data['description'] . ') للمادة ' . $file->archive->subject->name . ' الصف ' . $file->archive->class->name . ' من العام الدراسي ' . $file->archive->year;
+    //         }
+    
+    //         return 'تم تحديث المرفق: ' . $file->description  . ') للمادة ' . $file->archive->subject->name . ' الصف ' . $file->archive->class->name . ' من العام الدراسي ' . $file->archive->year;
+    //     } else {
+    //         return 'تم تحديث مرفق غير معروف (ID: ' . $fileImgId . ')';
+    //     }
+    // }
+
+    //تم تجريبه
+    //حذف تعليق لطالب
+    if (preg_match('/^api\/monetor\/delete_comment\/(\d+)$/', $path, $matches)) {
+        $commentId = $matches[1];
+    
+        // جلب بيانات التعليق عبر معرف التعليق
+        $comment = \App\Models\Comment::find($commentId);
+    
+        if ($comment) {
+            // عرض تفاصيل التعليق المحذوف
+            return 'تم حذف التعليق: "' . $comment->description . '" الذي كتبه ' . $comment->student->user->first_name . ' ' . $comment->student->user->last_name . ' في المناقشة ذات العنوان التالي ' . $comment->post->quostion;
+        } else {
+            return 'تم حذف تعليق غير معروف (ID: ' . $commentId . ')';
+        }
+    }
+
+    //تم تجريبه
+    //تعديل تبرير غياب طالب
+    if (preg_match('/^api\/monetor\/updateAbsence_for_student\/(\d+)\/(.+)$/', $path, $matches)) {
+        $studentId = $matches[1];
+        $date = $matches[2];
+    
+        $student = \App\Models\Student::find($studentId);
+        $absence = \App\Models\Out_Of_Work_Student::where('student_id', $studentId)->where('date', $date)->first();
+        return 'تم تعديل تبرير غياب الطالب: ' . $student->user->first_name . ' ' . $student->user->last_name . ' من التبرير السابق: "' . $absence->justification . '" إلى التبرير الجديد: "' . $request->justification. '" للتاريخ: ' . $date;
+    }
+    
+    //تم تجريبه
+    //حذف تبرير غياب طالب
+    if (preg_match('/^api\/monetor\/delete_student_out_of_work\/(\d+)\/(.+)$/', $path, $matches)) {
+        $studentId = $matches[1];
+        $date = $matches[2];
+    
+        $student = \App\Models\Student::find($studentId);
+        $absence = \App\Models\Out_Of_Work_Student::where('student_id', $studentId)->where('date', $date)->first();
+        return 'تم حذف سجل غياب الطالب: ' . $student->user->first_name . ' ' . $student->user->last_name . ' للتاريخ: ' . $date . ' مع التبرير: "' . $absence->justification . '"' ?? 'تم حذف سجل غياب لطالب غير معروف (ID: ' . $studentId . ')';
+    }
+
+    // if (preg_match('/^api\/monetor\/add_extrahour\/(\d+)\/(.+)$/', $path, $matches)) {
+    //     $teacherId = $matches[1]; 
+        
+    //     // $hour = \App\Models\Hour_Added::
+
+    //     $teacher = \App\Models\Teacher::find($teacherId);
+
+    //     return 'تم إضافة '.$request->num_hour_added. ' ساعات إضافية تحت ملاحظة '. $request->note_hour_added. ' للأستاذ ' . $teacher->user->first_name . ' '. $teacher->user->last_name;
+    
+    // }
+
+
+
+    
+    
+    
+    
+    
+
     // بقية الحالات
     switch ($path) {
         case 'api/monetor/add_publish':
