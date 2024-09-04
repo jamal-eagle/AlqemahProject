@@ -189,7 +189,7 @@ public function get_teacher_profile($teacher_id)
         $validator = validator::make($request->all(),[
             'cost_hour'=>'required',
             'certificate'=>'required',
-            'class_id'=>'required',
+            'classs_id'=>'required',
             'name_subject' => 'required|string|exists:subjects,name',
         ]);
         if($validator->fails())
@@ -202,26 +202,74 @@ public function get_teacher_profile($teacher_id)
             'status' => 'false',
             'message' => 'Subject not found for the specified class_id',
         ]);
-    }
+       }
 
-    $teacher->update([
+     $teacher->update([
         'cost_hour'=>$request->cost_hour,
         'num_our_added'=>$request->num_hour_added,
         'note_hour_added'=>$request->note_hour_added,
         'certificate'=>$request->certificate,
-        'class_id'=>$request->class_id,
-    ]);
+        'classs_id'=>$request->classs_id,
+     ]);
 
-    $teacher_subject = Teacher_subject::where('teacher_id',$teacher_id)->with('teacher');
-    $teacher_subject->update([
-    'subject_id' => $subject->id,
-    'teacher_id' => $teacher->id,
-]);
+     $teacher_subject = Teacher_subject::where('teacher_id',$teacher_id)->first();
+     $teacher_subject->update([
+     'subject_id' => $subject->id,
+     'teacher_id' => $teacher->id,
+     ]);
 
-
+    return response()->json([
+        'status' => 'true',
+        'message' => 'Teacher profile updated successfully',
+    ], 200); // إضافة كود الحالة 200 للاستجابة الناجحة
 
 
     }
+
+//     public function update_teacher_profile(Request $request, $teacher_id)
+// {
+//     // العثور على المعلم
+//     $teacher = Teacher::find($teacher_id);
+//     if (!$teacher) {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'Teacher not found'
+//         ], 404); // إضافة كود الحالة 404 للعنصر غير الموجود
+//     }
+
+//     // التحقق من صحة الإدخال
+//     $validator = Validator::make($request->all(), [
+//         'cost_hour' => 'required',
+//         'certificate' => 'required',
+//         'class_id' => 'required',
+//         'name_subject' => 'required|string|exists:subjects,name',
+//     ]);
+
+//     // التحقق من الأخطاء
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'false',
+//             'errors' => $validator->errors(),
+//         ], 400); // إضافة كود الحالة 400 للخطأ في الإدخال
+//     }
+
+//     // العثور على المادة المطلوبة
+//     $subject = Subject::where('name', $request->name_subject)->first();
+//     if (!$subject) {
+//         return response()->json([
+//             'status' => 'false',
+//             'message' => 'Subject not found for the specified class_id',
+//         ], 404);
+//     }
+
+//     // يمكن هنا إضافة المزيد من المنطق لتحديث معلومات المعلم حسب الحاجة
+
+//     return response()->json([
+//         'status' => 'true',
+//         'message' => 'Teacher profile updated successfully',
+//     ], 200); // إضافة كود الحالة 200 للاستجابة الناجحة
+// }
+
 
     public function update_profile_user(Request $request ,$id)
 {
