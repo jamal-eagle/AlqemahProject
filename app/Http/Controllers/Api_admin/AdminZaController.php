@@ -2251,15 +2251,12 @@ private function getWorkingHoursForDays($schedule)
 
 public function salary_teacher($month)
 {
-    // استرجاع الأكاديمية بناءً على معرفها
     $academy = Academy::find(1);
 
-    // التأكد من أن الأكاديمية تم العثور عليها
     if (!$academy) {
         return response()->json(['error' => 'Academy not found'], 404);
     }
 
-    // استرجاع جميع المعلمين الذين لديهم سنة دراسة تتطابق مع السنة الدراسية للأكاديمية
     $teachers = Teacher::with('user')->with('subject')->whereHas('user', function ($query) use ($academy) {
         $query->where('year', $academy->year);
     })->whereHas('salary', function ($query1) use ($month) {
@@ -2272,8 +2269,34 @@ public function salary_teacher($month)
         $teacher->houre_add = Hour_Added::where('teacher_id',$teacher->id)->whereMonth('created_at',$month)->sum('num_hour_added');
         $teacher->maturitie = Maturitie::where('teacher_id',$teacher->id)->whereMonth('created_at',$month)->sum('amount');
     }
+    $sum_salaries = Salary::where('year', $academy->year)->whereMonth('month', $month)->where('employee_id', null)->sum('salary_of_teacher');
 
-    return response()->json($teachers);
+
+    return response()->json([$teachers,'sum_salaries' => $sum_salaries]);
+}
+
+public function salary_employee($month)
+{
+    $academy = Academy::find(1);
+
+    if (!$academy) {
+        return response()->json(['error' => 'Academy not found'], 404);
+    }
+
+    $employees = Employee::where('year', $academy->year)->whereHas('salary', function ($query1) use ($month) {
+        $query1->whereMonth('month', $month);
+    })->with(['salary' => function ($query1) use ($month) {
+        $query1->whereMonth('month', $month);
+    }])->get();
+
+    foreach ($employees as $employe) {
+        // $teacher->houre_add = Hour_Added::where('teacher_id',$teacher->id)->whereMonth('created_at',$month)->sum('num_hour_added');
+        $employe->maturitie = Maturitie::where('employee_id',$employe->id)->whereMonth('created_at',$month)->sum('amount');
+    }
+
+    return response()->json($employees);
+
+
 }
 
 

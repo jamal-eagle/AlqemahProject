@@ -395,6 +395,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/get_teacher_out_of_work_hour/{teacher_id}', [AdminOperationController::class, 'getTeacherOutOfWorkHour']);
     route::post('/add_taxa', [AdminZaController::class, 'add_taxa']);
     route::get('/salary_teacher/{month}', [AdminZaController::class, 'salary_teacher']);
+    route::get('/salary_employee/{month}', [AdminZaController::class, 'salary_employee']);
     
     
 });

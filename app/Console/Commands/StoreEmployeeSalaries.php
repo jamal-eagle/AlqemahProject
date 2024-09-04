@@ -37,7 +37,7 @@ class StoreEmployeeSalaries extends Command
             Salary::create([
                 'salary_of_teacher' => $employee->salary, // استخدام الراتب من جدول الموظفين
                 'month' => Carbon::now()->startOfMonth(), // تسجيل الشهر الحالي
-                'year'=>$academy,
+                'year'=>$academy->year,
                 'teacher_id' => null, // تعيين teacher_id إلى null
                 'employee_id' => $employee->id, // استخدام employee_id
                 'status' => 0, // لم يستلم المعاش بعد
