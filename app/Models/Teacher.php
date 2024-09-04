@@ -113,6 +113,11 @@ public function maturitie()
         return $this->hasMany('App\Models\Maturitie',foreignKey:'teacher_id',localKey:'id');
     }
 
+    public function hour()
+    {
+        return $this->hasMany('App\Models\Hour_Added',foreignKey:'teacher_id',localKey:'id');
+    }
+
     public function totalHoursAdded()
     {
         return $this->hour_added->sum('num_hour_added');

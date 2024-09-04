@@ -2937,7 +2937,7 @@ public function getTeacherExtraHours(Request $request,$teacher_id)
             'teacher_id' => $teacher->id,
             'month' => $month,
             'total_hours' => $totalHours,
-            '   ' => $hoursDetails,
+            'hours_details' => $hoursDetails,
 
         ]);
     }

@@ -17,6 +17,7 @@ class Salary extends Model
         'teacher_id',
         'employee_id',
         'status',
+        'num_houre',
 
     ];
     protected $timestamp = true;

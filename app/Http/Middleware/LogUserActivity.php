@@ -481,22 +481,20 @@ private function getActionDescription($path, $request)
         return 'تم حذف سجل غياب الطالب: ' . $student->user->first_name . ' ' . $student->user->last_name . ' للتاريخ: ' . $date . ' مع التبرير: "' . $absence->justification . '"' ?? 'تم حذف سجل غياب لطالب غير معروف (ID: ' . $studentId . ')';
     }
 
-    // if (preg_match('/^api\/monetor\/add_extrahour\/(\d+)\/(.+)$/', $path, $matches)) {
-    //     $teacherId = $matches[1]; 
+    //تم تجربته
+    //إضافة ساعات إضافية للأستاذ
+    if (preg_match('/^api\/monetor\/add_extrahour\/(\d+)$/', $path, $matches)) {
+        $teacherId = $matches[1]; 
         
-    //     // $hour = \App\Models\Hour_Added::
+        $teacher = \App\Models\Teacher::find($teacherId);
 
-    //     $teacher = \App\Models\Teacher::find($teacherId);
+        if ($request->note_hour_added) {
+            return 'تم إضافة '.$request->num_hour_added. ' ساعات إضافية تحت ملاحظة '. $request->note_hour_added. ' للأستاذ ' . $teacher->user->first_name . ' '. $teacher->user->last_name;
+        }
+        return 'تم إضافة '.$request->num_hour_added. ' ساعات إضافية ' . ' للأستاذ ' . $teacher->user->first_name . ' '. $teacher->user->last_name;
 
-    //     return 'تم إضافة '.$request->num_hour_added. ' ساعات إضافية تحت ملاحظة '. $request->note_hour_added. ' للأستاذ ' . $teacher->user->first_name . ' '. $teacher->user->last_name;
-    
-    // }
+    }
 
-
-
-    
-    
-    
     
     
 

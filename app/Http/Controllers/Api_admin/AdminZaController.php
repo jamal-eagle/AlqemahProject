@@ -48,6 +48,9 @@ use App\Models\Teacher_section;
 use App\Models\Bus;
 use App\Models\Salary;
 use App\Models\Actions_log;
+use App\Models\Taxa;
+use App\Models\Hour_Added;
+
 
 class AdminZaController extends BaseController
 {
@@ -1993,6 +1996,296 @@ public function deleteAbsence($student_id, $date)
 
     return response()->json(['message' => 'Absence record deleted successfully'], 200);
 }
+
+
+public function add_taxa(Request $request)
+{
+    $validator = Validator::make($request->all(),[
+        'date' => 'required|date',
+        'type'=>'required',
+        'cost'=>'required',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->responseError(['errors' => $validator->errors()]);
+    }
+
+    $academy =  Academy::find(1);
+    $taxa = new Taxa();
+
+    $taxa->type = $request->type;
+    $taxa->cost = $request->cost;
+    $taxa->year = $academy->year;
+    $taxa->date = $request->date;
+
+    if ($taxa->save()) {
+        return response()->json([
+            'you added taxa'
+        ], 200);
+    }
+
+    ;
+
+}
+
+//معاشات الأساتذة 
+public function salary_teacher_no(Request $request)
+{
+    // التحقق من صحة المدخلات
+    $validated = $request->validate([
+        'year' => 'required|integer|between:2000,2100', // التحقق من أن السنة بين 2000 و 2100
+        'month' => 'required|integer|between:1,12', // التحقق من أن الشهر بين 1 و 12
+    ]);
+
+    // الحصول على السنة والشهر من الطلب
+    $year = $validated['year'];
+    $month = $validated['month'];
+
+    // استرجاع جميع المدرسين
+    $teachers = Teacher::with('user')->get();
+
+    // مصفوفة لتخزين بيانات كل مدرس
+    $teacherSalaries = [];
+
+    foreach ($teachers as $teacher) {
+        // حساب وتخزين الراتب والمعلومات
+        $salaryData = $this->calculateAndStoreSalary($teacher->id, $year, $month);
+        
+        // إضافة اسم المدرس إلى البيانات
+        $salaryData['teacher_name'] = $teacher->user->first_name . ' '. $teacher->user->last_name; // جلب اسم المدرس من علاقة user
+
+        // تخزين بيانات المدرس في المصفوفة
+        $teacherSalaries[] = $salaryData;
+    }
+
+    // إرجاع النتائج بصيغة JSON
+    return response()->json([
+        'teachers' => $teacherSalaries,
+    ]);
+}
+
+
+// private function calculateAndStoreSalary($teacher_id, $year, $month)
+// {
+//     // استرجاع برنامج الدوام الأسبوعي للأستاذ
+//     $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+
+//     // استرجاع قائمة أيام العطل والغيابات في الشهر
+//     $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+//         ->whereYear('date', $year)
+//         ->whereMonth('date', $month)
+//         ->pluck('date')->toArray();
+
+//     // حساب عدد الأيام في الشهر
+//     $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+
+//     // استرجاع أجر الساعة للأستاذ
+//     $teacher = Teacher::findOrFail($teacher_id);
+//     $hourlyRate = $teacher->cost_hour; // سعر الساعة
+//     $addedHour = $teacher->totalHoursAdded(); // الساعات المضافة
+
+//     $totalWorkingHours = 0; // ساعات العمل الكلية
+
+//     // حساب عدد ساعات العمل في الشهر
+//     for ($day = 1; $day <= $daysInMonth; $day++) {
+//         $date = Carbon::createFromDate($year, $month, $day);
+//         $dayOfWeek = $date->format('l');
+
+//         if (in_array($date->toDateString(), $holidays) || in_array($dayOfWeek, ['Friday', 'Saturday'])) {
+//             continue; // تخطي أيام العطل والغيابات
+//         }
+
+//         // حساب مجموع ساعات العمل لكل فترة في اليوم
+//         $dailyWorkingHours = 0;
+//         foreach ($teacherSchedule as $schedule) {
+//             if ($schedule->day_of_week == $dayOfWeek) {
+//                 $workingHours = $this->getWorkingHoursForDays($schedule);
+//                 $dailyWorkingHours += $workingHours; // جمع الساعات لكل فترة
+//             }
+//         }
+
+//         $totalWorkingHours += $dailyWorkingHours; // إضافة ساعات اليوم الواحد للإجمالي
+//     }
+
+//     // استرجاع قيمة السلف
+//     $advanceAmount = $teacher->maturitie()->whereYear('created_at', $year)->whereMonth('created_at', $month)->sum('amount');
+
+//     // حساب الراتب الشهري
+//     $monthlySalary = ($totalWorkingHours + $addedHour) * $hourlyRate;
+
+//     // حساب المعاش النهائي بعد طرح السلف
+//     $finalSalary = $monthlySalary - $advanceAmount;
+
+//     // إرجاع البيانات كأريي
+//     return [
+//         'total_working_hours' => $totalWorkingHours,
+//         'hour_add' => $addedHour,
+//         'hourly_rate' => $hourlyRate,
+//         'advance_amount' => $advanceAmount,
+//         'monthly_salary' => $monthlySalary,
+//         'final_salary' => $finalSalary,
+//     ];
+// }
+private function calculateAndStoreSalary($teacher_id, $year, $month)
+{
+    // استرجاع برنامج الدوام الأسبوعي للأستاذ
+    $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+
+    // استرجاع قائمة أيام العطل والغيابات في الشهر
+    $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+        ->whereYear('date', $year)
+        ->whereMonth('date', $month)
+        ->pluck('date')->toArray();
+
+    // حساب عدد الأيام في الشهر
+    $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+
+    // استرجاع أجر الساعة للأستاذ
+    $teacher = Teacher::findOrFail($teacher_id);
+    $hourlyRate = $teacher->cost_hour; // سعر الساعة
+
+    // حساب الساعات الإضافية بناءً على الشهر والسنة
+    $addedHour = $teacher->hour()
+        ->whereYear('created_at', $year)
+        ->whereMonth('created_at', $month)
+        ->sum('num_hour_added'); // تأكد من أن الحقل في جدول maturitie هو 'hours_added' وليس 'amount'
+
+    $totalWorkingHours = 0; // ساعات العمل الكلية
+
+    // حساب عدد ساعات العمل في الشهر
+    for ($day = 1; $day <= $daysInMonth; $day++) {
+        $date = Carbon::createFromDate($year, $month, $day);
+        $dayOfWeek = $date->format('l');
+
+        if (in_array($date->toDateString(), $holidays) || in_array($dayOfWeek, ['Friday', 'Saturday'])) {
+            continue; // تخطي أيام العطل والغيابات
+        }
+
+        // حساب مجموع ساعات العمل لكل فترة في اليوم
+        $dailyWorkingHours = 0;
+        foreach ($teacherSchedule as $schedule) {
+            if ($schedule->day_of_week == $dayOfWeek) {
+                $workingHours = $this->getWorkingHoursForDays($schedule);
+                $dailyWorkingHours += $workingHours; // جمع الساعات لكل فترة
+            }
+        }
+
+        $totalWorkingHours += $dailyWorkingHours; // إضافة ساعات اليوم الواحد للإجمالي
+    }
+
+    // استرجاع قيمة السلف
+    $advanceAmount = $teacher->maturitie()
+        ->whereYear('created_at', $year)
+        ->whereMonth('created_at', $month)
+        ->sum('amount');
+
+    // حساب الراتب الشهري
+    $monthlySalary = ($totalWorkingHours + $addedHour) * $hourlyRate;
+
+    // حساب المعاش النهائي بعد طرح السلف
+    $finalSalary = $monthlySalary - $advanceAmount;
+
+    // إرجاع البيانات كأريي
+    return [
+        'total_working_hours' => $totalWorkingHours,
+        'hour_add' => $addedHour,
+        'hourly_rate' => $hourlyRate,
+        'advance_amount' => $advanceAmount,
+        'monthly_salary' => $monthlySalary,
+        'final_salary' => $finalSalary,
+    ];
+}
+
+
+// private function getWorkingHoursForDays($schedule)
+// {
+//     // حساب عدد ساعات العمل بين وقت البداية ووقت النهاية
+//     $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
+//     $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
+    
+//     // حساب الفرق بالساعات بين وقت البداية ووقت النهاية
+//     $workingHours = $endTime->diffInHours($startTime);
+    
+//     return $workingHours/5;
+// }
+private function getWorkingHoursForDays($schedule)
+{
+    // حساب عدد دقائق العمل بين وقت البداية ووقت النهاية
+    $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
+    $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
+    
+    // حساب الفرق بالدقائق
+    $workingMinutes = $endTime->diffInMinutes($startTime);
+    
+    // تحويل الدقائق إلى ساعات بدقة (مع فواصل عشرية)
+    $workingHours = $workingMinutes / 60;
+    $w =round($workingHours, 2)/5;
+
+    return $w;  // تقريبه إلى رقمين عشريين
+}
+
+
+
+//معاشات الأساتذة
+// public function salary_teacher($month)
+// {
+//     // استرجاع الأكاديمية بناءً على معرفها
+//     $academy = Academy::find(1);
+
+//     // التأكد من أن الأكاديمية تم العثور عليها
+//     if (!$academy) {
+//         return response()->json(['error' => 'Academy not found'], 404);
+//     }
+
+//     // استرجاع جميع المعلمين الذين لديهم سنة دراسة تتطابق مع السنة الدراسية للأكاديمية
+//     $teachers = Teacher::whereHas('user', function ($query) use ($academy) {
+//         $query->where('year', $academy->year);
+//     })->whereHas('salary',function ($query1) use ($month){
+//         $query1->whereMonth('month', $month);
+//     })->get();
+
+    
+
+//     return response()->json($teachers);
+// }
+
+public function salary_teacher($month)
+{
+    // استرجاع الأكاديمية بناءً على معرفها
+    $academy = Academy::find(1);
+
+    // التأكد من أن الأكاديمية تم العثور عليها
+    if (!$academy) {
+        return response()->json(['error' => 'Academy not found'], 404);
+    }
+
+    // استرجاع جميع المعلمين الذين لديهم سنة دراسة تتطابق مع السنة الدراسية للأكاديمية
+    $teachers = Teacher::with('user')->with('subject')->whereHas('user', function ($query) use ($academy) {
+        $query->where('year', $academy->year);
+    })->whereHas('salary', function ($query1) use ($month) {
+        $query1->whereMonth('month', $month);
+    })->with(['salary' => function ($query1) use ($month) {
+        $query1->whereMonth('month', $month);
+    }])->get();
+
+    foreach ($teachers as $teacher) {
+        $teacher->houre_add = Hour_Added::where('teacher_id',$teacher->id)->whereMonth('created_at',$month)->sum('num_hour_added');
+        $teacher->maturitie = Maturitie::where('teacher_id',$teacher->id)->whereMonth('created_at',$month)->sum('amount');
+    }
+
+    return response()->json($teachers);
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 

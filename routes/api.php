@@ -393,6 +393,10 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/last_result/{student_id}', [AdminOperationController::class, 'getStudentOverallResult']);
     //عرض تفاصيل ساعات الغياب
     Route::get('/get_teacher_out_of_work_hour/{teacher_id}', [AdminOperationController::class, 'getTeacherOutOfWorkHour']);
+    route::post('/add_taxa', [AdminZaController::class, 'add_taxa']);
+    route::get('/salary_teacher/{month}', [AdminZaController::class, 'salary_teacher']);
+    
+    
 });
 
 /*******************************************************monetor*******************************************************/
@@ -443,6 +447,8 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
         route::post('/updateAbsence_for_student/{student_id}/{date}', [AdminZaController::class, 'updateAbsence_for_student']);
         //حذف سجل غياب
         Route::delete('delete_student_out_of_work/{student_id}/{date}', [AdminZaController::class, 'deleteAbsence']);
+        //لاضافة الساعات الاضافية
+        Route::post('/add_extrahour/{teacher_id}',[AdminOperationController::class,'add_extrahour']);
 
     });
     //عرض تصنيف الطلاب
@@ -572,8 +578,6 @@ Route::prefix('monetor')->middleware(['auth:sanctum','ckeck_monetor'])->group(fu
     Route::get('/display_year',[AdminZaController::class,'display_year']);
     //عرض الساعات الافتراضية للشهرمعين
     Route::get('/getTeacherExtraHours/{teacher_id}',[AdminOperationController::class,'getTeacherExtraHours']);
-    //لاضافة الساعات الاضافية
-    Route::post('/add_extrahour/{teacher_id}',[AdminOperationController::class,'add_extrahour']);
     //لتعديل الساعات الاضافية
     Route::post('/update_extrahour/{teacher_id}/{hourid}',[AdminOperationController::class,'update_extrahour']);
     //لحذف الساعات الاضافية

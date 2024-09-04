@@ -15,6 +15,7 @@ return new class extends Migration
         Schema::create('salary', function (Blueprint $table) {
             $table->id();
             $table->double('salary_of_teacher');
+            $table->double('num_houre');
             $table->date('month');
             $table->string('year');
             $table->foreignIdFor(Teacher::class,'teacher_id')->nullable();
