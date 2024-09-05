@@ -2418,7 +2418,7 @@ public function display_taxa_month(Request $request)
 public function fee()
 {
         $academy = Academy::find('1');
-        $users = User::where('year', $academy->year)->where('user_type','student')->with('student')->get();
+        $users = User::where('year', $academy->year)->where('user_type','student')->with('student.section.classs')->get();
 
         $results = [];
         $total_paid_all_student = 0;
@@ -2436,12 +2436,7 @@ public function fee()
       $user->total_paid = $total_paid;
       $user->remaining_fee = $remaining_fee;
 
-      $results[] = [
-        $user,
-        // 'student' => $user,
-        // 'total_paid' => $total_paid,
-        // 'remaining_fee' => $remaining_fee,
-     ];
+      $results[] = $user;
     
             $total_paid_all_student += $total_paid;
             $remaining_fee_all_student += $remaining_fee;
