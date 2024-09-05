@@ -2597,6 +2597,45 @@ public function salary_employee($month)
     ]);
 }
 
+public function all_taxas(Request $request)
+{
+    // إنشاء الاستعلام الأساسي
+    $query = Taxa::query();
+
+    // تصفية حسب اليوم
+    if ($request->has('day') && !empty($request->day)) {
+        $query->whereDay('date', $request->day);
+    }
+
+    // تصفية حسب الشهر
+    if ($request->has('month') && !empty($request->month)) {
+        $query->whereMonth('date', $request->month);
+    }
+
+    // تصفية حسب السنة
+    if ($request->has('year') && !empty($request->year)) {
+        $query->whereYear('date', $request->year);
+    }
+
+    // تصفية حسب السنة الدراسية
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        // إضافة شرط السنة الدراسية إلى الاستعلام
+        $query->where('year', $request->year_studey);
+    }
+
+    // الحصول على قائمة النفقات
+    $taxas = $query->get();
+
+    // حساب مجموع التكلفة الإجمالية للنفقات
+    $sum_taxas = $taxas->sum('cost');
+
+    // إرجاع النتيجة بصيغة JSON
+    return response()->json([
+        'total_taxas' => $sum_taxas,
+        'taxas' => $taxas,
+    ]);
+}
+
 public function all_Maturitie(Request $request)
 {
     // إنشاء الاستعلام الأساسي
@@ -2779,7 +2818,29 @@ public function calculate_balance(Request $request)
     $expenses = $query_expenses->get();
     $total_expenses = $expenses->sum('total_cost');
 
-    // 4. حساب مجموع الرواتب
+    // 4. حساب مجموع المصاريف
+    $query_taxas = Taxa::query();
+
+    if ($request->has('day') && !empty($request->day)) {
+        $query_taxas->whereDay('date', $request->day);
+    }
+
+    if ($request->has('month') && !empty($request->month)) {
+        $query_taxas->whereMonth('date', $request->month);
+    }
+
+    if ($request->has('year') && !empty($request->year)) {
+        $query_taxas->whereYear('date', $request->year);
+    }
+
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        $query_taxas->where('year', $request->year_studey);
+    }
+
+    $taxas = $query_taxas->get();
+    $total_taxas = $taxas->sum('cost');
+
+    // 5. حساب مجموع الرواتب
     $query_salary = Salary::query();
 
     if ($request->has('day') && !empty($request->day)) {
@@ -2801,7 +2862,7 @@ public function calculate_balance(Request $request)
     $salaries = $query_salary->get();
     $total_salary = $salaries->sum('salary_of_teacher');
 
-    // 5. الحصول على مجموع الكلف من جدول 'breake' و 'bus'
+    // 6. الحصول على مجموع الكلف من جدول 'breake' و 'bus'
     $total_break_cost = 0;
     $total_bus_cost = 0;
 
@@ -2819,9 +2880,9 @@ public function calculate_balance(Request $request)
                                    ->sum('cost_from_bus');
     }
 
-    // 6. حساب الربح أو الخسارة
+    // 7. حساب الربح أو الخسارة
     $total_income = $total_fee + $total_course + $total_break_cost + $total_bus_cost;
-    $total_expenses_salary = $total_expenses + $total_salary;
+    $total_expenses_salary = $total_expenses + $total_taxas + $total_salary;
     $balance = $total_income - $total_expenses_salary;
 
     // إرجاع النتيجة بصيغة JSON
