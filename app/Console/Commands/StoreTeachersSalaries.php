@@ -7,6 +7,7 @@ use Illuminate\Support\Carbon;
 use App\Models\Teacher;
 use App\Models\Out_Of_Work_Employee;
 use App\Models\Salary;
+use App\Models\Maturitie;
 use App\Models\Teacher_Schedule;
 use App\Models\Academy;
 class StoreTeachersSalaries extends Command
@@ -372,11 +373,36 @@ class StoreTeachersSalaries extends Command
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->sum('amount');
+
+            
     
         // حساب الراتب الشهري
         $monthlySalary = ($totalWorkingHours + $addedHour) * $hourlyRate;
-    
-        // حساب المعاش النهائي بعد طرح السلف
+
+        if ($advanceAmount >= $monthlySalary) {
+
+            $advance_no_pay = $advanceAmount - $monthlySalary;
+
+            Maturitie::create([
+                'amount' => $advance_no_pay,
+                'teacher_id' => $teacher_id,
+                'employee_id' => null,
+            ]);
+
+            Salary::create([
+                'salary_of_teacher' => 0, // تخزين الراتب النهائي بعد طرح السلف
+                'num_houre' => $totalWorkingHours, // تخزين ساعات العمل الكلية
+                'month' => Carbon::createFromDate($year, $month, 1),
+                'year' => $year, // استخدم السنة الحالية هنا
+                'teacher_id' => $teacher_id,
+                'employee_id' => null, // يجعل قيمة employee_id null
+                'status' => 0,
+            ]);
+
+            
+        }
+        else {
+            // حساب المعاش النهائي بعد طرح السلف
         $finalSalary = $monthlySalary - $advanceAmount;
     
         // تخزين الراتب الشهري في جدول salary
@@ -389,6 +415,9 @@ class StoreTeachersSalaries extends Command
             'employee_id' => null, // يجعل قيمة employee_id null
             'status' => 0,
         ]);
+        }
+    
+        
 
     }
 }

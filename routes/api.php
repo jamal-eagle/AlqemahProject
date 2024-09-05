@@ -172,6 +172,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::post('/update_publish/{publish_id}', [AdminOperationController::class, 'update_publish']);
     //اضافة للمصاريف
     route::post('/add_to_expensess', [AdminOperationController::class, 'add_to_expensess']);
+    //حذف للمصاريف
+    route::delete('/delete_expense/{expense_id}', [AdminZaController::class, 'delete_expense']);
     //اضافة للبوفيه
     Route::post('/add_to_break/{academy_id}', [AdminOperationController::class, 'add_to_break']);
 
@@ -394,8 +396,10 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //عرض تفاصيل ساعات الغياب
     Route::get('/get_teacher_out_of_work_hour/{teacher_id}', [AdminOperationController::class, 'getTeacherOutOfWorkHour']);
     route::post('/add_taxa', [AdminZaController::class, 'add_taxa']);
+    route::delete('/delete_taxa/{taxa_id}', [AdminZaController::class, 'delete_taxa']);
     route::get('/salary_teacher/{month}', [AdminZaController::class, 'salary_teacher']);
     route::get('/salary_employee/{month}', [AdminZaController::class, 'salary_employee']);
+    
     
     
 });

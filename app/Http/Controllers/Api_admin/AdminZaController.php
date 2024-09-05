@@ -2026,6 +2026,40 @@ public function add_taxa(Request $request)
 
 }
 
+//حذف ضريبة
+public function delete_taxa($taxa_id)
+{
+    $taxa = Taxa::find($taxa_id);
+
+    if (!$taxa) {
+        return response()->json(['message' => 'Taxa record not found'], 404);
+    }
+
+    // حذف سجل الغياب
+    $taxa->delete();
+
+    return response()->json(['message' => 'Taxa record deleted successfully'], 200);
+
+
+}
+
+//حذف مصروف
+public function delete_expense($expense_id)
+{
+    $expense = Expenses::find($expense_id);
+
+    if (!$expense) {
+        return response()->json(['message' => 'Expense record not found'], 404);
+    }
+
+    // حذف سجل الغياب
+    $expense->delete();
+
+    return response()->json(['message' => 'Expense record deleted successfully'], 200);
+
+
+}
+
 //معاشات الأساتذة 
 public function salary_teacher_no(Request $request)
 {
