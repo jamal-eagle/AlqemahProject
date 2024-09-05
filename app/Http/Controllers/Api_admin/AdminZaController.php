@@ -2415,6 +2415,43 @@ public function display_taxa_month(Request $request)
     ]);
 }
 
+public function fee()
+{
+        $academy = Academy::find('1');
+        $users = User::where('year', $academy->year)->where('user_type','student')->with('student')->get();
+
+        $results = [];
+        $total_paid_all_student = 0;
+        $remaining_fee_all_student = 0;
+        $sum_fee_all_student = 0;
+
+        foreach ($users as $user) {
+            if ($user->student) {
+            $student = $user->student;
+            $pay = Pay_Fee::where('student_id', $student->id)->get();
+      $total_paid = $pay->sum('amount_money');
+      $total_fee = Student::where('id', $student->id)->value('school_tuition');
+      $remaining_fee = $total_fee - $total_paid;
+
+      $user->total_paid = $total_paid;
+      $user->remaining_fee = $remaining_fee;
+
+      $results[] = [
+        $user,
+        // 'student' => $user,
+        // 'total_paid' => $total_paid,
+        // 'remaining_fee' => $remaining_fee,
+     ];
+    
+            $total_paid_all_student += $total_paid;
+            $remaining_fee_all_student += $remaining_fee;
+            $sum_fee_all_student += $total_fee;
+    }
+
+        }
+        return response()->json(['student' => $results, 'total_paid_all_student' => $total_paid_all_student, 'remaining_fee_all_student' => $remaining_fee_all_student, 'total_fee_all_student' => $sum_fee_all_student]);
+}
+
 
 
 

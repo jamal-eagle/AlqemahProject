@@ -495,6 +495,7 @@ private function getActionDescription($path, $request)
 
     }
 
+    //تم تجربته
     //حذف ساعات إضافية للأستاذ
     if (preg_match('/^api\/monetor\/delete_extrahour\/(\d+)\/(\d+)$/', $path, $matches)) {
         $teacherId = $matches[1];
@@ -502,7 +503,7 @@ private function getActionDescription($path, $request)
         
         // جلب بيانات الأستاذ
         $teacher = \App\Models\Teacher::find($teacherId);
-        $extraHour = \App\Models\ExtraHour::find($hourId);  // هنا يتم جلب الساعات الإضافية
+        $extraHour = \App\Models\Hour_Added::find($hourId);  // هنا يتم جلب الساعات الإضافية
     
         if (!$teacher || !$teacher->user) {
             return 'تم حذف ساعات إضافية لأستاذ غير معروف (ID: ' . $teacherId . ')';
@@ -510,13 +511,53 @@ private function getActionDescription($path, $request)
     
         if ($extraHour) {
             if ($extraHour->note_hour_added) {
-                return 'تم حذف ' . $extraHour->num_hour_added . ' ساعات إضافية كانت تحت ملاحظة "' . $extraHour->note_hour . '" للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+                return 'تم حذف ' . $extraHour->num_hour_added . ' ساعات إضافية كانت تحت ملاحظة "' . $extraHour->note_hour_added . '" للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
             }
-            return 'تم حذف ' . $extraHour->num_hour_added . ' ساعات إضافية "'. '" للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+            return 'تم حذف ' . $extraHour->num_hour_added . ' ساعات إضافية '. ' للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
         } else {
             return 'تم حذف ساعات إضافية غير معروفة (ID: ' . $hourId . ') للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
         }
     }
+
+    //تم تجربته
+    //حذف ساعات إضافية للأستاذ
+    if (preg_match('/^api\/monetor\/update_extrahour\/(\d+)\/(\d+)$/', $path, $matches)) {
+        $teacherId = $matches[1];
+        $hourId = $matches[2]; 
+        
+        // جلب بيانات الأستاذ
+        $teacher = \App\Models\Teacher::find($teacherId);
+        $extraHour = \App\Models\Hour_Added::find($hourId);  // هنا يتم جلب الساعات الإضافية
+    
+        if (!$teacher || !$teacher->user) {
+            return 'تم حذف ساعات إضافية لأستاذ غير معروف (ID: ' . $teacherId . ')';
+        }
+
+        if ($extraHour) {
+            if ($request->num_hour_added && $request->note_hour_added) {
+                return 'تم تعديل عدد الساعات الإضاية من  ' . $extraHour->num_hour_added .' إلى '. $request->num_hour_added .' وقد تم تعديل ملاحظتها حيث كانت  "' . $extraHour->note_hour_added . '" إلى "'. $request->note_hour_added. '" للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+            }
+
+            if ($request->num_hour_added) {
+                return 'تم تعديل عدد الساعات الإضاية من  ' . $extraHour->num_hour_added .' إلى '. $request->num_hour_added .' و التي تندرج تحت ملاحظة  "' . $extraHour->note_hour_added . '" للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+            }
+            return 'تم تعديل ملاحظة الساعات الإضافية ال  ' . $extraHour->num_hour_added .' من "'. $extraHour->note_hour_added .'" إلى "' . $request->note_hour_added . '" للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+        
+        } else {
+            return 'تم حذف ساعات إضافية غير معروفة (ID: ' . $hourId . ') للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+        }
+    
+        // if ($extraHour) {
+        //     if ($extraHour->note_hour_added) {
+        //         return 'تم تعديل ' . $extraHour->num_hour_added . ' ساعات إضافية كانت تحت ملاحظة "' . $extraHour->note_hour_added . '" للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+        //     }
+        //     return 'تم حذف ' . $extraHour->num_hour_added . ' ساعات إضافية '. ' للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+        // } else {
+        //     return 'تم حذف ساعات إضافية غير معروفة (ID: ' . $hourId . ') للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+        // }
+    }
+
+
     
 
     
