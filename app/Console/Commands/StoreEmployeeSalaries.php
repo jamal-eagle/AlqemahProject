@@ -29,13 +29,26 @@ class StoreEmployeeSalaries extends Command
      */
     public function handle()
     {
+        $year = Carbon::now()->year;
+        $month = Carbon::now()->month;
+        
         // Get all employees
         $employees = Employee::all();
         $academy = Academy::find(1);
+
+        
         foreach ($employees as $employee) {
+
+            $advanceAmount = $employee->maturitie()
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->sum('amount');
+
+            $salary_after_advanceAmount = $employee->salary - $advanceAmount;
+
             // Store the salary in the database
             Salary::create([
-                'salary_of_teacher' => $employee->salary, // استخدام الراتب من جدول الموظفين
+                'salary_of_teacher' => $salary_after_advanceAmount, // استخدام الراتب من جدول الموظفين
                 'month' => Carbon::now()->startOfMonth(), // تسجيل الشهر الحالي
                 'year'=>$academy->year,
                 'teacher_id' => null, // تعيين teacher_id إلى null

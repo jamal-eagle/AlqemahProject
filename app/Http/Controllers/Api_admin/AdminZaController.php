@@ -2024,8 +2024,6 @@ public function add_taxa(Request $request)
         ], 200);
     }
 
-    ;
-
 }
 
 //معاشات الأساتذة 
