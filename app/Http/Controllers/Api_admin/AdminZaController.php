@@ -2294,7 +2294,9 @@ public function salary_employee($month)
         $employe->maturitie = Maturitie::where('employee_id',$employe->id)->whereMonth('created_at',$month)->sum('amount');
     }
 
-    return response()->json($employees);
+    $sum_salaries = Salary::where('year', $academy->year)->whereMonth('month', $month)->where('teacher_id', null)->sum('salary_of_teacher');
+
+    return response()->json([$employees,'sum_salaries' => $sum_salaries]);
 
 
 }
