@@ -341,8 +341,14 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     Route::get('/search_employee',[AdminZaController::class,'search_employee']);
     //البحث عن طالب ضمن طلاب شعبة محددة
     Route::get('/search_student_in_section/{section_id}',[AdminZaController::class,'search_student_in_section']);
-    Route::get('/all_expenses', [AdminZaController::class, 'all_expenses']);
-    Route::get('/all_taxas', [AdminZaController::class, 'all_taxas']);
+    //حسب عام دراسي
+    Route::get('/all_expenses', [AdminZaController::class, 'display_expenses_month']);
+    //فلترة
+    Route::get('/all_expenses_jadwa', [AdminZaController::class, 'all_expenses']);
+    //حسب عام دراسي
+    Route::get('/all_taxas', [AdminZaController::class, 'display_taxa_month']);
+    //فلترة
+    Route::get('/all_taxas_jadwa', [AdminZaController::class, 'all_taxas']);
     Route::get('/all_Maturitie', [AdminZaController::class, 'all_Maturitie']);
     Route::get('/all_salary_employees', [AdminZaController::class, 'all_salary_employees']);
     Route::get('/salary_all', [AdminZaController::class, 'salary_all']);

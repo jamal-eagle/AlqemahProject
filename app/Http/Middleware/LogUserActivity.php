@@ -495,6 +495,30 @@ private function getActionDescription($path, $request)
 
     }
 
+    //حذف ساعات إضافية للأستاذ
+    if (preg_match('/^api\/monetor\/delete_extrahour\/(\d+)\/(\d+)$/', $path, $matches)) {
+        $teacherId = $matches[1];
+        $hourId = $matches[2]; 
+        
+        // جلب بيانات الأستاذ
+        $teacher = \App\Models\Teacher::find($teacherId);
+        $extraHour = \App\Models\ExtraHour::find($hourId);  // هنا يتم جلب الساعات الإضافية
+    
+        if (!$teacher || !$teacher->user) {
+            return 'تم حذف ساعات إضافية لأستاذ غير معروف (ID: ' . $teacherId . ')';
+        }
+    
+        if ($extraHour) {
+            if ($extraHour->note_hour_added) {
+                return 'تم حذف ' . $extraHour->num_hour_added . ' ساعات إضافية كانت تحت ملاحظة "' . $extraHour->note_hour . '" للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+            }
+            return 'تم حذف ' . $extraHour->num_hour_added . ' ساعات إضافية "'. '" للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+        } else {
+            return 'تم حذف ساعات إضافية غير معروفة (ID: ' . $hourId . ') للأستاذ ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+        }
+    }
+    
+
     
     
 

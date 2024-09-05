@@ -2333,6 +2333,89 @@ public function salary_employee($month)
 
 }
 
+public function display_expenses_month(Request $request)
+{
+    $academy = Academy::find('1');
+    
+    // إنشاء الاستعلام الأساسي
+    $query = Expenses::where('year', $academy->year);
+
+    // تصفية حسب اليوم
+    if ($request->has('day') && !empty($request->day)) {
+        $query->whereDay('date', $request->day);
+    }
+
+    // تصفية حسب الشهر
+    if ($request->has('month') && !empty($request->month)) {
+        $query->whereMonth('date', $request->month);
+    }
+
+    // تصفية حسب السنة
+    if ($request->has('year') && !empty($request->year)) {
+        $query->whereYear('date', $request->year);
+    }
+
+    // تصفية حسب السنة الدراسية
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        // إضافة شرط السنة الدراسية إلى الاستعلام
+        $query->where('year', $request->year_studey);
+    }
+
+    // الحصول على قائمة النفقات
+    $expenses = $query->get();
+
+    // حساب مجموع التكلفة الإجمالية للنفقات
+    $sum_expenses = $expenses->sum('total_cost');
+
+    // إرجاع النتيجة بصيغة JSON
+    return response()->json([
+        'total_expenses' => $sum_expenses,
+        'expenses' => $expenses,
+    ]);
+}
+
+public function display_taxa_month(Request $request)
+{
+    $academy = Academy::find('1');
+
+    // إنشاء الاستعلام الأساسي
+    $query = Taxa::where('year', $academy->year);
+
+    // تصفية حسب اليوم
+    if ($request->has('day') && !empty($request->day)) {
+        $query->whereDay('date', $request->day);
+    }
+
+    // تصفية حسب الشهر
+    if ($request->has('month') && !empty($request->month)) {
+        $query->whereMonth('date', $request->month);
+    }
+
+    // تصفية حسب السنة
+    if ($request->has('year') && !empty($request->year)) {
+        $query->whereYear('date', $request->year);
+    }
+
+    // تصفية حسب السنة الدراسية
+    if ($request->has('year_studey') && !empty($request->year_studey)) {
+        // إضافة شرط السنة الدراسية إلى الاستعلام
+        $query->where('year', $request->year_studey);
+    }
+
+    // الحصول على قائمة النفقات
+    $taxas = $query->get();
+
+    // حساب مجموع التكلفة الإجمالية للنفقات
+    $sum_taxas = $taxas->sum('cost');
+
+    // إرجاع النتيجة بصيغة JSON
+    return response()->json([
+        'total_taxas' => $sum_taxas,
+        'taxas' => $taxas,
+    ]);
+}
+
+
 
 
 
