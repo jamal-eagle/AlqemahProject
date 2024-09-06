@@ -557,6 +557,31 @@ private function getActionDescription($path, $request)
         // }
     }
 
+    if (preg_match('/^api\/monetor\/update_teacher_profile\/(\d+)$/', $path, $matches)) {
+        $teacherId = $matches[1];
+    
+        // جلب بيانات المدرس قبل التعديل
+        $teacher = \App\Models\Teacher::find($teacherId);
+    
+        if (!$teacher || !$teacher->user) {
+            return 'تم تعديل معلومات مدرس غير معروف (ID: ' . $teacherId . ')';
+        }
+    
+        // بيانات المدرس القديمة
+        $oldData = $teacher->toArray();
+    
+        // بيانات المدرس الجديدة (التي تم تحديثها) - من $request
+        $newData = $request->all();
+    
+        // صياغة الرسالة التي تظهر الفرق بين البيانات القديمة والجديدة
+        $message = 'تم تعديل معلومات المدرس: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name . "\n";
+        $message .= 'المعلومات القديمة: سعر ساعته: ' . $oldData['cost_hour'] . ' شهادته: ' . $oldData['certificate'] . ', الهاتف: ' . $oldData['phone'] . ', العنوان: ' . $oldData['address'] . "\n";
+        $message .= 'المعلومات الجديدة: الاسم: ' . $newData['first_name'] . ' ' . $newData['last_name'] . ', الهاتف: ' . $newData['phone'] . ', العنوان: ' . $newData['address'];
+    
+        return $message;
+    }
+    
+
 
     
 

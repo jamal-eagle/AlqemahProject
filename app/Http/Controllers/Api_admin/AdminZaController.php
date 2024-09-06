@@ -75,12 +75,22 @@ public function desplay_student_marks($student_id)
         return $student;
     }
 
-    public function desplay_student_nots($student_id)
-    {
+    // public function desplay_student_nots($student_id)
+    // {
 
-        $note = Note_Student::where('student_id',$student_id)->with('user')->get();
-        return $note;
-    }
+    //     $note = Note_Student::where('student_id',$student_id)->with('user')->get();
+    //     return $note;
+    // }
+    public function desplay_student_nots($student_id)
+{
+    $notes = Note_Student::where('student_id', $student_id)
+                ->with('user')
+                ->orderBy('created_at', 'desc')
+                ->get();
+                
+    return $notes;
+}
+
 
     public function create_note_student(Request $request , $student_id)
 {
@@ -2447,6 +2457,39 @@ public function fee()
         return response()->json(['student' => $results, 'total_paid_all_student' => $total_paid_all_student, 'remaining_fee_all_student' => $remaining_fee_all_student, 'total_fee_all_student' => $sum_fee_all_student]);
 }
 
+public function win_info_course($month)
+{
+    $academy = Academy::find('1');
+    $courses = Course::where('year', $academy->year)->whereNot('Course_status','2')->whereMonth('updated_at',$month)->with('teacher.user')->with('classs')->get();
+
+    $win_from_courses = 0;
+    foreach ($courses as $course) {
+
+        $orders = Order::where('course_id',$course->id)->where('student_type','11')->count();
+        $course->orders = $orders;
+        
+        $expense = Expenses::where('course_id',$course->id)->sum('total_cost');
+        $course->expense = $expense;
+
+        $pay = Pay_Fee::where('course_id',$course->id)->sum('amount_money');
+        $win_aca_tea = $pay - $expense;
+        $money_teacher = ($win_aca_tea * $course->percent_teacher) / 100;      
+        $course->money_teacher = $money_teacher;
+
+        $school_percent = 100 - $course->percent_teacher;
+        $school_amount = ($win_aca_tea * $school_percent) / 100;
+        $course->school_amount = $school_amount;
+
+        $win_from_courses += $school_amount;
+
+
+    }
+    return response()->json(['course' => $courses, 'win_from_courses' => $win_from_courses]);
+    // return $courses;
+
+
+}
+
 
 
 
@@ -2600,23 +2643,86 @@ public function fee()
 
 
 
+    // public function money_from_all_course(Request $request)
+    // {
+    //     $query = Pay_Fee::query();
+    
+    //     // تصفية حسب اليوم
+    //     if ($request->has('day') && !empty($request->day)) {
+    //         $query->whereDay('date', $request->day);
+    //     }
+    
+    //     // تصفية حسب الشهر
+    //     if ($request->has('month') && !empty($request->month)) {
+    //         $query->whereMonth('date', $request->month);
+    //     }
+    
+    //     // تصفية حسب السنة
+    //     if ($request->has('year') && !empty($request->year)) {
+    //         $query->whereYear('date', $request->year);
+    //     }
+    
+    //     // تصفية حسب السنة الدراسية
+    //     if ($request->has('year_studey') && !empty($request->year_studey)) {
+    //         $course = Course::where('year', $request->year_studey)->get();
+    
+    //         if ($course->isEmpty()) {
+    //             return response()->json(['message' => 'No Courses found'], 404);
+    //         }
+    
+    //         // جلب معرفات الدورات
+    //         $courseIds = $course->pluck('id');
+    //         $query->whereIn('course_id', $courseIds);
+    //     }
+    
+    //     // تأكد من جلب الدفعات المرتبطة بالدورات فقط
+    //     $query->whereNotNull('course_id');
+    //     $pays = $query->get();
+    
+    //     // حساب المجموع بعد طرح نسبة المدرس
+    //     $total_amount = 0;
+    
+    //     foreach ($pays as $pay) {
+    //         $course = Course::find($pay->course_id);
+    
+    //         if ($course) {
+    //             // نسبة المدرسة من المبلغ (100% - نسبة المدرس)
+    //             $school_percent = 100 - $course->percent_teacher;
+    
+    //             // حساب المبلغ الذي تحصل عليه المدرسة
+    //             $school_amount = ($pay->amount_money * $school_percent) / 100;
+    
+    //             // إضافة المبلغ إلى المجموع
+    //             $total_amount += $school_amount;
+    //         }
+    //     }
+    
+    //     return response()->json([
+    //         'total_amount' => $total_amount,
+    //         'pays' => $pays,
+    //     ]);
+    // }
     public function money_from_all_course(Request $request)
     {
         $query = Pay_Fee::query();
+        $query1 = Expenses::query();
     
         // تصفية حسب اليوم
         if ($request->has('day') && !empty($request->day)) {
             $query->whereDay('date', $request->day);
+            $query1->whereDay('date', $request->day);
         }
     
         // تصفية حسب الشهر
         if ($request->has('month') && !empty($request->month)) {
             $query->whereMonth('date', $request->month);
+            $query1->whereMonth('date', $request->month);
         }
     
         // تصفية حسب السنة
         if ($request->has('year') && !empty($request->year)) {
             $query->whereYear('date', $request->year);
+            $query1->whereYear('date', $request->year);
         }
     
         // تصفية حسب السنة الدراسية
@@ -2630,24 +2736,33 @@ public function fee()
             // جلب معرفات الدورات
             $courseIds = $course->pluck('id');
             $query->whereIn('course_id', $courseIds);
+
+            $query->where('year', $request->year_studey);
         }
     
         // تأكد من جلب الدفعات المرتبطة بالدورات فقط
         $query->whereNotNull('course_id');
         $pays = $query->get();
+        
+        // $courseIds = $course->pluck('id');
+        // $query1->where('course_id', $courseIds);
+        // $expenses = $query1->sum('total_cost');
     
         // حساب المجموع بعد طرح نسبة المدرس
         $total_amount = 0;
     
         foreach ($pays as $pay) {
             $course = Course::find($pay->course_id);
+            $query1->where('course_id', $pay->course_id);
+            $expenses = $query1->sum('total_cost');
     
             if ($course) {
+                $win_aca_tea = $pay->amount_money - $expenses;
                 // نسبة المدرسة من المبلغ (100% - نسبة المدرس)
                 $school_percent = 100 - $course->percent_teacher;
     
                 // حساب المبلغ الذي تحصل عليه المدرسة
-                $school_amount = ($pay->amount_money * $school_percent) / 100;
+                $school_amount = ($win_aca_tea * $school_percent) / 100;
     
                 // إضافة المبلغ إلى المجموع
                 $total_amount += $school_amount;
@@ -3812,7 +3927,7 @@ public function all_action_for_user($user_id)
     $user = User::find($user_id); // جلب المستخدم برقم ID 1
     $logs = $user->actionLogs; // جلب كل الأنشطة التي قام بها هذا المستخدم
 
-return $logs;
+ return $logs;
 
 }
 

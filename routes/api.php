@@ -407,9 +407,10 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::delete('/delete_taxa/{taxa_id}', [AdminZaController::class, 'delete_taxa']);
     route::get('/salary_teacher/{month}', [AdminZaController::class, 'salary_teacher']);
     route::get('/salary_employee/{month}', [AdminZaController::class, 'salary_employee']);
+    route::get('/win_info_course/{month}', [AdminZaController::class, 'win_info_course']);
     
     
-    
+
 });
 
 /*******************************************************monetor*******************************************************/
