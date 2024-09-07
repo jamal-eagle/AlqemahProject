@@ -278,7 +278,7 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //إضافة محاسب za
     Route::post('/add_accounting',[AdminZaController::class,'add_accounting']);
     // //القسط و الدفعات و المتبقي za
-    // Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
+    Route::get('/fee/{student_id}',[FeeAndPayController::class,'fee']);
     Route::get('/fee',[AdminZaController::class,'fee']);
     //عرض كل الموظفين من معليمن وموجهين وووو
     route::get('desplay_all_employee_and_others', [AdminZaController::class, 'desplay_all_employee_and_others']);

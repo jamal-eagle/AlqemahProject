@@ -154,6 +154,50 @@ public function desplay_section_and_student($class_id)
 
 // }
 
+// public function desplay_all_employee_and_others()
+// {
+//     $academy = Academy::find(1);
+//     $employees = Employee::where('year', $academy->year)->where('status', 1)->get();
+
+//     $result = [];
+
+//     foreach ($employees as $employee) {
+//         $employeeData = [
+//             'id' => $employee->id,
+//             'first_name' => $employee->first_name,
+//             'last_name' => $employee->last_name,
+//             'phone' => $employee->phone,
+//             'address' => $employee->address,
+//             'salary' => $employee->salary,
+//             'type' => $employee->type,
+//             'year' => $employee->year,
+//             'email' => $employee->email,
+//             'status' =>$employee->status,
+
+//         ];
+
+//         // إذا كان الموظف من نوع "موجّه"، أضف معلومات المستخدم
+//         if ($employee->type === 'موجّه') {
+//             $user = User::where('email', $employee->email)->first(); // أو استخدم طريقة أخرى للحصول على المستخدم
+//             if ($user) {
+//                 $employeeData['user'] = [
+//                     'id' => $user->id,
+//                     'father_name' => $user->father_name,
+//                     'mother_name' => $user->mother_name,
+//                     'birthday' => $user->birthday,
+//                     'gender' => $user->gender,
+//                     'phone' => $user->phone,
+//                     // أضف أي معلومات إضافية تحتاجها عن المستخدم
+//                 ];
+//             }
+//         }
+
+//         $result[] = $employeeData;
+//     }
+
+//     return response()->json($result);
+// }
+
 public function desplay_all_employee_and_others()
 {
     $academy = Academy::find(1);
@@ -172,8 +216,7 @@ public function desplay_all_employee_and_others()
             'type' => $employee->type,
             'year' => $employee->year,
             'email' => $employee->email,
-            'status' =>$employee->status,
-
+            'status' => $employee->status,
         ];
 
         // إذا كان الموظف من نوع "موجّه"، أضف معلومات المستخدم
@@ -187,16 +230,18 @@ public function desplay_all_employee_and_others()
                     'birthday' => $user->birthday,
                     'gender' => $user->gender,
                     'phone' => $user->phone,
-                    // أضف أي معلومات إضافية تحتاجها عن المستخدم
                 ];
             }
         }
 
+        // أضف بيانات الموظف إلى النتيجة
         $result[] = $employeeData;
     }
 
-    return response()->json($result);
+    // إرجاع النتيجة كـ JSON
+    return response()->json([$result]); // هنا نضيف الأقواس المربعة لإرجاع النتيجة بالتنسيق المطلوب
 }
+
 
 public function getWeeklyTeacherSchedule($teacher_id)
 {
