@@ -365,7 +365,7 @@ public function homework_subject_my_sun($student_id,$subject_id)
         return $this->responseError(['errors' => $validator->errors()]);
     }
 
-    $parent = Parentt::where('id', auth()->user()->id)->with('student.user')->first();
+    $parent = Parentt::where('id', auth()->user()->id)->first();
 
     if ($request->has('phone') && !empty($request->phone)) {
         $phone = $request->phone;
@@ -387,7 +387,7 @@ public function homework_subject_my_sun($student_id,$subject_id)
         $parent->conf_password = Hash::make($request->conf_password);
     }
 
-    if ($request->has('image')) {
+    if ($request->hasFile('image')) {
         if ($parent->image != null) {
             $oldImagePath = public_path().'/upload/'.$parent->image;
     if (file_exists($oldImagePath)) {

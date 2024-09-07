@@ -12,6 +12,7 @@ use App\Models\Teacher_subject;
 use App\Models\Subject;
 use App\Models\User;
 use App\Models\Academy;
+use App\Models\Fee_School;
 
 class DisplayController extends BaseController
 {
@@ -23,12 +24,12 @@ class DisplayController extends BaseController
 
         $academy = Academy::find(1);
         $teachers = User::where('user_type', 'teacher')->where('year',$academy->year)
-                    ->with('teacher')
+                    ->with('teacher.subject')
                     ->orderBy('first_name')
                     ->orderBy('last_name')
                     ->orderBy('father_name')
                     ->get();
-    return $teachers;
+        return $teachers;
 
     }
 
@@ -110,4 +111,13 @@ public function all_course()
 //     ]);
 // }
 //     } 
+
+public function display_fee_class()
+{
+    $academy = $academy = Academy::find(1);
+    $fee = Fee_School::where('year', $academy->year)->with('classs')->get();
+
+    return $fee;
+
+}
 }

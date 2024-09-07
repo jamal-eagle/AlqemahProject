@@ -909,7 +909,7 @@ public function edit_some_info_profile(Request $request)
         $user->conf_password = Hash::make($request->conf_password);
     }
 
-    if ($request->has('image')) {
+    if ($request->hasFile('image')) {
         if ($user->image != null) {
             $oldImagePath = public_path().'/upload/'.$user->image;
     if (file_exists($oldImagePath)) {
@@ -938,7 +938,7 @@ public function edit_some_info_profile(Request $request)
 
     $user->save();
 
-    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully', 'student' => $user]);
+    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully', 'user' => $user]);
 }
 
 // public function display_file_course($course_id)
@@ -990,7 +990,7 @@ public function display_file_course($course_id)
     } else {
         return response()->json([
             'status' => 'false',
-            'message' => 'No images found'
+            'message' => 'No images_files found'
         ]);
     }
 }

@@ -8,18 +8,38 @@ use App\Models\Post;
 use App\Models\Teacher;
 use App\Models\Comment;
 use App\Models\Student;
+use Illuminate\Support\Facades\DB;
+use App\Notifications\MyNotification;
+
 
 class PostController extends Controller
 {
     //إنشاء مناقشة لشعبة محددة
+    // public function create_post(Request $request, $section_id)
+    // {
+    //     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    //     $post = new Post;
+
+    //     $post->quostion = $request->quostion;
+    //     $post->year = Auth()->user()->year;
+    //     $post->subject_id = $teacher->subject_id;
+    //     $post->section_id = $section_id;
+    //     $post->teacher_id = $teacher->id;
+
+    //     $post->save();
+
+    //     return $post;
+    // }
     public function create_post(Request $request, $section_id)
     {
         $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+        $subject = DB::table('teacher_subjects')->where('teacher_id','=',$teacher->id)->first();
         $post = new Post;
 
         $post->quostion = $request->quostion;
         $post->year = Auth()->user()->year;
-        $post->subject_id = $teacher->subject_id;
+        // $post->subject_id = $teacher->subject_id;
+        $post->subject_id = $subject->subject_id;
         $post->section_id = $section_id;
         $post->teacher_id = $teacher->id;
 
@@ -66,6 +86,8 @@ class PostController extends Controller
                 $comment->teacher_id = $teacher->id;
             }
             $comment->save();
+
+            return $comment;
         }
 
         elseif($post->state_on_off == 0) {
@@ -74,6 +96,8 @@ class PostController extends Controller
                 $teacher = Teacher::where('user_id', auth()->user()->id)->first();
                 $comment->teacher_id = $teacher->id;
                 $comment->save();
+
+                return $comment;
             }  
         }
     }
@@ -91,16 +115,17 @@ class PostController extends Controller
    
             elseif ($comment->student_id != null) {
                 $student = Student::where('user_id', auth()->user()->id)->first();
-                $comment2=Comment::where('student_id', $student->id)->first();
+                $comment2=Comment::where('student_id', $student->id)->where('id',$comment_id)->first();
                 
                 $comment2->description = $request->description;
                 $comment2->save();
                 return $comment2;
+                return response()->json(['message' => 'you can not edit this comment'], 200); 
             }
    
             elseif ($comment->teacher_id != null) {
                 $teacher = Teacher::where('user_id', auth()->user()->id)->first();
-                $comment2=Comment::where('teacher_id', $teacher->id)->first();
+                $comment2=Comment::where('teacher_id', $teacher->id)->where('id',$comment_id)->first();
                 
                 $comment2->description = $request->description;
                 $comment2->save();
@@ -148,6 +173,22 @@ class PostController extends Controller
              }
         
     //إنهاء مناقشة
+    // public function off_on_post($post_id)
+    // {
+    //     $post = Post::where('id', $post_id)->first();
+    //     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    //     if ( auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'monetor' || $teacher->id == $post->teacher_id) {
+    //         if ($post->state_on_off == 1) {
+    //             $post->update(['state_on_off' => 0]);
+                
+    //             return auth()->user();
+    //         }
+    //         $post->update(['state_on_off' => 1]);
+    //         return auth()->user();
+    //     }
+    //     return 'you can not do';
+    // } 
+
     public function off_on_post($post_id)
     {
         $post = Post::where('id', $post_id)->first();
@@ -155,12 +196,18 @@ class PostController extends Controller
         if ( auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'monetor' || $teacher->id == $post->teacher_id) {
             if ($post->state_on_off == 1) {
                 $post->update(['state_on_off' => 0]);
+                $message = 'تم إيقاف المناقشة من قبل ' . auth()->user()->first_name .' '. auth()->user()->last_name;
+                if (auth()->user()->user_type != 'teacher') {
+                    $post->teacher->user->notify(new MyNotification($message));
+                }
                 return auth()->user();
             }
             $post->update(['state_on_off' => 1]);
+            $message = 'تم إيتفعيل مناقشة من قبل ' . auth()->user()->first_name .' '. auth()->user()->last_name;
+            $post->teacher->user->notify(new MyNotification($message));
             return auth()->user();
         }
         return 'you can not do';
-    } 
+    }
 }
 

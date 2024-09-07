@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api_teacher;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController;
 use Illuminate\Http\Request;
 use App\Models\Teacher;
 use App\Models\Program_Teachar;
@@ -22,8 +23,22 @@ use App\Models\Image_Archive;
 use App\Models\File_Archive;
 use Illuminate\Http\UploadedFile;
 use App\Models\Academy;
+use Illuminate\Support\Facades\Hash;
+use App\Models\File_course;
+use App\Models\Teacher_Schedule;
+use Illuminate\Support\Facades\DB;
+use App\Models\Homework;
+use App\Models\Accessories;
+use Illuminate\Support\Carbon;
+use App\Models\Hour_Added;
+use App\Models\course;
+use App\Models\Order;
+use App\Models\Expenses;
 
-class TeacherController extends Controller
+
+
+
+class TeacherController extends BaseController
 {
     //عرض برنامج الدوام الأستاذ
     public function programe()
@@ -738,6 +753,7 @@ public function suction($class_id)
     $all_section_class = Section::where('class_id', $class_id)->get();
     $class = Teacher_section::where('teacher_id',$teacher->id)->get();
     
+    $result = [];
     foreach ($all_section_class as $section) {
         $section_id = $section->id;
         foreach ($class as $sectionclass)
@@ -789,6 +805,95 @@ public function display_mark($student_id)
     return null;
 }
 
+public function add_mark_to_student(Request $request, $student_id)
+{
+    // التحقق من وجود الطالب
+    $student = Student::find($student_id);
+    if (!$student) {
+        return response()->json(['error' => 'The student not found'], 404);
+    }
+
+    // التحقق من صحة البيانات المدخلة
+    $validator = Validator::make($request->all(), [
+        'subject_id' => 'required|integer',
+        'ponus' => 'nullable|numeric',
+        'homework' => 'nullable|numeric',
+        'oral' => 'nullable|numeric',
+        'test1' => 'nullable|numeric',
+        'test2' => 'nullable|numeric',
+        'exam_med' => 'nullable|numeric',
+        'exam_final' => 'nullable|numeric',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // البحث عن العلامة بناءً على الطالب والمادة
+    $mark = Mark::where('student_id', $student_id)
+                ->where('subject_id', $request->input('subject_id'))
+                ->first();
+
+    // إذا كانت العلامة موجودة، يتم تحديثها
+    if ($mark) {
+        if ($request->has('ponus') && !empty($request->ponus)) {
+            $mark->ponus = $request->ponus;
+        }
+
+        if ($request->has('homework') && !empty($request->homework)) {
+            $mark->homework = $request->homework;
+        }
+
+        if ($request->has('oral') && !empty($request->oral)) {
+            $mark->oral = $request->oral;
+        }
+
+        if ($request->has('test1') && !empty($request->test1)) {
+            $mark->test1 = $request->test1;
+        }
+
+        if ($request->has('test2') && !empty($request->test2)) {
+            $mark->test2 = $request->test2;
+        }
+
+        if ($request->has('exam_med') && !empty($request->exam_med)) {
+            $mark->exam_med = $request->exam_med;
+        }
+
+        if ($request->has('exam_final') && !empty($request->exam_final)) {
+            $mark->exam_final = $request->exam_final;
+        }
+    } 
+    // إذا لم تكن العلامة موجودة، يتم إنشاء صف جديد
+    else {
+        $mark = new Mark;
+        $mark->student_id = $student_id;
+        $mark->subject_id = $request->input('subject_id');
+        $mark->ponus = $request->input('ponus');
+        $mark->homework = $request->input('homework');
+        $mark->oral = $request->input('oral');
+        $mark->test1 = $request->input('test1');
+        $mark->test2 = $request->input('test2');
+        $mark->exam_med = $request->input('exam_med');
+        $mark->exam_final = $request->input('exam_final');
+    }
+
+    // حساب المجموع
+    $aggregate = ($mark->ponus ?? 0) + ($mark->homework ?? 0) + ($mark->oral ?? 0) + ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) + ($mark->exam_final ?? 0);
+
+    // تحديد حالة الطالب (ناجح/راسب)
+    $mark->state = ($aggregate >= 50) ? 1 : 0;
+
+    if ($mark->exam_final == 0) {
+        $mark->state = 0;
+    }
+
+    // حفظ التعديلات أو إنشاء الصف
+    $mark->save();
+
+    return response()->json(['success' => 'Marks added/updated successfully']);
+}
+
 //تعديل علامة طالب
 public function edit_mark(Request $request,$mark_id)
 {
@@ -821,8 +926,23 @@ public function edit_mark(Request $request,$mark_id)
         $mark->exam_final = $request->exam_final;
     }
 
-    if ($request->has('state')) {
-        $mark->state = $request->state;
+    // حساب المجموع
+    $aggregate = ($mark->ponus ?? 0) + ($mark->homework ?? 0) + ($mark->oral ?? 0) + ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) + ($mark->exam_final ?? 0);
+
+    // تحديد حالة الطالب (ناجح/راسب)
+    $mark->state = ($aggregate >= 50) ? 1 : 0;
+
+    if ($mark->exam_final == 0) {
+        $mark->state = 0;
+    }
+
+    $aggregate = ($mark->ponus ?? 0) + ($mark->homework ?? 0) + ($mark->oral ?? 0) + ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) + ($mark->exam_final ?? 0);
+
+    // تحديد حالة الطالب (ناجح/راسب)
+    $mark->state = ($aggregate >= 50) ? 1 : 0;
+
+    if ($mark->exam_final == 0) {
+        $mark->state = 0;
     }
     $mark->student_id = $mark->student_id;
     $mark->subject_id = $mark->subject_id; 
@@ -834,33 +954,62 @@ public function edit_mark(Request $request,$mark_id)
 
 
 //عرض جميع الطلاب الذي يدرسهم حسب الترتيب الأبجدي
+// public function display_all_students_I_teach()
+// {
+//     $academy= $academy = Academy::find(1);
+//     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+//     $sections = Teacher_section::where('teacher_id', $teacher->id)->get();
+//     $students = collect();
+
+//     foreach ($sections as $section) {
+//         $students = $students->merge(Student::where('section_id', $section->id)->where('user.year',$academy->year)->with('user')->with('section.classs')->get());
+//     }
+
+//     $sortedStudents = $students->sortBy(function($student) {
+//         return $student->user->first_name;
+//     });
+
+//     return $sortedStudents->values()->all();
+
+// //     عرض جميع الطلاب الذين يدرسهم ولكن دون ترتيب أبجدي
+// //     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+// //     $sections = Teacher_section::where('teacher_id', $teacher->id)->get();
+// //     $students = [];
+
+// //     foreach ($sections as $section) {
+// //         $students[] = Student::where('section_id', $section->id)->with('user')->get();
+// //     }
+
+// //     return $students;
+//  }
 public function display_all_students_I_teach()
 {
+    $academy = Academy::find(1);
     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
     $sections = Teacher_section::where('teacher_id', $teacher->id)->get();
     $students = collect();
 
     foreach ($sections as $section) {
-        $students = $students->merge(Student::where('section_id', $section->id)->with('user')->get());
+        // استخدام whereHas للوصول إلى الحقل year من جدول users
+        $students = $students->merge(
+            Student::where('section_id', $section->id)
+            ->whereHas('user', function ($query) use ($academy) {
+                $query->where('year', $academy->year);
+            })
+            ->with('user')
+            ->with('section.classs')
+            ->get()
+        );
     }
 
+    // ترتيب الطلاب أبجدياً بناءً على الاسم الأول
     $sortedStudents = $students->sortBy(function($student) {
         return $student->user->first_name;
     });
 
     return $sortedStudents->values()->all();
+}
 
-//     عرض جميع الطلاب الذين يدرسهم ولكن دون ترتيب أبجدي
-//     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
-//     $sections = Teacher_section::where('teacher_id', $teacher->id)->get();
-//     $students = [];
-
-//     foreach ($sections as $section) {
-//         $students[] = Student::where('section_id', $section->id)->with('user')->get();
-//     }
-
-//     return $students;
- }
 
 
 
@@ -1065,8 +1214,501 @@ public function edit_some_info_teacher_profile(Request $request)
 
     $user->save();
 
-    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully', 'student' => $user]);
+    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully', 'teacher' => $user]);
 }
 
+public function delete_file_course($file_id)
+{
+    $file = File_course::where('id',$file_id)->first();
+
+    $imagePath = public_path().'/upload/'.$file->name;
+    if(file_exists($imagePath)) {
+        unlink($imagePath);
+    }
+
+    // حذفت الملف من الداتا عندي
+    $file->delete();
+
+    return response()->json([
+        'status' => 'true',
+        'message' => 'file_image deleted successfully'
+    ]);
+
+
+}
+
+public function show_my_profile()
+{
+    $user = User::where('id', auth()->user()->id)->with('teacher')->first();
+
+    if ($user && $user->image != null) {
+        $imagePath = str_replace('\\', '/', public_path().'/upload/'.$user->image);
+        // public_path() . '/upload/' . $user->image;
+        if (file_exists($imagePath)) {
+            // إضافة رابط الصورة إلى الكائن
+            $user->image_url = asset('/upload/' . $user->image);
+        } else {
+            // إذا كانت الصورة غير موجودة في المجلد
+            $user->image_url = null;
+        }
+    } else {
+        // إذا لم يكن هناك صورة للمستخدم
+        $user->image_url = null;
+    }
+
+    return response()->json([
+        'status' => 'true',
+        'user' => $user
+    ]);
+}
+
+public function getWeeklyTeacherSchedule()
+{
+    $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    // $teacher = Teacher::find($teacher_id);
+    if (!$teacher) {
+        return response()->json(['message' => 'Teacher not found'], 404);
+    }
+
+    // استرجاع الجدول الزمني للأستاذ مع تفاصيل الشعبة
+    $schedules = Teacher_Schedule::with('section')
+                                ->where('teacher_id', $teacher->id)
+                                ->orderBy('day_of_week')
+                                ->orderBy('start_time')
+                                ->get();
+
+    if ($schedules->isEmpty()) {
+        return response()->json(['message' => 'No schedule found for this teacher'], 404);
+    }
+
+    // تنظيم الجدول حسب أيام الأسبوع
+    $weekly_schedule = [
+        'Sunday' => [],
+        'Monday' => [],
+        'Tuesday' => [],
+        'Wednesday' => [],
+        'Thursday' => [],
+    ];
+
+    foreach ($schedules as $schedule) {
+        $weekly_schedule[$schedule->day_of_week][] = [
+            'start_time' => $schedule->start_time,
+            'end_time' => $schedule->end_time,
+            'section' => $schedule->section ? $schedule->section->num_section : 'N/A',
+        ];
+    }
+
+    return response()->json(['weekly_schedule' => $weekly_schedule], 200);
+}
+
+
+public function homework_subject()
+{
+    // $user = User::where('id', auth()->user()->id)->first();
+
+    // if (!$user) {
+    //     return response()->json(['error' => 'user not found'], 404);
+    // }
+
+    $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    $subject = DB::table('teacher_subjects')->where('teacher_id','=',$teacher->id)->first(); 
+
+    $homework = Homework::where('year', auth()->user()->year)->where('subject_id', $subject->subject_id)->with('subject')->with('accessories')->get();
+
+    $result = [];
+
+    foreach ($homework as $h) {
+        $homework_info = $h->toArray();
+        $homework_info['accessories'] = [];
+
+        foreach ($h->accessories as $a) {
+            $a->image_file_url = asset('/upload/' . $a->path);
+            $homework_info['accessories'][] = $a;
+        }
+
+        $result[] = ['homework_info' => $homework_info];
+    }
+
+    if (!empty($result)) {
+        // return response()->json(['status' => 'success', 'data' => $result]);
+
+        return $result;
+    } else {
+        return response()->json(['status' => 'false', 'message' => 'No images found']);
+    }
+}
+
+public function upload_homework(Request $request)
+{
+    $academy = Academy::find(1);
+    $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    $subject = DB::table('teacher_subjects')->where('teacher_id','=',$teacher->id)->first();
+    $class = Subject::where('id',$subject->id)->first();
+
+    $homework = new Homework();
+
+    $homework->description = $request->description;
+    $homework->year = $academy->year;
+    $homework->subject_id = $subject->id;
+    $homework->class_id = $class->id;
+    $homework->save();
+
+    if ($request->path && !empty($request->path)) {
+            $validator = Validator::make($request->all(),[
+                'path' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Please fix the errors',
+                    'errors' => $validator->errors()
+                ]);
+            }
+
+            $img = $request->path;
+            $ext = $img->getClientOriginalExtension();
+            $imageName = time().'.'.$ext;
+            $img->move(public_path().'/upload',$imageName);
+
+            $image = new Accessories;
+            $image->path = $imageName;
+            $image->discription = $request->description;
+            $image->home_work_id = $homework->id;
+
+            $image->save();
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'image upload success',
+                'path' => asset('/upload/'.$imageName),
+                'data' => $image
+            ]);
+            return response()->json(['sucssscceccs with img']);
+        }
+
+        else {
+            return response()->json(['sucssscceccs']);
+        }
+
+}
+
+public function delete_homework($homework_id)
+{
+    $homework = Homework::find($homework_id);
+
+    if (!$homework) {
+        return response()->json(['status' => 'false', 'message' => 'Homework not found'], 404);
+    }
+
+    $accessories = Accessories::where('home_work_id', $homework->id)->get();
+
+    foreach ($accessories as $accessory) {
+        $file_path = public_path('upload/' . $accessory->path);
+        if (file_exists($file_path)) {
+            unlink($file_path);
+        }
+
+        $accessory->delete();
+    }
+
+    $homework->delete();
+
+    return response()->json(['status' => 'true', 'message' => 'Homework and its accessories deleted successfully']);
+}
+
+
+public function search_student(Request $request)
+{
+    // الحصول على بيانات الأستاذ
+    $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+
+    // الحصول على جميع الأقسام (الشعب) التي يدرسها الأستاذ
+    $sections = DB::table('teacher_sections')->where('teacher_id', $teacher->id)->pluck('section_id');
+
+    // البحث عن الطلاب في هذه الأقسام فقط
+    $query = User::whereHas('student', function ($q) use ($sections) {
+        $q->whereIn('section_id', $sections);
+    })->where('user_type', 'student')
+      ->where('status', '1');
+
+    // تقسيم مدخل البحث إلى أجزاء بناءً على المسافة
+    $keywords = explode(' ', $request->q);
+
+    // إضافة شروط البحث لكل كلمة في الكلمات المفتاحية
+    foreach ($keywords as $keyword) {
+        $query->where(function ($subQuery) use ($keyword) {
+            $subQuery->where('first_name', 'LIKE', "%{$keyword}%")
+                     ->orWhere('last_name', 'LIKE', "%{$keyword}%");
+        });
+    }
+
+    // تنفيذ الاستعلام
+    $students = $query->with('student.classs', 'student.section')->get();
+
+    return response()->json($students);
+}
+
+
+public function desplay_maturitie_for_teacher($year, $month)
+{
+    // $teacher = Teacher::find($teacher_id);
+    // if (!$teacher) {
+    //     return response()->json(['the teacher not found']);
+    // }
+
+    $user = User::find(auth()->user()->id);
+    $teacher = $user->teacher()->first();
+
+    // حساب عدد ساعات العمل والراتب الأساسي
+    $num_work_hour = $this->getteacherworkhour($teacher->id, $year, $month);
+    $basic_salary = $num_work_hour * $teacher->cost_hour;
+
+    // الحصول على السلف لهذا الشهر فقط
+    $solfa = 0;
+    $maturities = $teacher->maturitie()
+        ->whereYear('updated_at', $year)
+        ->whereMonth('updated_at', $month)
+        ->get();
+
+    foreach ($maturities as $mut) {
+        $solfa += $mut->amount;
+    }
+
+    $salary = $basic_salary - $solfa;
+
+    return response()->json([
+        'basic_salary' => $basic_salary,
+        'maturities' => $maturities,
+        'total_solfa' => $solfa,
+        'remaining_salary' => $salary
+    ]);
+}
+
+function calculateTotalHours($hoursArray) {
+    $totalHours = 0;
+    foreach ($hoursArray as $hours) {
+        $totalHours += $hours;
+    }
+    return $totalHours;
+}
+public function getteacherworkhour($teacher_id, $year, $month)
+{
+    // استرجاع برنامج الدوام الأسبوعي الثابت للمعلم
+    $teacherSchedule = Teacher_Schedule::where('teacher_id', $teacher_id)->get();
+    $teacher = Teacher::find($teacher_id);
+    if (!$teacher) {
+        return response()->json(['the teacher not found']);
+    }
+
+    // استرجاع قائمة الأيام العطل في الشهر
+    $holidays = Out_Of_Work_Employee::where('teacher_id', $teacher_id)
+        ->whereYear('date', $year)
+        ->whereMonth('date', $month)
+        ->pluck('date');
+
+    // حساب عدد الأيام في الشهر
+    $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+
+    // تهيئة مصفوفة لتخزين تفاصيل سجل الدوام لكل يوم في الشهر
+    $attendanceDetails = [];
+
+    // تحديث تفاصيل سجل الدوام لكل يوم في الشهر
+    for ($day = 1; $day <= $daysInMonth; $day++) {
+        $date = Carbon::createFromDate($year, $month, $day);
+        $dayOfWeek = $date->format('l');
+
+        // تحقق مما إذا كان اليوم هو يوم عمل للمعلم وليس عطلة
+        $isHoliday = $holidays->contains($date->format('Y-m-d'));
+        $isWeekend = in_array($dayOfWeek, ['Friday', 'Saturday']);
+
+        $dailyWorkingHours = 0; // لجمع ساعات العمل اليومية
+
+        if (!$isHoliday && !$isWeekend) {
+            // تكرار على جميع الفترات في اليوم الحالي
+            foreach ($teacherSchedule as $schedule) {
+                if ($schedule->day_of_week == $dayOfWeek) {
+                    $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
+                    $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
+                    $workingHours = $endTime->diffInHours($startTime);
+
+                    $dailyWorkingHours += $workingHours;
+                }
+            }
+        }
+
+        // إضافة تفاصيل اليوم إلى المصفوفة
+        $attendanceDetails[] = [
+            'working_hours' => $dailyWorkingHours,
+        ];
+    }
+
+    // احتساب الساعات الإضافية
+    $hour_added = $teacher->totalHoursAdded();
+    $totalWorkingHours = $this->calculateTotalHours(array_column($attendanceDetails, 'working_hours')) + $hour_added;
+
+    return $totalWorkingHours;
+}
+
+
+public function getTeacherExtraHours(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'month' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return $this->responseError(['errors' => $validator->errors()]);
+        }
+
+        $user = User::find(auth()->user()->id);
+        $teacher = $user->teacher()->first();
+
+        if(!$teacher)
+        {
+            return response()->json(['the teacher not found']);
+        }
+        $month = $request->month;
+
+        $totalHours = Hour_Added::getTeacherHoursForMonth($teacher->id, $month);
+        $hoursDetails = Hour_Added::where('teacher_id', $teacher->id)
+        ->whereMonth('created_at', $month)
+        ->get();
+
+        return response()->json([
+            'teacher_id' => $teacher->id,
+            'month' => $month,
+            'total_hours' => $totalHours,
+            'hours_details' => $hoursDetails,
+
+        ]);
+    }
+
+    public function getTeacherOutOfWorkHour(Request $request)
+    {
+        $user = User::find(auth()->user()->id);
+        $teacher = $user->teacher()->first();
+
+        $validator = Validator::make($request->all(), [
+            'month' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return $this->responseError(['errors' => $validator->errors()]);
+        }
+        // $teacher = Teacher::find($teacher_id);
+        if(!$teacher)
+        {
+            return response()->json(['the teacher not found']);
+        }
+        $month = $request->month;
+
+        $totalHours = Out_Of_Work_Employee::totalHoursOutOfWork($teacher->id, $month);
+        $hoursDetails = Out_Of_Work_Employee::where('teacher_id', $teacher->id)
+        ->whereMonth('date', $month)
+        ->get();
+
+        return response()->json([
+            'teacher_id' => $teacher->id,
+            'month' => $month,
+            'total_hours' => $totalHours,
+            'hours_details' => $hoursDetails,
+
+        ]);
+    }
+
+    public function display_all_my_course()
+    {
+        $user = User::find(auth()->user()->id);
+        $teacher = $user->teacher()->first();
+
+        if(!$teacher)
+        {
+            return response()->json(['the teacher not found']);
+        }
+
+        $courses = course::where('teacher_id',$teacher->id)->get();
+
+        return $courses;
+
+    }
+
+    // public function info_course($id_course)
+    // {
+    //     $course = Course::where('id', $id_course)->with('subject')->with('classs')->get();
+    //     return $course;
+    // }
+
+    public function display_info_course($course_id)
+{
+    // route::get('display_info_course/{course_id}', [AdminZaController::class, 'display_info_course']);
+
+    $course = Course::where('id', $course_id)
+        ->with('publish.image')
+        ->first();
+
+    if (!$course) {
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Course not found'
+        ]);
+    }
+
+    // عدد الطلاب المسجلين في الدورة
+    $num_order_for_course = Order::where('course_id', $course_id)->where('student_type','11')->count();
+ // return $num_order_for_course;
+    // المبلغ الذي جمعه المعهد من الطلاب المسجلين
+    $Money = $num_order_for_course * $course->cost_course;
+
+    // مصاريف الدورة الكلية
+    $expenses = Expenses::where('course_id', $course_id)->sum('total_cost') ?? 0;
+
+    $Money_without_expenses = $Money - $expenses;
+    $my_money_from_course= ($Money_without_expenses * $course->percent_teacher)/100;
+    // النسبة التي يحصل عليها المعهد بعد خصم نسبة المدرس
+    $institute_percentage = 100 - $course->percent_teacher;
+
+    // المبلغ الذي يجب جمعه ليغطي المصاريف ويحقق الربح المطلوب
+    $required_money_to_open = $expenses + $course->Minimum_win;  // إضافة الربح المطلوب 500000 إلى المصاريف
+
+    // المبلغ الذي يجب جمعه من الطلاب ليغطي المطلوب بعد خصم نسبة المدرس
+    $required_total_money = $required_money_to_open / ($institute_percentage / 100);
+
+    // حساب عدد الطلاب اللازمين لجمع هذا المبلغ
+    $num_students_required = ceil($required_total_money / $course->cost_course);
+
+    // حساب عدد الطلاب المتبقيين لتغطية التكاليف
+    if ($num_order_for_course > $num_students_required) {
+        $num_students_remaining = 0;
+    }
+    else {
+        $num_students_remaining = $num_students_required - $num_order_for_course;
+    }
+
+
+    // تغيير حالة الدورة إذا كانت الشروط مستوفاة
+    if ($Money >= $required_money_to_open) {
+        $course->Course_status = 1;
+        $course->save();
+    }
+
+    return response()->json([
+        'status' => 'true',
+        'course' => $course,
+        'num_students_registered_in_course' => $num_order_for_course,
+        'my_money_from_course' => $my_money_from_course,
+        // 'total_money_collected' => $Money,
+        // 'total_expenses' => $expenses,
+        'num_students_required_shoud' => $num_students_required,
+        'num_students_remaining' => $num_students_remaining
+    ]);
+}
+
+//عرض طلبات الدورة
+public function display_student_course($course_id)
+{
+    $order = Order::where('course_id', $course_id)->where('student_type','11')->with('student.user')->get();
+
+    return $order;
+}
 
 }
