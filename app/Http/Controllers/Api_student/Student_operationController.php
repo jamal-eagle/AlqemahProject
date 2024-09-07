@@ -26,6 +26,7 @@ use App\Models\Academy;
 use App\Models\Course;
 use App\Models\Expenses;
 use App\Models\File_course;
+use App\Models\Mark;
 
 class Student_operationController extends BaseController
 {
@@ -994,6 +995,69 @@ public function display_file_course($course_id)
         ]);
     }
 }
+
+public function getStudentOverallResult()
+    {
+        $user = User::find(auth()->user()->id);
+        
+        // التحقق من وجود الطالب
+        $student = Student::where('user_id', $user->id)->first();
+        if (!$student) {
+            return response()->json(['error' => 'Student not found'], 404);
+        }
+
+        // جلب جميع العلامات الخاصة بالطالب
+        $marks = Mark::where('student_id', $student->id)->get();
+
+        if ($marks->isEmpty()) {
+            return response()->json(['error' => 'No marks found for the student'], 404);
+        }
+
+        // التحقق من حالة النجاح أو الرسوب
+        $isPassed = true;
+        $subjectDetails = [];
+
+        foreach ($marks as $mark) {
+            $subject = Subject::find($mark->subject_id);
+
+            // حساب المجموع بدون الـ ponus
+            $aggregate = ($mark->homework ?? 0) + ($mark->oral ?? 0) +
+                        ($mark->test1 ?? 0) + ($mark->test2 ?? 0) + ($mark->exam_med ?? 0) +
+                        ($mark->exam_final ?? 0);
+
+            // التحقق من إضافة الـ ponus
+            if ($mark->ponus !== null && $mark->ponus > 0) {
+                $remainingToHundred = 100 - $aggregate;
+
+                // إذا كانت المحصلة الحالية أقل من 100، أضف الجزء المناسب من الـ ponus
+                if ($remainingToHundred > 0) {
+                    $aggregate += min($mark->ponus, $remainingToHundred);
+                }
+            }
+
+            // تحديد حالة المادة
+            $isSubjectPassed = $aggregate > 50 && $mark->exam_final != 0;
+
+            // إضافة تفاصيل المادة
+            $subjectDetails[] = [
+                'subject_id' => $subject->id,
+                'subject_name' => $subject->name,
+                'total_marks' => $aggregate,
+                'is_passed' => $isSubjectPassed ? 'Passed' : 'Failed',
+            ];
+
+            // إذا كان الطالب راسبًا في مادة واحدة على الأقل، يكون راسبًا بشكل عام
+            if (!$isSubjectPassed) {
+                $isPassed = false;
+            }
+        }
+
+        return response()->json([
+            'student_id' => $student->id,
+            'overall_result' => $isPassed ? 'Passed' : 'Failed',
+            'subjects' => $subjectDetails,
+        ]);
+    }
 
 
 

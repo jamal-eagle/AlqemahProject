@@ -672,7 +672,9 @@ Route::prefix('student')->middleware(['auth:sanctum','ckeck_student'])->group(fu
     Route::post('/edit_some_info_profile',[Student_operationController::class,'edit_some_info_profile']);
     //عرض ملفات و صور دورة محددة
     Route::get('/display_file_course/{course_id}',[Student_operationController::class,'display_file_course']);
-
+    //محصلة المواد
+    Route::get('/getStudentOverallResult',[Student_operationController::class,'getStudentOverallResult']);
+    
 
 });
 
@@ -702,6 +704,8 @@ Route::prefix('parent')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/edit_some_info_profile_parent',[ParenttController::class,'edit_some_info_profile_parent']);
     //عرض الكورسات يلي مسجل فيها ابني
     Route::get('/course_my_sun/{student_id}',[ParenttController::class,'course_my_sun']);
+    // عرض التيجة النهائية
+    Route::get('/last_result/{student_id}', [AdminOperationController::class, 'getStudentOverallResult']);
 });
 
 /*******************************************************teacher*******************************************************/
