@@ -415,10 +415,11 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     //اضافة للبوفيه
     Route::post('/add_to_break', [AdminZaController::class, 'add_to_break']);
     route::get('/display_break', [AdminZaController::class, 'display_break']);
+    route::get('/display_break_this_year', [AdminZaController::class, 'display_break_this_year']);
     //اضافة نقل
     Route::post('/add_bus', [AdminZaController::class, 'add_bus']);
     route::get('/display_bus', [AdminZaController::class, 'display_bus']);
-    route::get('/display_break_this_year', [AdminZaController::class, 'display_break_this_year']);
+    route::get('/display_bus_this_year', [AdminZaController::class, 'display_bus_this_year']);
     
     
 

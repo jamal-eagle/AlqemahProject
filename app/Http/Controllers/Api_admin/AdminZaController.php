@@ -2774,11 +2774,10 @@ public function win_info_course($month)
         $total_bus_cost = 0;
     
             //  الحصول على المدفوعات من الأقساط
-    $query_fee = Pay_Fee::query();
+     $query_fee = Pay_Fee::query();
 
 
-    // تصفية حسب السنة الدراسية
-    // if ($request->has('year_studey') && !empty($request->year_studey)) {
+     // تصفية حسب السنة الدراسية
         $students = User::where('year', $academy->year)
                         ->where('user_type', 'student')
                         ->with('student:id,user_id')
@@ -2788,69 +2787,122 @@ public function win_info_course($month)
             $studentIds = $students->pluck('student.id')->toArray();
             $query_fee->whereIn('student_id', $studentIds);
         }
-    // }
 
-    // تصفية المدفوعات التي ليس لها course_id
-    $query_fee->whereNull('course_id');
-    $pays_fee = $query_fee->get();
-    $total_fee = $pays_fee->sum('amount_money');
+     // تصفية المدفوعات التي ليس لها course_id
+     $query_fee->whereNull('course_id');
+     $pays_fee = $query_fee->get();
+     $total_fee = $pays_fee->sum('amount_money');
 
-    // 2. الحصول على المدفوعات من الدورات
-    $query_course = Pay_Fee::query();
+     $query_course = Pay_Fee::query();
 
-
-    // if ($request->has('year_studey') && !empty($request->year_studey)) {
         $courses = Course::where('year', $academy->year)->get();
 
         if ($courses->isNotEmpty()) {
             $courseIds = $courses->pluck('id')->toArray();
             $query_course->whereIn('course_id', $courseIds);
         }
-    // }
 
-    $query_course->whereNotNull('course_id');
-    $pays_course = $query_course->get();
+     $query_course->whereNotNull('course_id');
+     $pays_course = $query_course->get();
 
-    // تعديل حساب المجموع بعد طرح نسبة المدرس
-    $total_course = 0;
-    foreach ($pays_course as $pay) {
+     $total_course = 0;
+     foreach ($pays_course as $pay) {
         $course = Course::find($pay->course_id);
 
         if ($course) {
-            // حساب نسبة المدرسة
             $school_percent = 100 - $course->percent_teacher;
 
-            // حساب المبلغ الصافي الذي تحصل عليه المدرسة
             $school_amount = ($pay->amount_money * $school_percent) / 100;
 
-            // إضافة المبلغ إلى المجموع
             $total_course += $school_amount;
         }
-    }
-    $total_break_cost += Breake::where('year', $academy->year)->sum('cost_from_breake');
-    $total_bus_cost += Bus::where('year', $academy->year)->sum('cost_from_bus');
+     }
+     $total_break_cost += Breake::where('year', $academy->year)->sum('cost_from_breake');
+     $total_bus_cost += Bus::where('year', $academy->year)->sum('cost_from_bus');
     
 
-    // حساب الربح 
-    $total_income = $total_fee + $total_course + $total_break_cost + $total_bus_cost;
-    $percent = ($break->cost_from_breake * 100)/$total_income;
-    // $total_expenses_salary = $total_expenses + $total_taxas + $total_salary;
-    // $balance = $total_income - $total_expenses_salary;
+     // حساب الربح 
+     $total_income = $total_fee + $total_course + $total_break_cost + $total_bus_cost;
+     $percent = ($break->cost_from_breake * 100)/$total_income;
 
-    // إرجاع النتيجة بصيغة JSON
-    return response()->json([
+     return response()->json([
         'break' => $break,
-        // 'total_income' => $total_income,
         'percent' => $percent,
-        // 'total_expenses_salary' => $total_expenses_salary,
-        // 'balance' => $balance
-    ]);
-
-
-        // return $break;
+     ]);
        
     }
+
+
+    public function display_bus_this_year()
+    {
+        $academy = Academy::find(1);
+        $break = Bus::where('year', $academy->year)->first();
+
+        $total_break_cost = 0;
+        $total_bus_cost = 0;
     
+            //  الحصول على المدفوعات من الأقساط
+     $query_fee = Pay_Fee::query();
+
+
+     // تصفية حسب السنة الدراسية
+        $students = User::where('year', $academy->year)
+                        ->where('user_type', 'student')
+                        ->with('student:id,user_id')
+                        ->get();
+
+        if ($students->isNotEmpty()) {
+            $studentIds = $students->pluck('student.id')->toArray();
+            $query_fee->whereIn('student_id', $studentIds);
+        }
+
+     // تصفية المدفوعات التي ليس لها course_id
+     $query_fee->whereNull('course_id');
+     $pays_fee = $query_fee->get();
+     $total_fee = $pays_fee->sum('amount_money');
+
+     $query_course = Pay_Fee::query();
+
+        $courses = Course::where('year', $academy->year)->get();
+
+        if ($courses->isNotEmpty()) {
+            $courseIds = $courses->pluck('id')->toArray();
+            $query_course->whereIn('course_id', $courseIds);
+        }
+
+     $query_course->whereNotNull('course_id');
+     $pays_course = $query_course->get();
+
+     $total_course = 0;
+     foreach ($pays_course as $pay) {
+        $course = Course::find($pay->course_id);
+
+        if ($course) {
+            $school_percent = 100 - $course->percent_teacher;
+
+            $school_amount = ($pay->amount_money * $school_percent) / 100;
+
+            $total_course += $school_amount;
+        }
+     }
+     $total_break_cost += Breake::where('year', $academy->year)->sum('cost_from_breake');
+     $total_bus_cost += Bus::where('year', $academy->year)->sum('cost_from_bus');
+    
+
+     // حساب الربح 
+     $total_income = $total_fee + $total_course + $total_break_cost + $total_bus_cost;
+     $percent = ($break->cost_from_bus * 100)/$total_income;
+
+     return response()->json([
+        'break' => $break,
+        'percent' => $percent .' %',
+     ]);
+       
+    }
+
+    
+
+
 
 
 
