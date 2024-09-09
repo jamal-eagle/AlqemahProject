@@ -413,13 +413,19 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/win_info_course/{month}', [AdminZaController::class, 'win_info_course']);
     Route::delete('/delete_file_course/{file_id}',[TeacherController::class,'delete_file_course']);
     //اضافة للبوفيه
-    Route::post('/add_to_break', [AdminZaController::class, 'add_to_break']);
+    Route::post('/add_to_break', [AdminZaController::class, 'add_break']);
     route::get('/display_break', [AdminZaController::class, 'display_break']);
     route::get('/display_break_this_year', [AdminZaController::class, 'display_break_this_year']);
     //اضافة نقل
     Route::post('/add_bus', [AdminZaController::class, 'add_bus']);
     route::get('/display_bus', [AdminZaController::class, 'display_bus']);
     route::get('/display_bus_this_year', [AdminZaController::class, 'display_bus_this_year']);
+    route::get('/circle', [AdminZaController::class, 'circle']);
+    route::get('/earn_pay', [AdminZaController::class, 'earn_pay']);
+    route::get('/win', [AdminZaController::class, 'win']);
+
+    
+    
     
     
 
