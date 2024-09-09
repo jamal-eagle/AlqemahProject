@@ -313,7 +313,7 @@ public function upload_file_image(Request $request, $subject_id)
         $image = new Image_Archive;
     $image->name = $imgFileName;
     $image->description = $request->description;
-    $image->archive_id = $archive->id;
+    $image->archive_id = $new_archive->id;
     $image->save();
 
     return response()->json([

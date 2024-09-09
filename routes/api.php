@@ -179,8 +179,6 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::post('/add_to_expensess', [AdminOperationController::class, 'add_to_expensess']);
     //حذف للمصاريف
     route::delete('/delete_expense/{expense_id}', [AdminZaController::class, 'delete_expense']);
-    //اضافة للبوفيه
-    Route::post('/add_to_break/{academy_id}', [AdminOperationController::class, 'add_to_break']);
 
     //إعطاء موعد
     route::post('/give_date/{order_id}',[AdminZaController::class,'GiveDate']);
@@ -414,7 +412,14 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/salary_employee/{month}', [AdminZaController::class, 'salary_employee']);
     route::get('/win_info_course/{month}', [AdminZaController::class, 'win_info_course']);
     Route::delete('/delete_file_course/{file_id}',[TeacherController::class,'delete_file_course']);
-
+    //اضافة للبوفيه
+    Route::post('/add_to_break', [AdminZaController::class, 'add_to_break']);
+    route::get('/display_break', [AdminZaController::class, 'display_break']);
+    //اضافة نقل
+    Route::post('/add_bus', [AdminZaController::class, 'add_bus']);
+    route::get('/display_bus', [AdminZaController::class, 'display_bus']);
+    route::get('/display_break_this_year', [AdminZaController::class, 'display_break_this_year']);
+    
     
 
 });
