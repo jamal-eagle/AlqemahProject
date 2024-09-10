@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('address')->nullable();
             $table->string('email')->nullable();
-            $table->boolean('classification')->nullable();
+            $table->boolean('classification')->default(0);
             $table->string('class')->nullable();
             $table->string('year')->nullable();
             $table->tinyInteger('student_type')->nullable();

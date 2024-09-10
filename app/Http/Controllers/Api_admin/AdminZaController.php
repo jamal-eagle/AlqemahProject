@@ -369,10 +369,10 @@ public function programe_week($section_id)
     // }
 
     // $section_id = $student->section_id;
-    $programs = Program_Student::where('section_id', $section_id)->get();
+    $programs = Program_Student::where('section_id', $section_id)->orderBy('created_at', 'desc')->get();
 
     if ($programs->isEmpty()) {
-        return response()->json(['status' => 'false', 'message' => 'Program not found for this student'], 404);
+        return response()->json(['status' => 'false', 'message' => 'Program not found for this section'], 404);
     }
 
     $result = [];
@@ -1364,13 +1364,21 @@ public function add_publish(Request $request)
         }
 }
 
+
+public function course_student_not_pay($student_id)
+{
+            $order = Order::where('student_id', $student_id)->where('classification','0')->with('course:id,name')->get()->pluck('course.id','course.name');
+            return $order;
+        }
+
     //إضافة دفعة لطالب محدد
     public function add_pay(Request $request, $student_id)
     {
         // route::post('add_pay/{student_id}', [AdminZaController::class, 'add_pay']);
 
         $validator = Validator::make($request->all(), [
-            'type' => 'nullable|string',
+            // 'type' => 'nullable|string',
+            'type' => 'required|string|in:قسط,سعر دورة',
             'date' => 'nullable|date',
             'amount_money' => 'required|numeric',
         ]);
@@ -1381,6 +1389,52 @@ public function add_publish(Request $request)
 
         $pay = new Pay_Fee();
         $pay->type = $request->type;
+
+        if ($pay->type == 'سعر دورة') {
+            // $pay->student_id = $student_id;
+            // $order = Order::where('student_id', $student_id)->where('classification','0')->with('course:id,name')->get()->pluck('course.id','course.name');
+
+            $pay->date = $request->date ?? now();
+        
+            $all_pays = Pay_Fee::where('student_id', $student_id)->where('course_id',$request->course_id)->sum('amount_money');
+            $total_fee = Course::where('id',$request->course_id)->value('cost_course');
+            $remaining_fee_before_pay_now = $total_fee - $all_pays;
+    
+            if ($request->amount_money > $remaining_fee_before_pay_now) {
+                return response()->json(['errors' => 'The amount money big'], 422);
+            }
+    
+            $pay->amount_money = $request->amount_money;
+            $pay->student_id = $student_id;
+            $pay->course_id = $request->course_id;
+    
+            // $all_pays = Pay_Fee::where('student_id', $student_id)->where('course_id',request->course_id)->sum('amount_money');
+            $total_paid = $all_pays + $pay->amount_money;
+    
+            // $total_fee = Course::where('id',request->course_id)->value('cost_course');
+    
+            //المبلغ المتبقي بعد دفع دفعة اليوم
+            $remaining_fee = $total_fee - $total_paid;
+    
+            $pay->remaining_fee = $remaining_fee;
+    
+            if ($remaining_fee == 0) {
+                $order = Order::where('student_id', $student_id)->where('course_id',$request->course_id)->first();
+                $order->classification = 1;
+                $order->save();
+            }
+    
+            $pay->save();
+    
+            return response()->json([
+                'pay' => $pay,
+                'total_paid' => $total_paid,
+                'remaining_fee' => $remaining_fee,
+            ]);
+    
+
+
+        }
         $pay->date = $request->date ?? now();
 
         $all_pays = Pay_Fee::where('student_id', $student_id)->where('course_id', null)->sum('amount_money');
@@ -1451,6 +1505,12 @@ public function add_publish(Request $request)
         $remaining_fee = $total_fee - $total_paid;
 
         $pay->remaining_fee = $remaining_fee;
+
+        if ($remaining_fee == 0) {
+            $order = Order::where('student_id', $student_id)->where('course_id',$course_id)->first();
+            $order->classification = 1;
+            $order->save();
+        }
 
         $pay->save();
 
@@ -2842,7 +2902,7 @@ public function win_info_course($month)
         return response()->json([
                 'break' => $break,
                 // 'win' => $win_data->balance,
-                'percent' => $percent .' %',
+                'percent' => $percent,
              ]);
        
     }
@@ -2924,7 +2984,7 @@ public function win_info_course($month)
         return response()->json([
                 'bus' => $break,
                 // 'win' => $win_data->balance,
-                'percent' => $percent .' %',
+                'percent' => $percent,
              ]);
        
     }
@@ -3233,13 +3293,95 @@ public function win()
 
 }
 
+// public function best_course()
+// {
+//     $academy = Academy::find(1);
+//     $courses = Course::where('year', $academy->year)->where('Course_status', '0')->with('classs')->get();
+
+//     return $course;
+// }
+
 public function best_course()
 {
+    // العثور على الأكاديمية
     $academy = Academy::find(1);
-    $course = Course::where('year', $academy->year)->where('Course_status', '0')->with('classs')->sum('pay_fees.')->get();
+    
+    $courses = Course::where('year', $academy->year)
+                     ->where('Course_status', '0')
+                     ->with('classs')  
+                     ->get();
 
-    return $course;
+    $courses_payments = [];
+
+    foreach ($courses as $course) {
+        $pays = Pay_Fee::where('course_id', $course->id)->sum('amount_money');
+        $expenses = Expenses::where('course_id', $course->id)->sum('total_cost');
+
+
+        $win_ac_with_te = $pays - $expenses;
+
+        $school_percent = 100 - $course->percent_teacher;
+        $school_amount = ($win_ac_with_te * $school_percent) / 100;
+
+        $courses_payments[] = [
+            'course' => $course,
+            'school_amount' => $school_amount
+        ];
+    }
+
+    // ترتيب الكورسات حسب مجموع الدفعات
+    usort($courses_payments, function($a, $b) {
+        return $b['school_amount'] <=> $a['school_amount'];
+    });
+
+    return $courses_payments;
+
+    // return response()->json([
+    //     'best_courses' => $courses_payments
+    // ]);
 }
+
+// public function best_course()
+// {
+//     $academy = Academy::find(1);
+    
+//     $courses = Course::where('year', $academy->year)
+//                      ->where('Course_status', '0')
+//                      ->with('classs')  
+//                      ->get();
+
+//     $courses_payments = [];
+
+//     foreach ($courses as $course) {
+//         $pays = Pay_Fee::where('course_id', $course->id)->sum('amount_money');
+//         $expenses = Expenses::where('course_id', $course->id)->sum('total_cost');
+
+//         $win_ac_with_te = $pays - $expenses;
+
+//         $school_percent = 100 - $course->percent_teacher;
+//         $school_amount = ($win_ac_with_te * $school_percent) / 100;
+
+//         $courses_payments[] = [
+//             'course' => $course,
+//             'school_amount' => $school_amount
+//         ];
+//     }
+
+//     usort($courses_payments, function($a, $b) {
+//         return $b['school_amount'] <=> $a['school_amount'];
+//     });
+
+//     $top_5_courses = array_slice($courses_payments, 0, 5);
+
+//     return $top_5_courses;
+
+//     // في حال كنت ترغب في إرجاع النتيجة كـ JSON:
+//     // return response()->json([
+//     //     'best_courses' => $top_5_courses
+//     // ]);
+// }
+
+
 
 
 

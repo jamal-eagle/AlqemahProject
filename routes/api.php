@@ -423,7 +423,8 @@ Route::prefix('admin')->middleware(['auth:sanctum','check_admin'])->group(functi
     route::get('/circle', [AdminZaController::class, 'circle']);
     route::get('/earn_pay', [AdminZaController::class, 'earn_pay']);
     route::get('/win', [AdminZaController::class, 'win']);
-
+    route::get('/best_course', [AdminZaController::class, 'best_course']);
+    route::get('/course_student_not_pay/{student_id}', [AdminZaController::class, 'course_student_not_pay']);
     
     
     
