@@ -177,7 +177,8 @@ public function login(Request $request)
     {
         $request->validate([
             "email" => "required|email",
-            "password" => "required"
+            "password" => "required",
+            "fcm_token" => "required"
         ]);
 
         // check email
@@ -189,10 +190,12 @@ if($user){
             if(Hash::check($request->password, $user->password)){
                 // create a token
                 $token = $user->createToken("auth_token")->plainTextToken;
+                $user->fcm_token = $request->fcm_token;
                 /// send a response
                 if (isset($user->image)) {
                 $user->image_file_url = asset('/upload/' . $user->image);
                 }
+                $user->save();
                 return response()->json([
             'User login successfully',
             'token'=>$token,
@@ -211,9 +214,11 @@ if($user){
         if(Hash::check($request->password, $parent->password)){
             // create a token
             $token = $parent->createToken("auth_token")->plainTextToken;
+            $parent->fcm_token = $request->fcm_token;
             if (isset($parent->image)) {
             $parent->image_file_url = asset('/upload/' . $parent->image);
             }
+            $parent->save();
             /// send a response
             return response()->json([
                 'User login successfully',

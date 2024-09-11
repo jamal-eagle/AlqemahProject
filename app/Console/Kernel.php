@@ -16,11 +16,13 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
             // جدولة تخزين رواتب الموظفين في آخر يوم من كل شهر
-    $schedule->command('salaries:store-employees')->lastDayOfMonth('19:59');
+    $schedule->command('salaries:store-employees')->everyMinute();
 
      // تشغيل الأمر في اليوم الأول من كل شهر في منتصف الليل
-     $schedule->command('salaries:store-teachers-salaries')->monthlyOn(1, '00:00');
+     $schedule->command('salaries:store-teachers-salaries')->everyMinute();
 
+     // جدولة الأمر لتشغيله كل دقيقة
+    $schedule->command('courses:update-status')->everyMinute();
 
     // قم بتشغيل الوظيفة لكل معلم شهريًا
     // $teachers = Teacher::all();

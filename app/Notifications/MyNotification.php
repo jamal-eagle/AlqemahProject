@@ -74,6 +74,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Messaging;
+use Kreait\Firebase\Factory;
 
 class MyNotification extends Notification implements ShouldQueue
 {
@@ -117,17 +120,60 @@ class MyNotification extends Notification implements ShouldQueue
                     ->line('Thank you for using our application!');
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param mixed $notifiable
-     * @return array<string, mixed>
-     */
-    public function toArray($notifiable): array
+    // /**
+    //  * Get the array representation of the notification.
+    //  *
+    //  * @param mixed $notifiable
+    //  * @return array<string, mixed>
+    //  */
+    // public function toArray($notifiable): array
+    // {
+    //     return [
+    //         'message' => $this->message,
+    //     ];
+    // }  
+    
+
+    public function toDatabase($notifiable)
     {
         return [
             'message' => $this->message,
+
         ];
+        // return response()->json([
+        //     'message' => $this->message,
+        // ]);
+        
+    }
+
+
+
+    public function toFirebase($notifiable)
+    {
+        $deviceToken = $notifiable->deviceToken;
+
+        if ($deviceToken) {
+
+            try {
+                $messaging = Firebase::messaging();
+
+                $message = $this->message;
+
+                $notification = FirebaseNotification::create("title")
+                    ->withBody($message);
+
+                $message = CloudMessage::withTarget('token', $deviceToken)
+                    ->withNotification($notification);
+
+                $messaging->send($message);
+            }
+            catch (\Throwable $e) {
+                \Log::error('Failed to send Firebase notification: ' . $e->getMessage());
+            }
+        }
+        else {
+            \Log::warning('No device token found for user: ' . $notifiable->id);
+        }
     }
 }
 

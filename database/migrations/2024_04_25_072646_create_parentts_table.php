@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->string('conf_password');
+            $table->string('fcm_token')->nullable();
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });

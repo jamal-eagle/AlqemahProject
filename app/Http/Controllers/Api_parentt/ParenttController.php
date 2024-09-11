@@ -416,7 +416,7 @@ public function homework_subject_my_sun($student_id,$subject_id)
 
     $parent->save();
 
-    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully', 'parent' => $parent]);
+    return response()->json(['status' => 'success', 'message' => 'Profile updated successfully', 'user' => $parent]);
 }
 
 //الكورسات يلي مسجل فيها ابني

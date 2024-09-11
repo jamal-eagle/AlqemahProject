@@ -50,6 +50,8 @@ use App\Models\Salary;
 use App\Models\Actions_log;
 use App\Models\Taxa;
 use App\Models\Hour_Added;
+use Illuminate\Support\Facades\Notification;
+// use App\Notifications\MyNotification;
 
 
 class AdminZaController extends BaseController
@@ -1367,9 +1369,18 @@ public function add_publish(Request $request)
 
 public function course_student_not_pay($student_id)
 {
-            $order = Order::where('student_id', $student_id)->where('classification','0')->with('course:id,name')->get()->pluck('course.id','course.name');
-            return $order;
-        }
+    $order = Order::where('student_id', $student_id)->where('classification', '0')
+                //   ->with('course:id,name_course') 
+                  ->get()->map(function($order) {
+                      return [
+                          'id' => $order->course->id,
+                          'name' => $order->course->name_course
+                      ];
+                  });
+
+    return $order;
+}
+
 
     //إضافة دفعة لطالب محدد
     public function add_pay(Request $request, $student_id)
@@ -1622,13 +1633,49 @@ public function order_on_course($course_id)
 
     }
     //عرض الطلاب في دورة
+    // public function display_student_in_course($course_id)
+    // {
+    //     $order = Order::where('course_id', $course_id)->where('student_type','11')->get();
+
+    //     return $order;
+
+    // }
+
     public function display_student_in_course($course_id)
-    {
-        $order = Order::where('course_id', $course_id)->where('student_type','11')->get();
+{
+    // جلب الطلبات مع معلومات الطلاب المرتبطين
+    $orders = Order::where('course_id', $course_id)
+                   ->where('student_type', '11')
+                   ->with('student')  // جلب معلومات الطالب المرتبط
+                   ->get();
 
-        return $order;
+    // فلترة الطلبات لعرض الطلبات التي يكون فيها student_id غير null
+    $orders_with_students = $orders->filter(function ($order) {
+        return $order->student_id !== null;
+    });
 
-    }
+    return $orders_with_students->map(function ($order) {
+        // استخراج بيانات الطالب
+        $student = $order->student;
+        return [
+            'student_id' => $student->id,
+            'first_name' => $student->user->first_name,
+            'last_name' => $student->user->last_name,
+            'father_name' => $student->user->father_name,
+            // 'mother_name' => $student->user->mother_name,
+            'birthday' => $student->user->birthday,
+            'gender' => $student->user->gender,
+            'phone' => $student->user->phone,
+            'address' => $student->user->address,
+            'email' => $student->user->email,
+            'classification' => $order->classification,
+            'student_type' => $order->student_type,
+            // 'class' => $student->class,
+            // 'year' => $student->year,
+        ];
+    });
+}
+
 
 
 
@@ -2699,6 +2746,7 @@ public function win_info_course($month)
                 'mother_name' => 'required|string',
                 'birthday' => 'required|date',
                 'gender'=>'required',
+                'fcm_token' => 'required'
             ]);
         
             if ($validator->fails()) {
@@ -2723,6 +2771,7 @@ public function win_info_course($month)
             // $monetor->email = $request->email;
             // $monetor->password = Hash::make($password);
             // $monetor->conf_password = Hash::make($password);
+            $monetor->fcm_token = $request->fcm_token;
             $email = $request->first_name . Str::random(5) . "@gmail.com";
             $password = $request->first_name . Str::random(6);    
             $monetor->user_type = 'monetor';
@@ -4713,6 +4762,7 @@ public function register(Request $request)
         'conf_password_s' => 'required|min:8|same:password_s',
         'class_id' => 'required',
         'name_section' => 'required|string|exists:sections,num_section',
+        'fcm_token_s' => 'required'
     ]);
 
     // Validate parent data
@@ -4723,6 +4773,7 @@ public function register(Request $request)
         'email_p' => 'required|email',
         'password_p' => 'required|min:8',
         'conf_password_p' => 'required|min:8|same:password_p',
+        'fcm_token_p' => 'required'
     ]);
 
     // Check if any validation errors occurred
@@ -4750,6 +4801,7 @@ public function register(Request $request)
         $parentt->year = $academy->year;
         $parentt->password = Hash::make($request->password_p);
         $parentt->conf_password = Hash::make($request->conf_password_p);
+        $parentt->fcm_token = $request->fcm_token_p;
     }
     elseif ($parentt->status == '0') {
         $parentt->status = '1';
@@ -4776,6 +4828,7 @@ public function register(Request $request)
     $user->password = Hash::make($request->password_s);
     $user->conf_password = Hash::make($request->conf_password_s);
     $user->user_type = 'student';
+    $user->fcm_token = $request->fcm_token_s;
 
     // Create student profile
     $student = new Student();
@@ -4985,7 +5038,91 @@ public function all_action_for_user($user_id)
 //$logs = auth()->user()->actionLogs; // جلب الأنشطة للمستخدم الحالي
 
 
+// protected $notificationService;
 
+//          public function __construct(MyNotification $notificationService)
+//          {
+//              $this->notificationService = $notificationService;
+//          }
+
+        //  public function sendNotificationToUser(Request $request)
+        //  {
+        //      $user = User::find($request->user_id);
+        //      if ($user && $user->fcm_token) {
+        //          $title = 'Your Notification Title';
+        //          $body = 'Your Notification Body';
+
+        //          $this->notificationService->sendNotification([$user->fcm_token], $title, $body);
+
+        //          return response()->json(['message' => 'Notification sent successfully']);
+        //      }
+
+        //      return response()->json(['message' => 'User not found or FCM token missing'], 404);
+        //  }
+        public function sendNotificationToUser(Request $request)
+{
+    $user = User::find($request->user_id);
+
+    if ($user && $user->fcm_token) {
+
+        $title = 'Your Notification Title';
+        $message = 'طالب جيد';
+       
+        $notification = new MyNotification($message);
+
+        $user->notify($notification);
+        
+        $notification->toFirebase($user);
+
+        return response()->json(['message' => 'Notification sent successfully']);
+    }
+
+    return response()->json(['message' => 'User not found or FCM token missing'], 404);
+}
+
+
+        //  use App\Models\Notification;
+
+         public function sendNotification($tokens, $title, $body)
+         {
+             $messaging = Firebase::messaging();
+    
+             $message = CloudMessage::new()
+                 ->withNotification(Notification::create($title, $body))
+                 ->withData(['key' => 'value']);
+    
+             $report = $messaging->sendMulticast($message, $tokens);
+    
+             // حفظ الإشعار في قاعدة البيانات
+             foreach ($tokens as $token) {
+                 Notification::create([
+                     'title' => $title,
+                     'body' => $body,
+                     'receiver_id' => User::where('fcm_token', $token)->first()->id,
+                 ]);
+             }
+    
+             return $report;
+         }
+
+
+         public function add(Announcement1 $request)
+    {
+
+        $users = User::where('id', '!=', 1)->get();
+
+        $notification = new AnnouncementNotification($announcement);
+
+        Notification::send($users, $notification);
+
+        foreach ($users as $user) {
+
+            $notification->toFirebase($user);
+        }
+        return auth()->user()->notifications()->latest()->first();
+    }
+         
+    
 
 
 
