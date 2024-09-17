@@ -1389,7 +1389,7 @@ public function course_student_not_pay($student_id)
 
         $validator = Validator::make($request->all(), [
             // 'type' => 'nullable|string',
-            'type' => 'required|string|in:تسديد قسط,دفع دورة ',
+            'type' => 'required|string|in:تسديد قسط,دفع دورة',
             'date' => 'nullable|date',
             'amount_money' => 'required|numeric',
         ]);
@@ -1692,6 +1692,7 @@ public function display_student_in_course($course_id)
             $user = $student->user;
 
             return [
+                'id' => $order->id,
                 'student_id' => $student->id,
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
@@ -1714,6 +1715,8 @@ public function display_student_in_course($course_id)
                 // 'created_at' => $order->created_at,
 
                 // 'student_id' => $student->id,
+                'id' => $order->id,
+                'student_id' => null,
                 'first_name' => $order->first_name,
                 'last_name' => $order->last_name,
                 'father_name' => $order->father_name,
@@ -5261,6 +5264,26 @@ public function all_action_for_user($user_id)
         // }
 
         // use App\Notifications\FcmDatabaseNotification;
+
+
+        public function sendNotification_call($fcm_token, $title,$body)
+{
+    // $fcm_token = $request->input('fcm_token');
+    // $title = $request->input('title');
+    // $body = $request->input('body');
+
+    // إرسال الإشعار عبر FCM
+    $response = $this->fcmService->sendNotification($fcm_token, $title, $body);
+
+    // تخزين الإشعار في قاعدة البيانات
+    $user = User::where('fcm_token', $fcm_token)->first(); // أو يمكنك استخدام user_id من الطلب
+    if ($user) {
+        $user->notify(new MyNotification($title, $body)); // تخزين الإشعار في قاعدة البيانات
+    }
+
+    return response()->json($response);
+}
+
 
 public function sendNotification(Request $request)
 {

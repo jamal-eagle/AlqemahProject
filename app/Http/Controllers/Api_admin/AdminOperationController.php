@@ -173,72 +173,124 @@ class AdminOperationController extends BaseController
 // }
 //     }
 
+
+//كنا رابطين عليه
+// public function login(Request $request)
+//     {
+//         $request->validate([
+//             "email" => "required|email",
+//             "password" => "required",
+//             "fcm_token" => "required"
+//         ]);
+
+//         // check email
+//         $user = User::where("email", "=", $request->email);
+// if($user){
+//     $user = User::where("email", "=", $request->email)->first();
+//     if(isset($user->id)){
+//         if ($user->status == '1') {
+//             if(Hash::check($request->password, $user->password)){
+//                 // create a token
+//                 $token = $user->createToken("auth_token")->plainTextToken;
+//                 $user->fcm_token = $request->fcm_token;
+//                 /// send a response
+//                 if (isset($user->image)) {
+//                 $user->image_file_url = asset('/upload/' . $user->image);
+//                 }
+//                 $user->save();
+//                 return response()->json([
+//             'User login successfully',
+//             'token'=>$token,
+//             'user' => $user,
+//         ]);
+//             }
+//         }
+
+//         elseif ($user->status == '0') {
+//             // return $this->responseError(['your account lock','auth error']);
+//             return 'your account lock';
+//         }
+//     }else{
+//         $parent = Parentt::where("email", "=", $request->email)->first();
+//     if(isset($parent->id) && $parent->status == '1'){
+//         if(Hash::check($request->password, $parent->password)){
+//             // create a token
+//             $token = $parent->createToken("auth_token")->plainTextToken;
+//             $parent->fcm_token = $request->fcm_token;
+//             if (isset($parent->image)) {
+//             $parent->image_file_url = asset('/upload/' . $parent->image);
+//             }
+//             $parent->save();
+//             /// send a response
+//             return response()->json([
+//                 'User login successfully',
+//                 'token'=>$token,
+//                 'user' => $parent,
+//             ]);
+//         }
+//     }
+//     elseif (isset($parent->id) && $parent->status == '0') {
+//         // return $this->responseError(['your account lock','auth error']);
+//         return 'your account lock';
+//     }
+//     else{
+//         return $this->responseError(['please  check your Auth','auth error']);
+//     }
+
+//     }
+//     return $this->responseError(['please  check your Auth','auth error']);
+// }
+//     }
+
 public function login(Request $request)
-    {
-        $request->validate([
-            "email" => "required|email",
-            "password" => "required",
-            "fcm_token" => "required"
-        ]);
+{
+    $request->validate([
+        "email" => "required|email",
+        "password" => "required",
+        "fcm_token" => "required"
+    ]);
 
-        // check email
-        $user = User::where("email", "=", $request->email);
-if($user){
     $user = User::where("email", "=", $request->email)->first();
-    if(isset($user->id)){
+
+    if ($user) {
         if ($user->status == '1') {
-            if(Hash::check($request->password, $user->password)){
-                // create a token
+            if (Hash::check($request->password, $user->password)) {
                 $token = $user->createToken("auth_token")->plainTextToken;
-                $user->fcm_token = $request->fcm_token;
-                /// send a response
-                if (isset($user->image)) {
-                $user->image_file_url = asset('/upload/' . $user->image);
-                }
-                $user->save();
+
+                // Generate image URL if image exists
+                $user->image_file_url = isset($user->image) ? asset('/upload/' . $user->image) : null;
+
                 return response()->json([
-            'User login successfully',
-            'token'=>$token,
-            'user' => $user,
-        ]);
+                    'User login successfully',
+                    'token' => $token,
+                    'user' => $user
+                ]);
             }
+        } elseif ($user->status == '0') {
+            return response()->json(['message' => 'Your account is locked'], 403);
         }
-
-        elseif ($user->status == '0') {
-            // return $this->responseError(['your account lock','auth error']);
-            return 'your account lock';
-        }
-    }else{
+    } else {
         $parent = Parentt::where("email", "=", $request->email)->first();
-    if(isset($parent->id) && $parent->status == '1'){
-        if(Hash::check($request->password, $parent->password)){
-            // create a token
+        if ($parent && $parent->status == '1' && Hash::check($request->password, $parent->password)) {
             $token = $parent->createToken("auth_token")->plainTextToken;
-            $parent->fcm_token = $request->fcm_token;
-            if (isset($parent->image)) {
-            $parent->image_file_url = asset('/upload/' . $parent->image);
-            }
-            $parent->save();
-            /// send a response
+            $parent->image_file_url = isset($parent->image) ? asset('/upload/' . $parent->image) : null;
+
             return response()->json([
-                'User login successfully',
-                'token'=>$token,
-                'user' => $parent,
+                'message' => 'User login successfully',
+                'token' => $token,
+                'user' => $parent
             ]);
+        } elseif (isset($parent->id) && $parent->status == '0') {
+            return response()->json(['message' => 'Your account is locked'], 403);
+        } else {
+            return response()->json(['message' => 'Please check your credentials'], 401);
         }
     }
-    elseif (isset($parent->id) && $parent->status == '0') {
-        // return $this->responseError(['your account lock','auth error']);
-        return 'your account lock';
-    }
-    else{
-        return $this->responseError(['please  check your Auth','auth error']);
-    }
 
-    }
-    return $this->responseError(['please  check your Auth','auth error']);
+    return response()->json(['message' => 'Authentication failed'], 401);
 }
-    }
+
+
 
 
     public function logout(Request $request)
