@@ -15,4 +15,14 @@ class Teacher_subject extends Model
         'subject_id',
         'teacher_id',
     ];
+
+    public function subject()
+    {
+        return $this->belongsTo('App\Models\Subject',foreignKey:'subject_id');
+    }
+
+    public function teacher()
+    {
+        return $this->belongsTo('App\Models\Teacher',foreignKey:'teacher_id');
+    }
 }

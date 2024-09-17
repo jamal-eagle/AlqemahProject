@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('date');
             $table->double('amount_money');
             $table->double('remaining_fee');
-            $table->foreignIdFor(Student::class,'student_id');
+            $table->foreignIdFor(Student::class,'student_id')->nullable();
             $table->foreignIdFor(Course::class,'course_id')->nullable();
             $table->timestamps();
         });

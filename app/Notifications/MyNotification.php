@@ -77,21 +77,25 @@ use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Messaging;
 use Kreait\Firebase\Factory;
+use Illuminate\Notifications\Messages\DatabaseMessage;
+use App\Services\FcmService;
 
 class MyNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    private $message;
+    private $title;
+    private $body;
 
     /**
      * Create a new notification instance.
      *
      * @param string $message
      */
-    public function __construct(string $message)
+    public function __construct($title, $body)
     {
-        $this->message = $message;
+        $this->title = $title;
+        $this->body = $body;
     }
 
     /**
@@ -137,8 +141,8 @@ class MyNotification extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'message' => $this->message,
-
+            'title' => $this->title,
+            'body' => $this->body,
         ];
         // return response()->json([
         //     'message' => $this->message,

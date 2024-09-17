@@ -8,6 +8,7 @@ use App\Models\Actions_log; // استدعاء موديل ActionLog لتسجيل 
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Teacher_subject;
 
 class LogUserActivity
 {
@@ -125,7 +126,7 @@ private function getActionDescription($path, $request)
             $user = $student->user;
             $newClass = \App\Models\Classs::find($data['class_id']);
             $newSection = \App\Models\Section::find($data['section_id']);
-            return 'تم تحديث معلومات الطالب: ' . $user->first_name .' ' .$user->father_name.  ' ' . $user->last_name . ' ' . $user->mother_name . ' ' .$user->phone . ' ' . $user->address . ' ' . $user->school_tuition. ' '.$student->classs->name .' '.$student->section->num_section   .'\n ((إلى)) \n' . $data['first_name'] . ' ' . $data['father_name'] . ' ' . $data['last_name'] . ' ' . $data['mother_name'] . ' ' . $data['phone'] . ' ' . $data['address'] . ' ' . $data['school_tuition'] . ' ' . ($newClass ? $newClass->name : 'غير معروف') . ' ' . ($newSection ? $newSection->num_section : 'غير معروف');
+            return 'تم تحديث معلومات الطالب: ' . $user->first_name .' ' .$user->father_name.  ' ' . $user->last_name . ' ' . $user->mother_name . ' ' .$user->phone . ' ' . $user->address . ' ' . $user->school_tuition. ' '.$student->classs->name .' '.$student->section->num_section   ."\n".' ((إلى)) '."\n" . $data['first_name'] . ' ' . $data['father_name'] . ' ' . $data['last_name'] . ' ' . $data['mother_name'] . ' ' . $data['phone'] . ' ' . $data['address'] . ' ' . $data['school_tuition'] . ' ' . ($newClass ? $newClass->name : 'غير معروف') . ' ' . ($newSection ? $newSection->num_section : 'غير معروف');
         } else {
             return 'تم تحديث معلومات طالب غير معروف (ID: ' . $studentId . ')';
         }
@@ -231,11 +232,11 @@ private function getActionDescription($path, $request)
     }
     
 
-    if (preg_match('/^api\/monetor\/add_mark_to_student\/(\d+)$/', $path, $matches)) {
-        $studentId = $matches[1];
-        $student = \App\Models\Student::find($studentId);
-        return $student ? 'تم إضافة علامة للطالب: ' . $student->user->first_name . ' ' . $student->user->last_name : 'تم إضافة علامة لطالب غير معروف';
-    }
+    // if (preg_match('/^api\/monetor\/add_mark_to_student\/(\d+)$/', $path, $matches)) {
+    //     $studentId = $matches[1];
+    //     $student = \App\Models\Student::find($studentId);
+    //     return $student ? 'تم إضافة علامة للطالب: ' . $student->user->first_name . ' ' . $student->user->last_name : 'تم إضافة علامة لطالب غير معروف';
+    // }
 
     if (preg_match('/^api\/monetor\/edit_mark_for_student\/(\d+)\/subject\/(\d+)$/', $path, $matches)) {
         $studentId = $matches[1];
@@ -324,11 +325,11 @@ private function getActionDescription($path, $request)
     }
     
 
-    if (preg_match('/^api\/monetor\/update_teacher_profile\/(\d+)$/', $path, $matches)) {
-        $teacherId = $matches[1];
-        $teacher = \App\Models\Teacher::find($teacherId);
-        return $teacher ? 'تم تعديل معلومات المدرس: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name : 'تم تعديل معلومات مدرس غير معروف';
-    }
+    // if (preg_match('/^api\/monetor\/update_teacher_profile\/(\d+)$/', $path, $matches)) {
+    //     $teacherId = $matches[1];
+    //     $teacher = \App\Models\Teacher::find($teacherId);
+    //     return $teacher ? 'تم تعديل معلومات المدرس: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name : 'تم تعديل معلومات مدرس غير معروف';
+    // }
 
     //تم تجربته
     //رفع مرفق لدورة محددة
@@ -557,6 +558,8 @@ private function getActionDescription($path, $request)
         // }
     }
 
+    //تم تجريبه
+    //تعديل معلومات الأستاذ
     if (preg_match('/^api\/monetor\/update_teacher_profile\/(\d+)$/', $path, $matches)) {
         $teacherId = $matches[1];
     
@@ -566,20 +569,179 @@ private function getActionDescription($path, $request)
         if (!$teacher || !$teacher->user) {
             return 'تم تعديل معلومات مدرس غير معروف (ID: ' . $teacherId . ')';
         }
-    
-        // بيانات المدرس القديمة
+        
         $oldData = $teacher->toArray();
     
-        // بيانات المدرس الجديدة (التي تم تحديثها) - من $request
         $newData = $request->all();
     
-        // صياغة الرسالة التي تظهر الفرق بين البيانات القديمة والجديدة
-        $message = 'تم تعديل معلومات المدرس: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name . "\n";
-        $message .= 'المعلومات القديمة: سعر ساعته: ' . $oldData['cost_hour'] . ' شهادته: ' . $oldData['certificate'] . ', الهاتف: ' . $oldData['phone'] . ', العنوان: ' . $oldData['address'] . "\n";
-        $message .= 'المعلومات الجديدة: الاسم: ' . $newData['first_name'] . ' ' . $newData['last_name'] . ', الهاتف: ' . $newData['phone'] . ', العنوان: ' . $newData['address'];
+        $subject = $teacher->subject->first();
+     $message = 'تم تعديل معلومات المدرس: ' . ($teacher->user->first_name ?? 'غير معروف') . ' ' . ($teacher->user->last_name ?? 'غير معروف') . "\n";
+    
+     $message .= 'المعلومات القديمة: سعر ساعته: ' . ($oldData['cost_hour'] ?? 'غير معروف') . ', شهادته: ' . ($oldData['certificate'] ?? 'غير معروف') . ', الصف: ' . ($teacher->classs->name ?? 'غير معروف') . ', المادة: ' . ($subject->name ?? 'غير معروف')  . "\n";
+    
+     $message .= 'المعلومات الجديدة: سعر ساعته: ' . ($newData['cost_hour'] ?? 'غير معروف') . ', شهادته: ' . ($newData['certificate'] ?? 'غير معروف') . ', الصف: ' . ($newData['classs_id'] ?? 'غير معروف') . ', المادة: ' . ($newData['name_subject'] ?? 'غير معروف')  . "\n";
+    
+     return $message;
+    }
+
+    //تم تجربته
+    //رفع علامات طالب
+    if (preg_match('/^api\/monetor\/add_mark_to_student\/(\d+)$/', $path, $matches)) {
+        $studentId = $matches[1];
+    
+        $student = \App\Models\Student::find($studentId);
+    
+        if (!$student || !$student->user) {
+            return 'تم إضافة علامة لطالب غير معروف (ID: ' . $studentId . ')';
+        }
+    
+        $marksData = $request->all();
+    
+        $oldMarks = \App\Models\Mark::where('student_id', $studentId)
+                        ->where('subject_id', $marksData['subject_id'])
+                        ->first();
+    
+        $message = 'تم إضافة درجات جديدة للطالب: ' . $student->user->first_name . ' ' . $student->user->last_name . "\n";
+    
+        if ($oldMarks) {
+            $message .= 'الدرجات القديمة: ' .
+                ' بونس: ' . ($oldMarks->ponus ?? ' - ').
+                ', الوظيفة: ' . ($oldMarks->homework ?? ' - ').
+                ', الشفهي: ' . ($oldMarks->oral ?? ' - ').
+                ', اختبار1: ' . ($oldMarks->test1 ?? ' - ').
+                ', اختبار2: ' . ($oldMarks->test2 ?? ' - ').
+                ', امتحان نصف السنة: ' . ($oldMarks->exam_med ?? ' - ').
+                ', الامتحان النهائي: ' . ($oldMarks->exam_final ?? ' - '). "\n";
+        } else {
+            $message .= 'لا توجد درجات سابقة لهذه المادة.' . "\n";
+        }
+    
+        $message .= 'الدرجات الجديدة: ' .
+            ' بونس: ' . ($marksData['ponus'] ?? $oldMarks->ponus ?? ' - ').
+            ', الوظيفة: ' . ($marksData['homework'] ?? $oldMarks->homework ?? ' - ').
+            ', الشفهي: ' . ($marksData['oral'] ?? $oldMarks->oral ?? ' - ').
+            ', اختبار1: ' . ($marksData['test1'] ?? $oldMarks->test1 ?? ' - ').
+            ', اختبار2: ' . ($marksData['test2'] ?? $oldMarks->test2 ?? ' - ').
+            ', امتحان نصف السنة: ' . ($marksData['exam_med'] ?? $oldMarks->exam_med ?? ' - ').
+            ', الامتحان النهائي: ' . ($marksData['exam_final'] ?? $oldMarks->exam_final ?? ' - ');
     
         return $message;
     }
+
+    //تم تجربته
+    //حذف ملف دورة
+    if (preg_match('/^api\/monetor\/delete_file_course\/(\d+)$/', $path, $matches)) {
+        $fileId = $matches[1];
+    
+        $file = \App\Models\File_course::find($fileId);
+    
+        if ($file) {
+            return 'تم حذف الملف الذي وصفه: "' . $file->description . '" الخاص بالدورة "' . $file->course->name_course . '"';
+        } else {
+            return 'تم حذف ملف غير معروف (ID: ' . $fileId . ')';
+        }
+    }
+
+
+    //تم تجربته
+    //إضافة غياب للأستاذ أو الموظف
+    if (preg_match('/^api\/monetor\/add_teachers_and_employee_absence$/', $path)) {
+        if ($request->teacher_id != null) {
+            $teacher = \App\Models\Teacher::where('id', $request->teacher_id)->first();
+            $message = 'تم إضافة يوم غياب للأستاذ : '. $teacher->user->first_name.' '. $teacher->user->last_name."\n";
+        }
+
+        if ($request->employee_id != null) {
+            $employee = \App\Models\Employee::where('id', $request->employee_id)->first();
+            $message = 'تم إضافة يوم غياب ل : '.$employee->type . ' ' . $employee->first_name.' '. $employee->last_name."\n";
+        }
+
+        $message .= ' بتاريخ: ' . $request->date . ' لعدد ساعات: ' . $request->num_hour_out;
+        return $message;
+        
+
+    
+        // if ($teacher) {
+        //     $message .= 'للمعلم: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name;
+        // } elseif ($employee) {
+        //     $message .= 'للموظف: ' . $employee->user->first_name . ' ' . $employee->user->last_name;
+        // }
+    
+        // $message .= ' بتاريخ: ' . $request->date . ' لعدد ساعات: ' . $request->num_hour_out;
+    
+        // return $message;
+    }
+
+    //تم تجربته
+    //حذف غياب أستاذ
+    if (preg_match('/^api\/monetor\/delete_absence_for_teacher\/(\d+)\/(.+)$/', $path, $matches)) {
+        $teacherId = $matches[1];
+        $absenceId = $matches[2];
+    
+        $absence = \App\Models\Out_Of_Work_Employee::where('id', $absenceId)->first();
+        $teacher = \App\Models\teacher::where('id', $teacherId)->first();
+
+        $message = 'تم حذف سجل غياب الأستاذ: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name . "\n";
+        $message .= ' للتاريخ: ' . $absence->date . "\n";
+        $message .= ' و حيث كان يحمل الملاحظة : "' . ($absence->note ?? ' لا يوجد ملاحظة') . '"';
+        return  $message ?? 'تم حذف سجل غياب لأستاذ غير معروف (ID: ' . $absenceId . ')';
+    }
+    
+    //تم تجربته
+    //تبرير أو تعديل تبرير غياب أستاذ
+    if (preg_match('/^api\/monetor\/updatenoteforabsence_for_teacher\/(\d+)\/(.+)$/', $path, $matches)) {
+        $teacherId = $matches[1];
+        $absenceId = $matches[2];
+    
+        $absence = \App\Models\Out_Of_Work_Employee::where('id', $absenceId)->first();
+        $teacher = \App\Models\teacher::where('id', $teacherId)->first();
+
+        $message = 'تم تعديل/إضافة تبرير غياب الأستاذ: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name . "\n";
+        $message .= ' للتاريخ: ' . $absence->date . "\n";
+        $message .= ' و حيث كان يحمل التبرير : "' . ($absence->note ?? ' لا يوجد تبرير') . '"'. "\n";
+        $message .= 'التبرير الحديث :' .' "'. $request->note .'" ';
+        return  $message ?? 'تم حذف سجل غياب لأستاذ غير معروف (ID: ' . $absenceId . ')';
+    }
+
+
+
+
+    /************teacher************/
+    if (preg_match('/^api\/teacher\/create_post\/(\d+)$/', $path, $matches)) {
+        $sectionId = $matches[1];  // استخراج معرف الشعبة
+    
+        // جلب بيانات الشعبة
+        $section = \App\Models\Section::find($sectionId);
+    
+        if (!$section) {
+            return 'تم إنشاء منشور لشعبة غير معروفة (ID: ' . $sectionId . ')';
+        }
+    
+        // جلب بيانات المدرس عبر الـ auth
+        $teacher = \App\Models\Teacher::where('user_id', auth()->user()->id)->first();
+        if (!$teacher) {
+            return 'لم يتم العثور على المدرس المرتبط بحساب المستخدم.';
+        }
+    
+        // جلب المادة التي يدرسها المدرس
+        $subject = DB::table('teacher_subjects')->where('teacher_id', $teacher->id)->first();
+        if (!$subject) {
+            return 'لم يتم العثور على المادة المرتبطة بالمدرس.';
+        }
+    
+        // جلب البيانات المدخلة من الـ request
+        $postData = $request->all();
+    
+        // تكوين رسالة لتسجيل النشاط
+        $message = 'تم إنشاء مناقشة جديدة بواسطة الأستاذ: ' . $teacher->user->first_name . ' ' . $teacher->user->last_name ."\n".
+                   ' بعنوان المناقشة: "' . $post->quostion ."\n". '" للصف: ' . $section->classs->name .
+                   ' الشعبة: ' . $section->num_section;
+    
+        return $message;
+    }
+     
+      
+    
     
 
 

@@ -16,8 +16,8 @@ return new class extends Migration
         Schema::create('subjects', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('num_hour');
-            $table->integer('success_rate');
+            $table->integer('num_hour')->default(0);
+            $table->integer('success_rate')->default(0);
             $table->foreignIdFor(Classs::class,'class_id');
             $table->timestamps();
         });

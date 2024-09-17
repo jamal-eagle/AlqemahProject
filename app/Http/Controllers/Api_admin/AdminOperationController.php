@@ -475,6 +475,7 @@ public function register_teacher(Request $request)
         'phone' => 'required',
         'address' => 'required',
         'image' => 'nullable',
+        // 'fcm_token' => 'required'
     ]);
 
 
@@ -499,7 +500,8 @@ public function register_teacher(Request $request)
     $user->password = Hash::make($password);
     $user->conf_password = Hash::make($password);
     $user->user_type = 'teacher';
-
+    //إذا هو بدو يعمل الحساب فلازم تتفعل
+    // $user->fcm_token = $request->fcm_token;
 
 
     $user->save();

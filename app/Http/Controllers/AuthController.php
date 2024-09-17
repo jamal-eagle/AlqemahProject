@@ -351,21 +351,56 @@ public function update_profile_employee(Request $request , $employee_id)
 //     return response()->json($notifications);
 // }
 
+// public function display_notification()
+// {
+//     $user = auth()->user(); // يجلب المستخدم الذي قام بتسجيل الدخول
+
+//     // // تحقق ما إذا كان المستخدم هو Parent أو User
+//     // if (Parentt::where("email", auth()->user()->email)) {
+//     //     $notifications = $user->unreadNotifications;
+//     // } elseif (User::where("email", auth()->user()->email)) {
+//     //     $notifications = $user->unreadNotifications;
+//     // } else {
+//     //     return response()->json(['error' => 'Invalid user type'], 403);
+//     // }
+
+//     // return response()->json($notifications);
+
+//     // عند استرجاع الإشعارات من قاعدة البيانات
+//  $notifications = $user->notifications;
+
+//  foreach ($notifications as $notification) {
+//     echo $notification->data['body']; // يجب أن يعرض النص بشكل صحيح
+//  }
+
+// }
+
 public function display_notification()
 {
     $user = auth()->user(); // يجلب المستخدم الذي قام بتسجيل الدخول
 
-    // تحقق ما إذا كان المستخدم هو Parent أو User
-    if (Parentt::where("email", auth()->user()->email)) {
-        $notifications = $user->unreadNotifications;
-    } elseif (User::where("email", auth()->user()->email)) {
-        $notifications = $user->unreadNotifications;
+    // تحقق من نوع المستخدم وإحضار الإشعارات غير المقروءة
+    if ($user instanceof Parentt || $user instanceof User) {
+        // جلب جميع الإشعارات
+        $notifications = $user->notifications;
+
+        // فك ترميز النصوص
+        $formattedNotifications = $notifications->map(function ($notification) {
+            $data = $notification->data;
+
+            $data['title'] = json_decode('"' . $data['title'] . '"');
+            $data['body'] = json_decode('"' . $data['body'] . '"');
+
+            return $data;
+        });
+
+        // إرجاع الإشعارات بصيغة JSON
+        return response()->json($formattedNotifications);
     } else {
         return response()->json(['error' => 'Invalid user type'], 403);
     }
-
-    return response()->json($notifications);
 }
+
 
 
 

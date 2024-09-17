@@ -52,7 +52,7 @@ use App\Models\Taxa;
 use App\Models\Hour_Added;
 use Illuminate\Support\Facades\Notification;
 // use App\Notifications\MyNotification;
-
+use App\Services\FcmService;
 
 class AdminZaController extends BaseController
 {
@@ -64,7 +64,7 @@ class AdminZaController extends BaseController
         return response()->json([$student,'all student regester here']);
     }
 
-public function desplay_student_marks($student_id)
+    public function desplay_student_marks($student_id)
     {
         // $student = Student::find($student_id);
         // if(!$student)
@@ -84,77 +84,77 @@ public function desplay_student_marks($student_id)
     //     return $note;
     // }
     public function desplay_student_nots($student_id)
-{
-    $notes = Note_Student::where('student_id', $student_id)
-                ->with('user')
-                ->orderBy('created_at', 'desc')
-                ->get();
-                
-    return $notes;
-}
+    {
+        $notes = Note_Student::where('student_id', $student_id)
+                    ->with('user')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+                    
+        return $notes;
+    }
 
 
     public function create_note_student(Request $request , $student_id)
-{
-    $student = Student::find($student_id);
-    if(!$student)
     {
-        return response()->json(['the student not found']);
+        $student = Student::find($student_id);
+        if(!$student)
+        {
+            return response()->json(['the student not found']);
+        }
+        $validator = Validator::make($request->all(),[
+            'text'=>'required|string',
+            'type'=>'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()]);
+            }
+
+            $note_student = new Note_Student();
+
+            $note_student->type = $request->type;
+            $note_student->text = $request->text;
+            $note_student->student_id = $student_id;
+            $note_student->user_id = auth()->user()->id;
+
+            if ($note_student->save()) {
+                $user = User::find($student->user_id);  // استبدل بمعرف المستخدم المناسب
+                $parentt = Parentt::find($student->parentt_id);
+            $message = 'This is a test notification!';
+            if ($user) {
+                $user->notify(new MyNotification($message));
+            }
+            
+            if ($parentt) {
+                $parentt->notify(new MyNotification($message));
+            }
+            }
+
+            return response()->json(['successssss']);
+
     }
-    $validator = Validator::make($request->all(),[
-        'text'=>'required|string',
-        'type'=>'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()]);
-        }
-
-        $note_student = new Note_Student();
-
-        $note_student->type = $request->type;
-        $note_student->text = $request->text;
-        $note_student->student_id = $student_id;
-        $note_student->user_id = auth()->user()->id;
-
-        if ($note_student->save()) {
-            $user = User::find($student->user_id);  // استبدل بمعرف المستخدم المناسب
-            $parentt = Parentt::find($student->parentt_id);
-        $message = 'This is a test notification!';
-        if ($user) {
-            $user->notify(new MyNotification($message));
-        }
-        
-        if ($parentt) {
-            $parentt->notify(new MyNotification($message));
-        }
-        }
-
-        return response()->json(['successssss']);
-
-}
 
 
-public function desplay_section_and_student($class_id)
-{
-    $classs = Classs::find($class_id);
-    if(!$classs)
+    public function desplay_section_and_student($class_id)
     {
-        return response()->json(['the classs not found']);
+        $classs = Classs::find($class_id);
+        if(!$classs)
+        {
+            return response()->json(['the classs not found']);
+        }
+        $section = $classs->section;
+        $student  =  Section::with('student.user')->find($section);
+        return response()->json([$student]);
+
     }
-    $section = $classs->section;
-    $student  =  Section::with('student.user')->find($section);
-    return response()->json([$student]);
 
-}
+    // public function desplay_all_employee_and_others()
+    // {
+    //     $academy = Academy::find(1);
+    //     $employee = Employee::where('year',$academy->year)->where('status',1)->get();
+    //     return response()->json([$employee]);
 
-// public function desplay_all_employee_and_others()
-// {
-//     $academy = Academy::find(1);
-//     $employee = Employee::where('year',$academy->year)->where('status',1)->get();
-//     return response()->json([$employee]);
-
-// }
+    // }
 
 // public function desplay_all_employee_and_others()
 // {
@@ -200,210 +200,210 @@ public function desplay_section_and_student($class_id)
 //     return response()->json($result);
 // }
 
-public function desplay_all_employee_and_others()
-{
-    $academy = Academy::find(1);
-    $employees = Employee::where('year', $academy->year)->where('status', 1)->get();
+    public function desplay_all_employee_and_others()
+    {
+        $academy = Academy::find(1);
+        $employees = Employee::where('year', $academy->year)->where('status', 1)->get();
 
-    $result = [];
+        $result = [];
 
-    foreach ($employees as $employee) {
-        $employeeData = [
-            'id' => $employee->id,
-            'first_name' => $employee->first_name,
-            'last_name' => $employee->last_name,
-            'phone' => $employee->phone,
-            'address' => $employee->address,
-            'salary' => $employee->salary,
-            'type' => $employee->type,
-            'year' => $employee->year,
-            'email' => $employee->email,
-            'status' => $employee->status,
-        ];
+        foreach ($employees as $employee) {
+            $employeeData = [
+                'id' => $employee->id,
+                'first_name' => $employee->first_name,
+                'last_name' => $employee->last_name,
+                'phone' => $employee->phone,
+                'address' => $employee->address,
+                'salary' => $employee->salary,
+                'type' => $employee->type,
+                'year' => $employee->year,
+                'email' => $employee->email,
+                'status' => $employee->status,
+            ];
 
-        // إذا كان الموظف من نوع "موجّه"، أضف معلومات المستخدم
-        if ($employee->type === 'موجّه') {
-            $user = User::where('email', $employee->email)->first(); // أو استخدم طريقة أخرى للحصول على المستخدم
-            if ($user) {
-                $employeeData['user'] = [
-                    'id' => $user->id,
-                    'father_name' => $user->father_name,
-                    'mother_name' => $user->mother_name,
-                    'birthday' => $user->birthday,
-                    'gender' => $user->gender,
-                    'phone' => $user->phone,
-                ];
+            // إذا كان الموظف من نوع "موجّه"، أضف معلومات المستخدم
+            if ($employee->type === 'موجّه') {
+                $user = User::where('email', $employee->email)->first(); // أو استخدم طريقة أخرى للحصول على المستخدم
+                if ($user) {
+                    $employeeData['user'] = [
+                        'id' => $user->id,
+                        'father_name' => $user->father_name,
+                        'mother_name' => $user->mother_name,
+                        'birthday' => $user->birthday,
+                        'gender' => $user->gender,
+                        'phone' => $user->phone,
+                    ];
+                }
             }
+
+            // أضف بيانات الموظف إلى النتيجة
+            $result[] = $employeeData;
         }
 
-        // أضف بيانات الموظف إلى النتيجة
-        $result[] = $employeeData;
+        // إرجاع النتيجة كـ JSON
+        return response()->json([$result]); // هنا نضيف الأقواس المربعة لإرجاع النتيجة بالتنسيق المطلوب
     }
 
-    // إرجاع النتيجة كـ JSON
-    return response()->json([$result]); // هنا نضيف الأقواس المربعة لإرجاع النتيجة بالتنسيق المطلوب
-}
 
+    public function getWeeklyTeacherSchedule($teacher_id)
+    {
+        $teacher = Teacher::find($teacher_id);
+        if (!$teacher) {
+            return response()->json(['message' => 'Teacher not found'], 404);
+        }
 
-public function getWeeklyTeacherSchedule($teacher_id)
-{
-    $teacher = Teacher::find($teacher_id);
-    if (!$teacher) {
-        return response()->json(['message' => 'Teacher not found'], 404);
-    }
+        // استرجاع الجدول الزمني للأستاذ مع تفاصيل الشعبة
+        $schedules = Teacher_Schedule::with('section')
+                                    ->where('teacher_id', $teacher_id)
+                                    ->orderBy('day_of_week')
+                                    ->orderBy('start_time')
+                                    ->get();
 
-    // استرجاع الجدول الزمني للأستاذ مع تفاصيل الشعبة
-    $schedules = Teacher_Schedule::with('section')
-                                ->where('teacher_id', $teacher_id)
-                                ->orderBy('day_of_week')
-                                ->orderBy('start_time')
-                                ->get();
+        if ($schedules->isEmpty()) {
+            return response()->json(['message' => 'No schedule found for this teacher'], 404);
+        }
 
-    if ($schedules->isEmpty()) {
-        return response()->json(['message' => 'No schedule found for this teacher'], 404);
-    }
-
-    // تنظيم الجدول حسب أيام الأسبوع
-    $weekly_schedule = [
-        'Sunday' => [],
-        'Monday' => [],
-        'Tuesday' => [],
-        'Wednesday' => [],
-        'Thursday' => [],
-    ];
-
-    foreach ($schedules as $schedule) {
-        $weekly_schedule[$schedule->day_of_week][] = [
-            'start_time' => $schedule->start_time,
-            'end_time' => $schedule->end_time,
-            'section' => $schedule->section ? $schedule->section->num_section : 'N/A',
+        // تنظيم الجدول حسب أيام الأسبوع
+        $weekly_schedule = [
+            'Sunday' => [],
+            'Monday' => [],
+            'Tuesday' => [],
+            'Wednesday' => [],
+            'Thursday' => [],
         ];
+
+        foreach ($schedules as $schedule) {
+            $weekly_schedule[$schedule->day_of_week][] = [
+                'start_time' => $schedule->start_time,
+                'end_time' => $schedule->end_time,
+                'section' => $schedule->section ? $schedule->section->num_section : 'N/A',
+            ];
+        }
+
+        return response()->json(['weekly_schedule' => $weekly_schedule], 200);
     }
 
-    return response()->json(['weekly_schedule' => $weekly_schedule], 200);
-}
 
+    //إعطاء موعد لطلب تسجيل في المعهد
+    public function GiveDate(Request $request, $order_id)
+    {
+        if (Appointment::where('order_id', $order_id)->exists()) {
+            return 'he has Appointment';
+        }
 
-//إعطاء موعد لطلب تسجيل في المعهد
-public function GiveDate(Request $request, $order_id)
-{
-    if (Appointment::where('order_id', $order_id)->exists()) {
-        return 'he has Appointment';
+        $validate = Validator::make($request->all(), [
+            "date" => "required|date_format:Y-m-d|after:today"
+        ]);
+
+        if ($validate->fails()) {
+            return $this->responseError(['errors' => $validate->errors()]);
+        }
+
+        $dateParts = explode('-', $request->date);
+        if (!checkdate($dateParts[1], $dateParts[2], $dateParts[0])) {
+            return $this->responseError(['errors' => ['date' => 'The date is not valid.']]);
+        }
+
+        $new = new Appointment;
+
+        $new->date = $request->date;
+        $new->order_id = $order_id;
+
+        $new->save();
+
+        return 'Appointment created successfully';
     }
 
-    $validate = Validator::make($request->all(), [
-        "date" => "required|date_format:Y-m-d|after:today"
-    ]);
+    // public function programe_week($section_id)
+    // {
+    //     // $student = Student::where('user_id', auth()->user()->id)->first();
+    //     // $section_id = $student->section_id;
+    //     //$programe = Program_Student::where('section_id', $student->section_id)->get();
+    //     $programe = Program_Student::all();
 
-    if ($validate->fails()) {
-        return $this->responseError(['errors' => $validate->errors()]);
-    }
+    //     if ($programe) {
+    //         $result = [];
 
-    $dateParts = explode('-', $request->date);
-    if (!checkdate($dateParts[1], $dateParts[2], $dateParts[0])) {
-        return $this->responseError(['errors' => ['date' => 'The date is not valid.']]);
-    }
+    //         foreach ($programe as $p) {
+    //             if ($p->section_id == $section_id) {
+    //                 $img = Image::all();
+    //                 foreach ($img as $i) {
+    //                     if ($p->id == $i->program_student_id) {
+    //                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
+    //                         if (file_exists($imagePath)) {
+    //                             $i->image_file_url = asset('/upload/' . $i->path);
+    //                             $result[] = [
+    //                                 // 'path' => $imagePath,
+    //                                 'image_info' => $i,
+    //                                 'program' => $p
+    //                             ];
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
 
-    $new = new Appointment;
-
-    $new->date = $request->date;
-    $new->order_id = $order_id;
-
-    $new->save();
-
-    return 'Appointment created successfully';
-}
-
-// public function programe_week($section_id)
-// {
- //     // $student = Student::where('user_id', auth()->user()->id)->first();
- //     // $section_id = $student->section_id;
- //     //$programe = Program_Student::where('section_id', $student->section_id)->get();
- //     $programe = Program_Student::all();
-
- //     if ($programe) {
- //         $result = [];
-
- //         foreach ($programe as $p) {
- //             if ($p->section_id == $section_id) {
- //                 $img = Image::all();
- //                 foreach ($img as $i) {
- //                     if ($p->id == $i->program_student_id) {
- //                         $imagePath = str_replace('\\', '/', public_path().'/upload/'.$i->path);
- //                         if (file_exists($imagePath)) {
- //                             $i->image_file_url = asset('/upload/' . $i->path);
- //                             $result[] = [
- //                                 // 'path' => $imagePath,
- //                                 'image_info' => $i,
- //                                 'program' => $p
- //                             ];
- //                         }
- //                     }
- //                 }
- //             }
- //         }
-
- //         if (!empty($result)) {
- //             return response()->json([
- //                 'status' => 'true',
- //                 'images' => $result
- //             ]);
- //         } else {
- //             return response()->json([
- //                 'status' => 'false',
- //                 'message' => 'No images found'
- //             ]);
- //         }
- //     } else {
- //         return response()->json([
- //             'status' => 'false',
- //             'message' => 'Program not found for this student'
- //         ]);
- //     }
-// }
-
-public function programe_week($section_id)
-{
-    // $student = Student::where('user_id', auth()->user()->id)->first();
-
-    // if (!$student) {
-    //     return response()->json(['status' => 'false', 'message' => 'Student not found'], 404);
+    //         if (!empty($result)) {
+    //             return response()->json([
+    //                 'status' => 'true',
+    //                 'images' => $result
+    //             ]);
+    //         } else {
+    //             return response()->json([
+    //                 'status' => 'false',
+    //                 'message' => 'No images found'
+    //             ]);
+    //         }
+    //     } else {
+    //         return response()->json([
+    //             'status' => 'false',
+    //             'message' => 'Program not found for this student'
+    //         ]);
+    //     }
     // }
 
-    // $section_id = $student->section_id;
-    $programs = Program_Student::where('section_id', $section_id)->orderBy('created_at', 'desc')->get();
+    public function programe_week($section_id)
+    {
+        // $student = Student::where('user_id', auth()->user()->id)->first();
 
-    if ($programs->isEmpty()) {
-        return response()->json(['status' => 'false', 'message' => 'Program not found for this section'], 404);
-    }
+        // if (!$student) {
+        //     return response()->json(['status' => 'false', 'message' => 'Student not found'], 404);
+        // }
 
-    $result = [];
+        // $section_id = $student->section_id;
+        $programs = Program_Student::where('section_id', $section_id)->orderBy('created_at', 'desc')->get();
 
-    foreach ($programs as $program) {
-        $images = Image::where('program_student_id', $program->id)->get();
+        if ($programs->isEmpty()) {
+            return response()->json(['status' => 'false', 'message' => 'Program not found for this section'], 404);
+        }
 
-        foreach ($images as $image) {
-            $imagePath = public_path('/upload/' . $image->path);
+        $result = [];
 
-            if (file_exists($imagePath)) {
-                $program->image_file_url = asset('/upload/' . $image->path);
-                $result[] = [
-                    'program' => $program,
-                    // 'image_info' => $image
-                ];
+        foreach ($programs as $program) {
+            $images = Image::where('program_student_id', $program->id)->get();
+
+            foreach ($images as $image) {
+                $imagePath = public_path('/upload/' . $image->path);
+
+                if (file_exists($imagePath)) {
+                    $program->image_file_url = asset('/upload/' . $image->path);
+                    $result[] = [
+                        'program' => $program,
+                        // 'image_info' => $image
+                    ];
+                }
             }
         }
-    }
 
-    if (!empty($result)) {
-        // return response()->json($result);
+        if (!empty($result)) {
+            // return response()->json($result);
 
-        // return $result;
-        return $programs;
-    } else {
-        return response()->json(['status' => 'false', 'message' => 'No images found'], 404);
+            // return $result;
+            return $programs;
+        } else {
+            return response()->json(['status' => 'false', 'message' => 'No images found'], 404);
+        }
     }
-}
 
 
 
@@ -524,183 +524,183 @@ public function programe_week($section_id)
 //     return response()->json([$user, $student, $parentt]);
 // }
 
-public function display_year()
-{
-    $info = Academy::find('1');
-    
-    return $info->year;
-}
-
-public function display_resolve()
-{
-    $info = Academy::find('1');
-
-    return response()->json(['resolve_brother' =>  $info->resolve_brother, 'resolve_martyr' => $info->resolve_martyr, 'resolve_Son_teacher' => $info->resolve_Son_teacher]);
-}
-
-public function display_fee_class($year)
-{
-    $fee = Fee_School::where('year', $year)->with('classs')->get();
-
-    return $fee;
-
-}
-
-public function display_info_academy()
-{
-    $info = Academy::find('1');
-    
-    return $info;
-}
-
-
-public function edit_year(Request $request)
-{
-    $info = Academy::find('1');
-
-    //عدلنا العام الدراسي
-    $info->year = $request->year ?? $info->year;
-
-    //إيقاف كل المستخدمين
-    User::where('status', '1')->where('user_type', '!=', 'admin')->update(['status' => '0']);
-
-    //إنشاء أرشيف
-
-    //إذا أنشأ مادة فيأمشئ أرشيف لها تلقائياً
-
-    //إنشاء قسط جديد
-
-    $info->save();
-
-    return $info;
-
-}
-
-public function edit_fee_class(Request $request, $year, $class_id)
-{
-    $validator = Validator::make($request->all(), [
-        'amount' => 'required|numeric',
-    ]);
-
-    if ($validator->fails()) {
-        return $this->responseError(['errors' => $validator->errors()]);
+    public function display_year()
+    {
+        $info = Academy::find('1');
+        
+        return $info->year;
     }
 
-    $have = Fee_School::where('year', $year)->where('class_id', $class_id)->first();
+    public function display_resolve()
+    {
+        $info = Academy::find('1');
 
-    if ($have) {
-        $have->amount = $request->amount;
-        if ($have->save()) {
-            return response()->json(['message' => 'update fee successfully'], 200);
+        return response()->json(['resolve_brother' =>  $info->resolve_brother, 'resolve_martyr' => $info->resolve_martyr, 'resolve_Son_teacher' => $info->resolve_Son_teacher]);
+    }
+
+    public function display_fee_class($year)
+    {
+        $fee = Fee_School::where('year', $year)->with('classs')->get();
+
+        return $fee;
+
+    }
+
+    public function display_info_academy()
+    {
+        $info = Academy::find('1');
+        
+        return $info;
+    }
+
+
+    public function edit_year(Request $request)
+    {
+        $info = Academy::find('1');
+
+        //عدلنا العام الدراسي
+        $info->year = $request->year ?? $info->year;
+
+        //إيقاف كل المستخدمين
+        User::where('status', '1')->where('user_type', '!=', 'admin')->update(['status' => '0']);
+
+        //إنشاء أرشيف
+
+        //إذا أنشأ مادة فيأمشئ أرشيف لها تلقائياً
+
+        //إنشاء قسط جديد
+
+        $info->save();
+
+        return $info;
+
+    }
+
+    public function edit_fee_class(Request $request, $year, $class_id)
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responseError(['errors' => $validator->errors()]);
+        }
+
+        $have = Fee_School::where('year', $year)->where('class_id', $class_id)->first();
+
+        if ($have) {
+            $have->amount = $request->amount;
+            if ($have->save()) {
+                return response()->json(['message' => 'update fee successfully'], 200);
+            }
+            
+        }
+
+        $fee = new Fee_School();
+
+        $fee->year = $year;
+        $fee->amount = $request->amount;
+        $fee->class_id = $class_id;
+
+        if ($fee->save()) {
+            return response()->json(['message' => 'add fee successfully'], 200);
+        }
+
+        return response()->json(['message' => 'add fee fail'], 200);
+
+    }
+
+
+    public function edit_resolve(Request $request, $year)
+    {
+        $info = Academy::where('year', $year)->first();
+
+        if (!$info) {
+            return response()->json(['message' => 'you do not have this year'], 200);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'resolve_brother' => 'numeric|between:0,100',
+            'resolve_martyr' => 'numeric|between:0,100',
+            'resolve_Son_teacher' => 'numeric|between:0,100',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responseError(['errors' => $validator->errors()]);
+        }
+
+        $info->resolve_brother = $request->resolve_brother;
+        $info->resolve_martyr = $request->resolve_martyr;
+        $info->resolve_Son_teacher = $request->resolve_Son_teacher;
+
+        if ($info->save()) {
+            return response()->json(['message' => 'you update resolve successfully'], 200);
+        }
+        return response()->json(['message' => 'you update resolve fail'], 200);
+
+    }
+
+    public function edit_info_academy(Request $request)
+    {
+        $info = Academy::find('1');
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|string',
+            // 'phone' => 'nullable|numeric',
+            'address' => 'nullable|string',
+            'facebook_link' => 'nullable|string',
+            'description' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responseError(['errors' => $validator->errors()]);
+        }
+
+        if ($request->has('name') && !empty($request->name)) {
+            $info->name = $request->name;
+        }
+
+        if ($request->has('phone1') && !empty($request->phone1)) {
+            $phone1 = $request->phone1;
+        
+            // تعبير عادي للأرقام السورية
+            if (!preg_match('/^(\+?963|0)?9\d{8}$|^0(11|21|31|41|51|61|71|81|91)\d{7}$/', $phone1)) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+            }
+        
+            $info->phone1 = $request->phone1;
+        }
+
+        if ($request->has('phone2') && !empty($request->phone2)) {
+            $phone2 = $request->phone2;
+        
+            // تعبير عادي للأرقام السورية
+            if (!preg_match('/^(\+?963|0)?9\d{8}$|^0(11|21|31|41|51|61|71|81|91)\d{7}$/', $phone2)) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+            }
+        
+            $info->phone2 = $request->phone2;
         }
         
-    }
-
-    $fee = new Fee_School();
-
-    $fee->year = $year;
-    $fee->amount = $request->amount;
-    $fee->class_id = $class_id;
-
-    if ($fee->save()) {
-        return response()->json(['message' => 'add fee successfully'], 200);
-    }
-
-    return response()->json(['message' => 'add fee fail'], 200);
-
-}
-
-
-public function edit_resolve(Request $request, $year)
-{
-    $info = Academy::where('year', $year)->first();
-
-    if (!$info) {
-        return response()->json(['message' => 'you do not have this year'], 200);
-    }
-
-    $validator = Validator::make($request->all(), [
-        'resolve_brother' => 'numeric|between:0,100',
-        'resolve_martyr' => 'numeric|between:0,100',
-        'resolve_Son_teacher' => 'numeric|between:0,100',
-    ]);
-
-    if ($validator->fails()) {
-        return $this->responseError(['errors' => $validator->errors()]);
-    }
-
-    $info->resolve_brother = $request->resolve_brother;
-    $info->resolve_martyr = $request->resolve_martyr;
-    $info->resolve_Son_teacher = $request->resolve_Son_teacher;
-
-    if ($info->save()) {
-        return response()->json(['message' => 'you update resolve successfully'], 200);
-    }
-    return response()->json(['message' => 'you update resolve fail'], 200);
-
-}
-
-public function edit_info_academy(Request $request)
-{
-    $info = Academy::find('1');
-
-    $validator = Validator::make($request->all(), [
-        'name' => 'nullable|string',
-        // 'phone' => 'nullable|numeric',
-        'address' => 'nullable|string',
-        'facebook_link' => 'nullable|string',
-        'description' => 'nullable|string',
-    ]);
-
-    if ($validator->fails()) {
-        return $this->responseError(['errors' => $validator->errors()]);
-    }
-
-    if ($request->has('name') && !empty($request->name)) {
-        $info->name = $request->name;
-    }
-
-    if ($request->has('phone1') && !empty($request->phone1)) {
-        $phone1 = $request->phone1;
-    
-        // تعبير عادي للأرقام السورية
-        if (!preg_match('/^(\+?963|0)?9\d{8}$|^0(11|21|31|41|51|61|71|81|91)\d{7}$/', $phone1)) {
-            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+        if ($request->has('address') && !empty($request->address)) {
+            $info->address = $request->address;
         }
-    
-        $info->phone1 = $request->phone1;
-    }
 
-    if ($request->has('phone2') && !empty($request->phone2)) {
-        $phone2 = $request->phone2;
-    
-        // تعبير عادي للأرقام السورية
-        if (!preg_match('/^(\+?963|0)?9\d{8}$|^0(11|21|31|41|51|61|71|81|91)\d{7}$/', $phone2)) {
-            return response()->json(['status' => 'error', 'message' => 'Invalid Syrian phone number'], 400);
+        if ($request->has('facebook_link') && !empty($request->facebook_link)) {
+            $info->facebook_link = $request->facebook_link;
         }
-    
-        $info->phone2 = $request->phone2;
-    }
-    
-    if ($request->has('address') && !empty($request->address)) {
-        $info->address = $request->address;
-    }
 
-    if ($request->has('facebook_link') && !empty($request->facebook_link)) {
-        $info->facebook_link = $request->facebook_link;
+        if ($request->has('description') && !empty($request->description)) {
+            $info->description = $request->description;
+        }
+
+        if ($info->save()) {
+            return response()->json(['message' => 'you update info successfully'], 200);
+        }
+
+        return response()->json(['message' => 'you update info fail'], 200);
+
     }
-
-    if ($request->has('description') && !empty($request->description)) {
-        $info->description = $request->description;
-    }
-
-    if ($info->save()) {
-        return response()->json(['message' => 'you update info successfully'], 200);
-    }
-
-    return response()->json(['message' => 'you update info fail'], 200);
-
-}
 
 
 // public function add_course(Request $request)
@@ -1369,7 +1369,7 @@ public function add_publish(Request $request)
 
 public function course_student_not_pay($student_id)
 {
-    $order = Order::where('student_id', $student_id)->where('classification', '0')
+    $order = Order::where('student_id', $student_id)->where('student_type','11')->where('classification', '0')
                 //   ->with('course:id,name_course') 
                   ->get()->map(function($order) {
                       return [
@@ -1389,7 +1389,7 @@ public function course_student_not_pay($student_id)
 
         $validator = Validator::make($request->all(), [
             // 'type' => 'nullable|string',
-            'type' => 'required|string|in:قسط,سعر دورة',
+            'type' => 'required|string|in:تسديد قسط,دفع دورة ',
             'date' => 'nullable|date',
             'amount_money' => 'required|numeric',
         ]);
@@ -1401,7 +1401,7 @@ public function course_student_not_pay($student_id)
         $pay = new Pay_Fee();
         $pay->type = $request->type;
 
-        if ($pay->type == 'سعر دورة') {
+        if ($pay->type == 'دفع دورة') {
             // $pay->student_id = $student_id;
             // $order = Order::where('student_id', $student_id)->where('classification','0')->with('course:id,name')->get()->pluck('course.id','course.name');
 
@@ -1641,40 +1641,94 @@ public function order_on_course($course_id)
 
     // }
 
-    public function display_student_in_course($course_id)
+//     public function display_student_in_course($course_id)
+// {
+//     // جلب الطلبات مع معلومات الطلاب المرتبطين
+//     $orders = Order::where('course_id', $course_id)
+//                    ->where('student_type', '11')
+//                    ->with('student')  // جلب معلومات الطالب المرتبط
+//                    ->get();
+
+//     // فلترة الطلبات لعرض الطلبات التي يكون فيها student_id غير null
+//     $orders_with_students = $orders->filter(function ($order) {
+//         return $order->student_id !== null;
+//     });
+
+//     return $orders_with_students->map(function ($order) {
+//         // استخراج بيانات الطالب
+//         $student = $order->student;
+//         return [
+//             'student_id' => $student->id,
+//             'first_name' => $student->user->first_name,
+//             'last_name' => $student->user->last_name,
+//             'father_name' => $student->user->father_name,
+//             // 'mother_name' => $student->user->mother_name,
+//             'birthday' => $student->user->birthday,
+//             'gender' => $student->user->gender,
+//             'phone' => $student->user->phone,
+//             'address' => $student->user->address,
+//             'email' => $student->user->email,
+//             'classification' => $order->classification,
+//             'student_type' => $order->student_type,
+//             // 'class' => $student->class,
+//             // 'year' => $student->year,
+//         ];
+//     });
+// }
+
+public function display_student_in_course($course_id)
 {
-    // جلب الطلبات مع معلومات الطلاب المرتبطين
+    // جلب الطلبات المتعلقة بالدورة والطلاب من النوع '11'
     $orders = Order::where('course_id', $course_id)
                    ->where('student_type', '11')
-                   ->with('student')  // جلب معلومات الطالب المرتبط
+                   ->with('student.user')  // جلب معلومات الطالب والمستخدم المرتبط
                    ->get();
 
-    // فلترة الطلبات لعرض الطلبات التي يكون فيها student_id غير null
-    $orders_with_students = $orders->filter(function ($order) {
-        return $order->student_id !== null;
-    });
+    // تعديل البيانات لكل طلب بناءً على قيمة student_id
+    return $orders->map(function ($order) {
+        if ($order->student_id !== null) {
+            // جلب معلومات الطالب والمستخدم إذا كان student_id غير null
+            $student = $order->student;
+            $user = $student->user;
 
-    return $orders_with_students->map(function ($order) {
-        // استخراج بيانات الطالب
-        $student = $order->student;
-        return [
-            'student_id' => $student->id,
-            'first_name' => $student->user->first_name,
-            'last_name' => $student->user->last_name,
-            'father_name' => $student->user->father_name,
-            // 'mother_name' => $student->user->mother_name,
-            'birthday' => $student->user->birthday,
-            'gender' => $student->user->gender,
-            'phone' => $student->user->phone,
-            'address' => $student->user->address,
-            'email' => $student->user->email,
-            'classification' => $order->classification,
-            'student_type' => $order->student_type,
-            // 'class' => $student->class,
-            // 'year' => $student->year,
-        ];
+            return [
+                'student_id' => $student->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'father_name' => $user->father_name,
+                'birthday' => $user->birthday,
+                'gender' => $user->gender,
+                'phone' => $user->phone,
+                'address' => $user->address,
+                'email' => $user->email,
+                'classification' => $order->classification,
+                'student_type' => $order->student_type,
+            ];
+        } else {
+            // إعادة معلومات الطلب فقط إذا كان student_id يساوي null
+            return [
+                // 'order_id' => $order->id,
+                // 'course_id' => $order->course_id,
+                // 'classification' => $order->classification,
+                // 'student_type' => $order->student_type,
+                // 'created_at' => $order->created_at,
+
+                // 'student_id' => $student->id,
+                'first_name' => $order->first_name,
+                'last_name' => $order->last_name,
+                'father_name' => $order->father_name,
+                'birthday' => $order->birthday,
+                'gender' => $order->gender,
+                'phone' => $order->phone,
+                'address' => $order->address,
+                'email' => $order->email,
+                'classification' => $order->classification,
+                'student_type' => $order->student_type,
+            ];
+        }
     });
 }
+
 
 
 
@@ -2746,7 +2800,7 @@ public function win_info_course($month)
                 'mother_name' => 'required|string',
                 'birthday' => 'required|date',
                 'gender'=>'required',
-                'fcm_token' => 'required'
+                // 'fcm_token' => 'required'
             ]);
         
             if ($validator->fails()) {
@@ -2771,7 +2825,9 @@ public function win_info_course($month)
             // $monetor->email = $request->email;
             // $monetor->password = Hash::make($password);
             // $monetor->conf_password = Hash::make($password);
-            $monetor->fcm_token = $request->fcm_token;
+
+            //إذا هو بدو يعمل الحساب فلازم تتفعل
+            // $monetor->fcm_token = $request->fcm_token;
             $email = $request->first_name . Str::random(5) . "@gmail.com";
             $password = $request->first_name . Str::random(6);    
             $monetor->user_type = 'monetor';
@@ -3429,6 +3485,60 @@ public function best_course()
 //     //     'best_courses' => $top_5_courses
 //     // ]);
 // }
+
+
+public function add_pay_out_student_course($order_id)
+{
+    $date = Carbon::now();
+    $order = Order::where('id', $order_id)->first();
+    $course = Course::where('id', $order->course_id)->first();
+
+    if ($order->classification == '1') {
+        return response()->json(['message' => 'The student previously paid the amount of the course']);
+    }
+
+    $pay = new Pay_Fee();
+    $pay->type = 'دفع دورة طالب خارجي';
+    $pay->date = $date;
+    $pay->amount_money = $course->cost_course;
+    $pay->remaining_fee = '0';
+    $pay->course_id = $course->id;
+    if ($order->student_id != null) {
+        $pay->student_id = $order->student_id;
+    }
+    $pay->save();
+
+    $order->classification = '1';
+    $order->save();
+
+    if ($pay->save() && $order->save()) {
+        return response()->json(['message' => 'the student pay for the course successfully']);
+    }
+
+}
+
+
+public function add_subject(Request $request, $class_id)
+{
+    $validator = Validator::make($request->all(),[
+                'name'=>'required|string',
+                'success_rate' => 'required|numeric',
+            ]);
+        
+            if ($validator->fails()) {
+                return $this->responseError(['errors' => $validator->errors()]);
+            }
+    $subject = new Subject();
+
+    $subject->name = $request->name;
+    $subject->success_rate = $request->success_rate;
+    $subject->class_id = $class_id;
+
+    $subject->save();
+    return response()->json(['message' => 'you added new subject']);
+}
+
+
 
 
 
@@ -4762,7 +4872,7 @@ public function register(Request $request)
         'conf_password_s' => 'required|min:8|same:password_s',
         'class_id' => 'required',
         'name_section' => 'required|string|exists:sections,num_section',
-        'fcm_token_s' => 'required'
+        // 'fcm_token_s' => 'required'
     ]);
 
     // Validate parent data
@@ -4773,7 +4883,7 @@ public function register(Request $request)
         'email_p' => 'required|email',
         'password_p' => 'required|min:8',
         'conf_password_p' => 'required|min:8|same:password_p',
-        'fcm_token_p' => 'required'
+        // 'fcm_token_p' => 'required'
     ]);
 
     // Check if any validation errors occurred
@@ -4801,7 +4911,8 @@ public function register(Request $request)
         $parentt->year = $academy->year;
         $parentt->password = Hash::make($request->password_p);
         $parentt->conf_password = Hash::make($request->conf_password_p);
-        $parentt->fcm_token = $request->fcm_token_p;
+        //إذا هو بدو يعمل الحساب فلازم تتفعل
+        // $parentt->fcm_token = $request->fcm_token_p;
     }
     elseif ($parentt->status == '0') {
         $parentt->status = '1';
@@ -4828,7 +4939,8 @@ public function register(Request $request)
     $user->password = Hash::make($request->password_s);
     $user->conf_password = Hash::make($request->conf_password_s);
     $user->user_type = 'student';
-    $user->fcm_token = $request->fcm_token_s;
+    //إذا هو بدو يعمل الحساب فلازم تتفعل
+    // $user->fcm_token = $request->fcm_token_s;
 
     // Create student profile
     $student = new Student();
@@ -5038,6 +5150,13 @@ public function all_action_for_user($user_id)
 //$logs = auth()->user()->actionLogs; // جلب الأنشطة للمستخدم الحالي
 
 
+
+
+
+
+
+
+
 // protected $notificationService;
 
 //          public function __construct(MyNotification $notificationService)
@@ -5059,70 +5178,107 @@ public function all_action_for_user($user_id)
 
         //      return response()->json(['message' => 'User not found or FCM token missing'], 404);
         //  }
-        public function sendNotificationToUser(Request $request)
-{
-    $user = User::find($request->user_id);
+    public function sendNotificationToUser(Request $request)
+    {
+        $user = User::find($request->user_id);
 
-    if ($user && $user->fcm_token) {
+        if ($user && $user->fcm_token) {
 
-        $title = 'Your Notification Title';
-        $message = 'طالب جيد';
-       
-        $notification = new MyNotification($message);
-
-        $user->notify($notification);
+            $title = 'Your Notification Title';
+            $message = 'طالب جيد';
         
-        $notification->toFirebase($user);
+            $notification = new MyNotification($message);
 
-        return response()->json(['message' => 'Notification sent successfully']);
+            $user->notify($notification);
+            
+            $notification->toFirebase($user);
+
+            return response()->json(['message' => 'Notification sent successfully']);
+        }
+
+        return response()->json(['message' => 'User not found or FCM token missing'], 404);
     }
-
-    return response()->json(['message' => 'User not found or FCM token missing'], 404);
-}
 
 
         //  use App\Models\Notification;
 
-         public function sendNotification($tokens, $title, $body)
-         {
-             $messaging = Firebase::messaging();
+        //  public function sendNotification($tokens, $title, $body)
+        //  {
+        //      $messaging = Firebase::messaging();
     
-             $message = CloudMessage::new()
-                 ->withNotification(Notification::create($title, $body))
-                 ->withData(['key' => 'value']);
+        //      $message = CloudMessage::new()
+        //          ->withNotification(Notification::create($title, $body))
+        //          ->withData(['key' => 'value']);
     
-             $report = $messaging->sendMulticast($message, $tokens);
+        //      $report = $messaging->sendMulticast($message, $tokens);
     
-             // حفظ الإشعار في قاعدة البيانات
-             foreach ($tokens as $token) {
-                 Notification::create([
-                     'title' => $title,
-                     'body' => $body,
-                     'receiver_id' => User::where('fcm_token', $token)->first()->id,
-                 ]);
-             }
+        //      // حفظ الإشعار في قاعدة البيانات
+        //      foreach ($tokens as $token) {
+        //          Notification::create([
+        //              'title' => $title,
+        //              'body' => $body,
+        //              'receiver_id' => User::where('fcm_token', $token)->first()->id,
+        //          ]);
+        //      }
     
-             return $report;
-         }
+        //      return $report;
+        //  }
 
 
          public function add(Announcement1 $request)
-    {
+        {
 
-        $users = User::where('id', '!=', 1)->get();
+            $users = User::where('id', '!=', 1)->get();
 
-        $notification = new AnnouncementNotification($announcement);
+            $notification = new AnnouncementNotification($announcement);
 
-        Notification::send($users, $notification);
+            Notification::send($users, $notification);
 
-        foreach ($users as $user) {
+            foreach ($users as $user) {
 
-            $notification->toFirebase($user);
+                $notification->toFirebase($user);
+            }
+            return auth()->user()->notifications()->latest()->first();
         }
-        return auth()->user()->notifications()->latest()->first();
-    }
          
     
+        private $fcmService;
+
+        public function __construct(FcmService $fcmService)
+        {
+            $this->fcmService = $fcmService;
+        }
+    
+        // public function sendNotification(Request $request)
+        // {
+        //     $deviceToken = $request->input('device_token');
+        //     $title = $request->input('title');
+        //     $body = $request->input('body');
+    
+        //     $response = $this->fcmService->sendNotification($deviceToken, $title, $body);
+    
+        //     return response()->json($response);
+        // }
+
+        // use App\Notifications\FcmDatabaseNotification;
+
+public function sendNotification(Request $request)
+{
+    $fcm_token = $request->input('fcm_token');
+    $title = $request->input('title');
+    $body = $request->input('body');
+
+    // إرسال الإشعار عبر FCM
+    $response = $this->fcmService->sendNotification($fcm_token, $title, $body);
+
+    // تخزين الإشعار في قاعدة البيانات
+    $user = User::where('fcm_token', $fcm_token)->first(); // أو يمكنك استخدام user_id من الطلب
+    if ($user) {
+        $user->notify(new MyNotification($title, $body)); // تخزين الإشعار في قاعدة البيانات
+    }
+
+    return response()->json($response);
+}
 
 
 
