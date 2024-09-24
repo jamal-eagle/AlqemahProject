@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api_admin;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use App\Notifications\MyNotification;
 use App\Models\User;
@@ -120,13 +121,19 @@ class AdminZaController extends BaseController
             if ($note_student->save()) {
                 $user = User::find($student->user_id);  // استبدل بمعرف المستخدم المناسب
                 $parentt = Parentt::find($student->parentt_id);
-            $message = 'This is a test notification!';
+                $title = $note_student->type.'للطالب '. $user->first_name .' '. $user->last_name;
+                $title_s = $note_student->type;
+                $body = $note_student->text;
             if ($user) {
-                $user->notify(new MyNotification($message));
+                $user->notify(new MyNotification($title, $body));
+                $fcm_token = $user->fcm_token;
+                $response = $this->fcmService->sendNotification($fcm_token, $title_s, $body);
             }
             
             if ($parentt) {
-                $parentt->notify(new MyNotification($message));
+                $parentt->notify(new MyNotification($title, $body));
+                $fcm_token_p = $parentt->fcm_token;
+                $response = $this->fcmService->sendNotification($fcm_token_p, $title, $body);
             }
             }
 
@@ -1311,7 +1318,7 @@ public function add_accounting(Request $request)
 
 }
 
-public function add_publish(Request $request)
+public function add_publish(Request $request, NotificationController $notificationController)
 {
     $validator = Validator::make($request->all(),[
         'description'=>'required|string',
@@ -1351,6 +1358,12 @@ public function add_publish(Request $request)
             $image->publish_id = $publish->id;
 
             $image->save();
+
+            if ($publish || ($request->path && $image && $publish)) {
+                $title = 'إعلان جديد';
+                $body = $publish->description.' لمعرفة تفاصيل أكثر مراجعة صفحة الإعلانات';        
+                sendNotification_all_user_live($title,$body);
+            }
 
             return response()->json([
                 'status' => 'true',
@@ -1477,7 +1490,7 @@ public function course_student_not_pay($student_id)
         ]);
     }
 
-    public function add_pay_course(Request $request, $student_id,$course_id)
+    public function add_pay_course(Request $request, $student_id,$course_id, NotificationController $notificationController)
     {
         // route::post('add_pay_course/{student_id}/{course_id}', [AdminZaController::class, 'add_pay_course']);
 
@@ -1523,7 +1536,21 @@ public function course_student_not_pay($student_id)
             $order->save();
         }
 
-        $pay->save();
+        // $pay->save();
+
+        if ($pay->save()) {
+            $course = Course::find($course_id);
+
+            $title = 'دفع دورة';
+            $body = 'تم دفع قسط الدورة '. $course->name_course;
+
+            $student = Student::find($student_id);
+
+            $notificationController->sendNotification_for_parent($title,$body,$student_id);
+            $notificationController->sendNotification_call($student->user->fcm_token, $title, $body);
+    
+            
+        }
 
         return response()->json([
             'pay' => $pay,
@@ -1749,7 +1776,7 @@ public function display_student_in_course($course_id)
 
 
 // وظيفة لإضافة سلفة لمعلم باستخدام مُعرف المعلم في الـ URL
-public function addTeacherMaturitie(Request $request, $idteacher)
+public function addTeacherMaturitie(Request $request, $idteacher, NotificationController $notificationController)
 {
     $validator = Validator::make($request->all(), [
         'amount' => 'required',
@@ -1768,7 +1795,16 @@ public function addTeacherMaturitie(Request $request, $idteacher)
     $maturite = new Maturitie();
     $maturite->amount = $request->amount;
     $maturite->teacher_id = $idteacher;
-    $maturite->save();
+    // $maturite->save();
+
+    if ($maturite->save()) {
+        $title = 'سلفة';
+        $body ='تم إضافة سلفة لكم مقدارها '. $maturite->amount;
+
+        $teacher =Teacher::find($maturite->teacher_id);
+        
+        $notificationController->sendNotification_call($teacher->user->fcm_token, $title, $body);
+    }
 
     return response()->json(['success' => 'Maturitie added successfully for teacher']);
 }
@@ -1810,6 +1846,14 @@ public function addEmployeeMaturitie(Request $request, $idemployee)
     $maturite->amount = $amount;
     $maturite->employee_id = $idemployee;
     $maturite->save();
+    // if ($maturite->save()) {
+    //     $title = 'سلفة';
+    //     $body ='تم إضافة سلفة لكم مقدارها '. $maturite->amount;
+
+    //     // $teacher =Teacher::find($maturite->teacher_id);
+        
+    //     $notificationController->sendNotification_call($employee->user->fcm_token, $title, $body);
+    // }
 
     return response()->json(['success' => 'Maturitie added successfully for employee']);
 }

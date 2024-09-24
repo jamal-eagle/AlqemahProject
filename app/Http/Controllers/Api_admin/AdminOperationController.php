@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api_admin;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -256,10 +257,17 @@ public function login(Request $request)
         if ($user->status == '1') {
             if (Hash::check($request->password, $user->password)) {
                 $token = $user->createToken("auth_token")->plainTextToken;
-
+                $user->fcm_token = $request->fcm_token;
                 // Generate image URL if image exists
                 $user->image_file_url = isset($user->image) ? asset('/upload/' . $user->image) : null;
-
+                // if ($user->image) {
+                //     $user->image_file_url = asset('/upload/' . $user->image);
+                // } else {
+                //     unset($user->image_file_url); // لا تقم بتحديثه إذا كان null
+                // }
+                
+             
+                $user->save();
                 return response()->json([
                     'User login successfully',
                     'token' => $token,
@@ -273,8 +281,16 @@ public function login(Request $request)
         $parent = Parentt::where("email", "=", $request->email)->first();
         if ($parent && $parent->status == '1' && Hash::check($request->password, $parent->password)) {
             $token = $parent->createToken("auth_token")->plainTextToken;
+            $parent->fcm_token = $request->fcm_token;
             $parent->image_file_url = isset($parent->image) ? asset('/upload/' . $parent->image) : null;
-
+            // if ($parent->image) {
+            //     $parent->image_file_url = asset('/upload/' . $parent->image);
+            // } else {
+            //     unset($parent->image_file_url); // لا تقم بتحديثه إذا كان null
+            // }
+            
+         
+            $parent->save();
             return response()->json([
                 'message' => 'User login successfully',
                 'token' => $token,
@@ -289,6 +305,7 @@ public function login(Request $request)
 
     return response()->json(['message' => 'Authentication failed'], 401);
 }
+
 
 
 
@@ -820,7 +837,7 @@ public function disply_all_student_here($year)
 // }
 
 
-public function updateWeeklySchedule(Request $request, $teacher_id)
+public function updateWeeklySchedule(Request $request, $teacher_id, NotificationController $notificationController)
     {
         $teacher = Teacher::find($teacher_id);
         if(!$teacher)
@@ -850,6 +867,11 @@ public function updateWeeklySchedule(Request $request, $teacher_id)
                 'section_id' => $scheduleData['section_id'],
             ]);
         }
+        $title = 'برنامج دوام';
+        $body ='برنامج دوام جديد يرجى الالتزام به';
+        
+        $notificationController->sendNotification_call($teacher->user->fcm_token, $title, $body_s);
+        
 
         // إرجاع رسالة ناجحة
         return response()->json(['message' => 'Teacher weekly schedule updated successfully'], 200);
@@ -1568,7 +1590,7 @@ public function create_note_student(Request $request , $student_id)
 
 }
 
-public function addAbsence(Request $request, $student_id)
+public function addAbsence(Request $request, $student_id, NotificationController $notificationController)
 {
     // التحقق من وجود الطالب
     $student = Student::find($student_id);
@@ -1591,7 +1613,14 @@ public function addAbsence(Request $request, $student_id)
     $absence->date = $request->date;
     $absence->justification = $request->justification;
     $absence->student_id = $student_id;
-    $absence->save();
+
+    if ($absence->save()) {
+        $title = 'غياب';
+        $body = 'يرجى تبرير غياب الطالب ' . $student->user->first_name .' '. $student->user->last_name .' لغيابه يوم '. $absence->date;
+
+        $notificationController->sendNotification_for_parent($title,$body,$student_id);
+    }
+    
 
     return response()->json(['message' => 'Absence added successfully'], 200);
 }
@@ -2293,7 +2322,7 @@ public function student_course($student_id)
 
 
 
-public function addMaturitie(Request $request)
+public function addMaturitie(Request $request, NotificationController $notificationController)
 {
     $validator = Validator::make($request->all(), [
         'amount'=>'required',
@@ -2315,7 +2344,16 @@ public function addMaturitie(Request $request)
     $maturite->amount = $request->amount;
     $maturite->teacher_id = $request->teacher_id;
     $maturite->employee_id = $request->employee_id;
-    $maturite->save();
+    // $maturite->save();
+
+    if ($maturite->save()) {
+        $title = 'سلفة';
+        $body ='تم إضافة سلفة لكم مقدارها '. $maturite->amount;
+
+        $teacher =Teacher::find($maturite->teacher_id);
+        
+        $notificationController->sendNotification_call($teacher->user->fcm_token, $title, $body_s);
+    }
 
     return response()->json(['sucssssss']);
 
@@ -2460,7 +2498,16 @@ public function upload_file_image_for_course(Request $request, $course_id)
     $image->name = $imgFileName;
     $image->description = $request->description;
     $image->course_id = $request->course_id;
-    $image->save();
+    // $image->save();
+
+    if ($image->save()) {
+        $course = Course::find($course_id);
+        $title = 'ملفات جديدة للدورة '.$course->name_course;
+        $body = $image->description;
+        
+        $notificationController->sendNotification_call($course->teacher->user->fcm_token, $title, $body_s);
+        $notificationController->sendNotification_all_student_course($title,$body,$course_id);
+    }
 
     return response()->json([
         'status' => 'true',
@@ -2712,7 +2759,17 @@ public function add_marks_to_section(Request $request, $section_id)
             }
 
             // حفظ العلامة
-            $mark->save();
+            // $mark->save();
+
+            if ($mark->save()) {
+                $subject = Subject::find($mark->subject_id);
+                $title = 'علامة جديدة';
+                // $body ='علامة جديدة في مادة '. $subject->name.' للطالب '. $student->user->first_name .' '. $student->user->last_name;
+                $body = 'علامة جديدة في مادة ' . $subject->name;
+                
+                $notificationController->sendNotification_for_parent($title,$body,$student_id);
+                $notificationController->sendNotification_student_section($title,$body,$section_id);
+        }
         }
 
         return response()->json(['success' => 'Marks updated successfully for all students in the section']);

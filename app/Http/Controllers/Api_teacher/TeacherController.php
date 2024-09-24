@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api_teacher;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\BaseController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use App\Models\Teacher;
 use App\Models\Program_Teachar;
@@ -67,7 +68,7 @@ class TeacherController extends BaseController
 }
 
     //إضافة ملاحظات لطالب معين
-    public function add_note_about_student(Request $request ,$student_id)
+    public function add_note_about_student(Request $request ,$student_id, NotificationController $notificationController)
     {
         $student = Student::find($student_id);
     if(!$student)
@@ -90,7 +91,14 @@ class TeacherController extends BaseController
         $note->student_id = $student_id;
         $note->user_id = auth()->user()->id;
 
-        $note->save();
+        if ($note->save()) {
+            $title = $note->type.'للطالب '. $student->user->first_name .' '. $student->user->last_name;
+            $title_s = $note->type;
+            $body = $note->text;
+
+            $notificationController->sendNotification_for_parent($title,$body,$student_id);
+            $notificationController->sendNotification_call($student->user->fcm_token, $title_s, $body);
+                }
 
         return $note;
     }
@@ -1025,10 +1033,10 @@ public function display_mark($student_id)
     return null;
 }
 
-public function add_mark_to_student(Request $request, $student_id)
+public function add_mark_to_student(Request $request, $student_id, NotificationController $notificationController)
 {
     // التحقق من وجود الطالب
-    $student = Student::find($student_id);
+    
     if (!$student) {
         return response()->json(['error' => 'The student not found'], 404);
     }
@@ -1062,6 +1070,7 @@ public function add_mark_to_student(Request $request, $student_id)
 
         if ($request->has('homework') && !empty($request->homework)) {
             $mark->homework = $request->homework;
+            $body =$request->homework;
         }
 
         if ($request->has('oral') && !empty($request->oral)) {
@@ -1108,8 +1117,15 @@ public function add_mark_to_student(Request $request, $student_id)
         $mark->state = 0;
     }
 
-    // حفظ التعديلات أو إنشاء الصف
-    $mark->save();
+    if ($mark->save()) {
+        $subject = Subject::find($mark->subject_id);
+        $title = 'علامة جديدة';
+        $body ='علامة جديدة في مادة '. $subject->name.' للطالب '. $student->user->first_name .' '. $student->user->last_name;
+        $body_s = 'علامة جديدة في مادة ' . $subject->name;
+        
+        $notificationController->sendNotification_for_parent($title,$body,$student_id);
+        $notificationController->sendNotification_call($student->user->fcm_token, $title, $body_s);
+}
 
     return response()->json(['success' => 'Marks added/updated successfully']);
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api_school_monetor;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
 use App\Models\User;
 use App\Models\Student;
 use App\Models\Teacher;
@@ -752,7 +753,7 @@ public function order_on_course($cousre_id)
 }
 
 
-public function upload_program_section(Request $request, $section_id)
+public function upload_program_section(Request $request, $section_id, NotificationController $notificationController)
 {
 
     $validator = Validator::make($request->all(),[
@@ -783,7 +784,14 @@ public function upload_program_section(Request $request, $section_id)
     $image->path = $imageName;
     $image->description = $request->description ?? null;
     $image->program_student_id = $program->id;
-    $image->save();
+
+    if ($image->save()) {
+        $title = $program->type;
+        $bode = 'تم رفع برنامج جديد';
+
+        $notificationController->sendNotification_for_parent_and_student($title,$body,$section_id);
+
+    }
 
     return response()->json([
         'status' => 'true',
@@ -857,7 +865,7 @@ public function delete_program($id)
 }
 
 //تعديل برنامج لشعبة
-public function update_program_section(Request $request, $program_id)
+public function update_program_section(Request $request, $program_id, NotificationController $notificationController)
 {
     $program = Program_Student::find($program_id);
     // $program->type = $request->type ?? $program->type;
@@ -910,7 +918,14 @@ public function update_program_section(Request $request, $program_id)
 
         // تحديث مسار الصورة في قاعدة البيانات
         $image->path = $imageName;
-        $image->save();
+
+        if ($image->save()) {
+            $title = $program->type;
+            $bode = 'تم تعديل البرنامج';
+    
+            $notificationController->sendNotification_for_parent_and_student($title,$body,$section_id);
+    
+        }
 
         return response()->json([
             'status' => 'true',

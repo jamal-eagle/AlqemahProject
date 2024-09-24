@@ -84,6 +84,9 @@ class StudentPostController extends Controller
                 $comment->teacher_id = $teacher->id;
                 $comment->save();
             }
+            else {
+                return response()->json('the post off , you can not comment');
+            }
             
         }
 

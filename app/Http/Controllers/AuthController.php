@@ -375,31 +375,55 @@ public function update_profile_employee(Request $request , $employee_id)
 
 // }
 
+// public function display_notification()
+// {
+//     $user = auth()->user(); // يجلب المستخدم الذي قام بتسجيل الدخول
+
+//     // تحقق من نوع المستخدم وإحضار الإشعارات غير المقروءة
+//     if ($user instanceof Parentt || $user instanceof User) {
+//         // جلب جميع الإشعارات
+//         $notifications = $user->notifications;
+
+//         // فك ترميز النصوص
+//         $formattedNotifications = $notifications->map(function ($notification) {
+//             $data = $notification->data;
+
+//             $data['title'] = json_decode('"' . $data['title'] . '"');
+//             $data['body'] = json_decode('"' . $data['body'] . '"');
+//             $data['created_at'] = $notification->created_at;
+
+//             return $data;
+//         });
+
+//         // إرجاع الإشعارات بصيغة JSON
+//         return response()->json($formattedNotifications);
+//     } else {
+//         return response()->json(['error' => 'Invalid user type'], 403);
+//     }
+// }
+
 public function display_notification()
 {
-    $user = auth()->user(); // يجلب المستخدم الذي قام بتسجيل الدخول
-
-    // تحقق من نوع المستخدم وإحضار الإشعارات غير المقروءة
+    $user = auth()->user(); 
     if ($user instanceof Parentt || $user instanceof User) {
-        // جلب جميع الإشعارات
-        $notifications = $user->notifications;
+        $notifications = $user->notifications()->orderBy('created_at', 'desc')->take(20)->get();
 
-        // فك ترميز النصوص
         $formattedNotifications = $notifications->map(function ($notification) {
             $data = $notification->data;
 
             $data['title'] = json_decode('"' . $data['title'] . '"');
             $data['body'] = json_decode('"' . $data['body'] . '"');
+            $data['created_at'] = $notification->created_at;
 
             return $data;
         });
 
-        // إرجاع الإشعارات بصيغة JSON
         return response()->json($formattedNotifications);
     } else {
         return response()->json(['error' => 'Invalid user type'], 403);
     }
 }
+
 
 
 

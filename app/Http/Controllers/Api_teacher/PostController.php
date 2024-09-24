@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api_teacher;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\Teacher;
@@ -30,7 +31,7 @@ class PostController extends Controller
 
     //     return $post;
     // }
-    public function create_post(Request $request, $section_id)
+    public function create_post(Request $request, $section_id, NotificationController $notificationController)
     {
         $teacher = Teacher::where('user_id', auth()->user()->id)->first();
         $subject = DB::table('teacher_subjects')->where('teacher_id','=',$teacher->id)->first();
@@ -44,6 +45,12 @@ class PostController extends Controller
         $post->teacher_id = $teacher->id;
 
         $post->save();
+
+        $title = 'مناقشة جديدة';
+        $body = $post->quostion;
+        $notificationController->sendNotification_student_section($title,$body,$section_id);
+        $notificationController->sendNotification_for_all_admin($title,$body);
+        $notificationController->sendNotification_for_all_monetor($title,$body);
 
         return $post;
     }
@@ -66,7 +73,7 @@ class PostController extends Controller
     }
 
     //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
-    public function addComment(Request $request, $post_id)
+    public function addComment(Request $request, $post_id, NotificationController $notificationController)
     {
         $comment = new Comment;
 
@@ -86,6 +93,16 @@ class PostController extends Controller
                 $comment->teacher_id = $teacher->id;
             }
             $comment->save();
+
+            $title = 'تعليق جديد';
+            $body = $comment->description;
+            $section_id = $post->section_id;
+            $notificationController->sendNotification_student_section($title,$body,$section_id);
+            $teacher = Teacher::where('id',$post->teacher_id);
+
+            sendNotification_call($fcm_token, $title,$body);
+
+
 
             return $comment;
         }
@@ -189,7 +206,7 @@ class PostController extends Controller
     //     return 'you can not do';
     // } 
 
-    public function off_on_post($post_id)
+    public function off_on_post($post_id, NotificationController $notificationController)
     {
         $post = Post::where('id', $post_id)->first();
         $teacher = Teacher::where('user_id', auth()->user()->id)->first();
@@ -197,14 +214,25 @@ class PostController extends Controller
             if ($post->state_on_off == 1) {
                 $post->update(['state_on_off' => 0]);
                 $message = 'تم إيقاف المناقشة من قبل ' . auth()->user()->first_name .' '. auth()->user()->last_name;
-                if (auth()->user()->user_type != 'teacher') {
-                    $post->teacher->user->notify(new MyNotification($message));
-                }
+                // if (auth()->user()->user_type != 'teacher') {
+                //     $post->teacher->user->notify(new MyNotification($message));
+                // }
                 return auth()->user();
             }
-            $post->update(['state_on_off' => 1]);
-            $message = 'تم إيتفعيل مناقشة من قبل ' . auth()->user()->first_name .' '. auth()->user()->last_name;
-            $post->teacher->user->notify(new MyNotification($message));
+            else {
+                $post->update(['state_on_off' => 1]);
+                $bode = 'تم تفعيل مناقشة من قبل ' . auth()->user()->first_name .' '. auth()->user()->last_name;
+            }
+
+            $title = 'حالة مناقشة';
+            // $post->teacher->user->notify(new MyNotification($message));
+            $notificationController->sendNotification_student_section($title,$body,$post->section_id);
+            sendNotification_for_all_admin($title,$body);
+            sendNotification_for_all_monetor($title,$body);
+            $teacher = Teacher::find($post->teacher_id); 
+            sendNotification_call($teacher->user->fcm_token, $title, $body);
+            
+
             return auth()->user();
         }
         return 'you can not do';
