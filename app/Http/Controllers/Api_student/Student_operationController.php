@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api_student;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Order;
@@ -150,7 +151,7 @@ class Student_operationController extends BaseController
         }
     }
 
-    public function orderCourse($course_id)
+    public function orderCourse($course_id, NotificationController $notificationController)
     {
         $user = User::where('id',auth()->user()->id)->first();
         $student = Student::where('user_id', auth()->user()->id)->first();
@@ -165,7 +166,8 @@ class Student_operationController extends BaseController
         $new->phone = $user->phone;
         $new->address = $user->address;
         $new->email = $user->email;
-        $new->classification = $user->classification;
+        // $new->classification = $user->classification;
+        $new->classification ='0';
         //$new->class = $request->class;
         //$new->year = $request->year;
         $new->student_type = '10';
@@ -176,7 +178,19 @@ class Student_operationController extends BaseController
         if (Order::where('student_id',$student->id)->where('course_id',$course_id)->count() != 0) {
             return 'you can not do that you have order for this course';
         }
-        $new->save();
+        // $new->save();
+
+        if ($new->save()) {
+            $course = Course::find($course_id);
+            $title = 'طلب تسجيل دورة';
+            $body_m = 'يريد الطالب '.$user->firs_name.' '.$user->last_name.' التسجيل في دورة '.$course->name_course;
+            $body_p = 'قد أرسل الطالب '.$user->firs_name.' '.$user->last_name.' التسجيل في دورة '.$course->name_course;
+
+            $notificationController->sendNotification_for_parent($title,$body_p,$student->id);
+            $notificationController->sendNotification_for_all_monetor($title,$body_m);
+            $notificationController->sendNotification_for_all_admin($title,$body_m);
+
+        }
 
         //كلشي تحت لتغير حالة الدورة من قيد الدراسة إلى مفتوحة
         //عدد الطلاب المسجلين في الدورة

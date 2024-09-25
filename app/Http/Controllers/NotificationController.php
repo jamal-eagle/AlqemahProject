@@ -9,6 +9,9 @@ use App\Notifications\MyNotification;
 use App\Models\User;
 use App\Models\Student;
 use App\Models\Parentt;
+use App\Models\Order;
+use App\Models\Classs;
+use App\Models\Section;
 
 class NotificationController extends Controller
 {
@@ -93,6 +96,15 @@ public function sendNotification_student_section($title,$body,$section_id)
 
             $this->sendNotification_call($fcm_token, $title,$body);
         }
+}
+
+public function sendNotification_student_class($title,$body,$class_id)
+{
+    $sections = Section::where('class_id',$class_id)->get();
+
+    foreach ($sections as $section) {
+        $this->sendNotification_student_section($title,$body,$section_id);
+    }
 }
 
 //كل المديرين

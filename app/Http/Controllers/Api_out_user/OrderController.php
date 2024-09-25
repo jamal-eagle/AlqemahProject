@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api_out_user;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -60,7 +61,7 @@ class OrderController extends BaseController
             return $this->responseData("success",$new);
     }
 
-    public function CreateOrderForCourse(Request $request, $course_id)
+    public function CreateOrderForCourse(Request $request, $course_id, NotificationController $notificationController)
     {
 
         $validator = Validator::make($request->all(), [
@@ -121,7 +122,21 @@ class OrderController extends BaseController
 
         if ($Money_win >= $course->Minimum_win) {
             $course->Course_status = 1;
-            $course->save();
+            // $course->save();
+            if ($course->save()) {
+                $title = 'افتتاح دورة';
+                $body = 'تم افتتاح دورة '.$course->name_course;
+                $body_a = 'تم إكتمال العدد المطلوب للدورة (' . $course->name_course . ') و تم فتحها';
+
+                $fcm = $course->teacher->user->fcm_token;
+
+                // $notificationController->sendNotification_for_parent($title,$body,$student_id);
+                $notificationController->sendNotification_all_student_course($title,$body,$course_id);
+                $notificationController->sendNotification_for_all_monetor($title,$body_a);
+                $notificationController->sendNotification_for_all_admin($title,$body_a);
+                $notificationController->sendNotification_call($fcm, $title, $body_a);
+
+            }
         }
 
 
@@ -164,7 +179,7 @@ class OrderController extends BaseController
             $new->address = $request->address;
             // $new->email = $request->email;
             $new->student_type = "10";
-            //$new->classification = $request->classification;
+            $new->classification = '0';
             //$new->class = $request->class;
             //$new->year = $request->year;
             $new->course_id = $course_id;

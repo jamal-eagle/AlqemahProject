@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api_student;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\Post;
@@ -50,7 +51,7 @@ class StudentPostController extends Controller
         // }
 
          //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
-    public function addComment(Request $request, $post_id)
+    public function addComment(Request $request, $post_id, NotificationController $notificationController)
     {
         $comment = new Comment;
 
@@ -63,13 +64,23 @@ class StudentPostController extends Controller
             {
                 $student = Student::where('user_id', auth()->user()->id)->first();
                 $comment->student_id = $student->id;
+                $body = 'علق '.auth()->user()->first_name .' '. auth()->user()->last_name.' في المناقشة '.$post->quostion;
             }
             elseif(auth()->user()->user_type == 'teacher')
             {
                 $teacher = Teacher::where('user_id', auth()->user()->id)->first();
                 $comment->teacher_id = $teacher->id;
+                $body = 'علق الأستاذ '.auth()->user()->first_name .' '. auth()->user()->last_name.' في المناقشة '.$post->quostion;
             }
-            $comment->save();
+            // $comment->save();
+
+            if ($comment->save()) {
+                $title = 'تعليق جديد';
+
+                $notificationController->sendNotification_student_section($title,$body,$post->section_id);
+                $notificationController->sendNotification_call($post->teacher->user->fcm_token, $title, $body);
+
+            }
 
              return response()->json([
                 'user' => auth()->user(),

@@ -42,9 +42,39 @@ class MonetorController extends Controller
 
     public function desplay_all_student_regester($year)
 {
-    $student = User::where('year',$year)->where('user_type', 'student')->with('student.classs')->with('student.section')->get();
-    return response()->json([$student,'all student regester here']);
+    $students = User::where('year',$year)->where('user_type', 'student')->with('student.classs')->with('student.section')->get();
+$students = $students->map(function ($student) {
+    if ($student->image) {
+        $student->image_file_url = asset('/upload/' . $student->image);
+    } else {
+        $student->image_file_url = null; // إذا لم يكن هناك صورة
+    }
+
+    return $student;
+});
+    return response()->json([$students,'all student regester here']);
 }
+// public function desplay_all_student_regester($year)
+// {
+//     $academy = Academy::find(1);
+
+//     // جلب الأساتذة مع المعلومات المطلوبة
+//     $students = Student::with(['user,class.section'])->whereHas('user', function ($query) use ($academy) {
+//         $query->where('year', $academy->year);
+//     })->get();
+
+//     $students = $students->map(function ($student) {
+//         if ($student->user->image) {
+//             $student->user->image_file_url = asset('/upload/' . $student->user->image);
+//         } else {
+//             $student->user->image_file_url = null; // إذا لم يكن هناك صورة
+//         }
+
+//         return $student;
+//     });
+
+//     return $students;
+// }
 
     public function desplay_classs_and_section()
     {

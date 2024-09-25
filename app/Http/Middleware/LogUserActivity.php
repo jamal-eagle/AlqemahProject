@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Teacher_subject;
+use Illuminate\Support\Facades\DB;
+
 
 class LogUserActivity
 {
@@ -161,7 +163,7 @@ private function getActionDescription($path, $request)
     
         // عرض النتيجة النهائية
         return 'تم إرسال ' . ($data['type'] ?? 'ملاحظة') . ' للطالب: ' 
-            . $student->user->first_name . ' ' . $student->user->last_name 
+            . $student->user->first_name . ' ' . $student->user->last_name ."\n"
             . ' بالتفاصيل التالية: ' . ($data['text'] ?? ' ');
     }
 
@@ -707,6 +709,87 @@ private function getActionDescription($path, $request)
 
 
     /************teacher************/
+    //تم تجربته
+    if (preg_match('/^api\/teacher\/off_on_post\/(\d+)$/', $path, $matches)) {
+        $postId = $matches[1];
+        $post = \App\Models\Post::find($postId);
+    
+        if ($post) {
+            // تحديد النص بناءً على قيمة state_on_off
+            $stateText = $post->state_on_off == 1 ? 'مغلقة' : 'مفتوحة';
+            return 'تم تغيير حالة المناقشة: ' . $post->quostion . ' إلى ' . $stateText;
+        } else {
+            return 'تم تغيير حالة المناقشة رقم: ' . $postId;
+        }
+    }
+    //تم تجربته
+    //رفع مرفق لدورة محددة
+    if (preg_match('/^api\/teacher\/upload_file_image_for_course\/(\d+)$/', $path, $matches)) {
+        $courseId = $matches[1];
+    
+        $course = \App\Models\Course::find($courseId);
+    
+        if ($course) {
+            if ($request->description) {
+                return 'تم رفع مرفق للدورة: ' . $course->name_course . ' بالوصف التالي ' . $request->description;
+            }
+            else {
+                return 'تم رفع مرفق للدورة: ' . $course->name_course . ' دون وصف ';
+            }
+        } else {
+            return 'تم رفع مرفق لدورة غير معروفة (ID: ' . $courseId . ')';
+        }
+    }
+
+    //تم تجربته
+    //رفع مرفق لعام دراسي الحالي
+    if (preg_match('/^api\/teacher\/upload_file_image\/(\d+)$/', $path, $matches)) {
+        $academy = \App\Models\Academy::find('1');
+        $subjectId = $matches[1];
+    
+        $subject = \App\Models\Subject::find($subjectId);
+    
+        if ($subject) {
+                return 'تم رفع مرفق لمادة: ' . $subject->name . ' للصف ' . $subject->classs->name .' للعام الدراسي الحالي '.$academy->year . ' بالوصف التالي ' . $request->description;
+        } else {
+            return 'تم رفع مرفق للعام الدراسي الحالي غير معروفة (ID: ' . $courseId . ')';
+        }
+    }
+
+    //تم تجربته
+    //رفع مرفق لعام دراسي محدد أي أرشيف
+    if (preg_match('/^api\/teacher\/upload_file_image_archive\/(\d+)$/', $path, $matches)) {
+        // استخراج معرف الأرشيف من الـ path
+        $archiveId = $matches[1];
+    
+        // جلب بيانات الأرشيف عبر معرف الأرشيف
+        $archive = \App\Models\Archive::find($archiveId);
+    
+        // إذا كان الأرشيف موجودًا، يمكن عرض تفاصيله أو عرض رسالة عند عدم وجود الأرشيف
+        if ($archive) {
+            return 'تم رفع مرفق للأرشيف : ' . $archive->year . ' للمادة: ' . $archive->subject->name . ' للصف: ' . $archive->class->name . ' بالوصف التالي ' . $request->description;
+        } else {
+            return 'تم رفع مرفق لأرشيف غير معروف (ID: ' . $archiveId . ')';
+        }
+    }
+
+
+    //تم تجربته
+    //حذف ملف لمادة 
+    if (preg_match('/^api\/teacher\/delete_file_image\/(\d+)\/(.+)$/', $path, $matches)) {
+        $fileImgId = $matches[1];
+    
+        $file = \App\Models\File_Archive::find($fileImgId);
+    
+        if ($file) {
+                return 'تم حذف المرفق: ' . $file->description . ' للمادة ' . $file->archive->subject->name . ' الصف ' . $file->archive->class->name . ' من العام الدراسي ' . $file->archive->year;
+           
+        } else {
+            return 'تم حذف مرفق غير معروف (ID: ' . $fileImgId . ')';
+        }
+    }
+
+
     if (preg_match('/^api\/teacher\/create_post\/(\d+)$/', $path, $matches)) {
         $sectionId = $matches[1];  // استخراج معرف الشعبة
     
@@ -737,6 +820,184 @@ private function getActionDescription($path, $request)
                    ' بعنوان المناقشة: "' . $post->quostion ."\n". '" للصف: ' . $section->classs->name .
                    ' الشعبة: ' . $section->num_section;
     
+        return $message;
+    }
+
+    if (preg_match('/^api\/teacher\/edit_some_info_teacher_profile$/', $path, $matches)) {
+
+        // جلب بيانات الطالب عبر العلاقة بين User و Student
+        $user = \App\Models\User::find(auth()->user()->id);
+        $data = $request->input();
+        // إذا كان الطالب موجودًا، جلب المستخدم المرتبط بالطالب وعرض اسمه
+        if ($user && $user->teacher) {
+            $message = 'تم تحديث الأستاذ: ' . $user->first_name .' ' .$user->father_name.  ' ' . $user->last_name ."\n";
+            $message .= 'المعلومات قبل التعديل: '.$user->phone . ' ' . $user->address."\n";
+            $message .= 'المعلومات بعد التعديل: '.$data['phone'] . ' ' . $data['address'];
+            return $message;
+        } else {
+            return 'تم تحديث معلومات أستاذ غير معروف (ID: ' . $user->id . ')';
+        }
+    }
+
+    //تم تجريبه
+    //حذف تعليق لطالب
+    if (preg_match('/^api\/teacher\/delete_comment\/(\d+)$/', $path, $matches)) {
+        $commentId = $matches[1];
+    
+        // جلب بيانات التعليق عبر معرف التعليق
+        $comment = \App\Models\Comment::find($commentId);
+    
+        if ($comment) {
+            // عرض تفاصيل التعليق المحذوف
+            return 'تم حذف التعليق: "' . $comment->description . '" الذي كتبه ' . $comment->student->user->first_name . ' ' . $comment->student->user->last_name . ' في المناقشة ذات العنوان التالي ' . $comment->post->quostion;
+        } else {
+            return 'تم حذف تعليق غير معروف (ID: ' . $commentId . ')';
+        }
+    }
+
+    //تم تجربته
+    //رفع علامات طالب
+    if (preg_match('/^api\/teacher\/add_mark_to_student\/(\d+)$/', $path, $matches)) {
+        $studentId = $matches[1];
+    
+        $student = \App\Models\Student::find($studentId);
+    
+        if (!$student || !$student->user) {
+            return 'تم إضافة علامة لطالب غير معروف (ID: ' . $studentId . ')';
+        }
+    
+        $marksData = $request->all();
+    
+        $oldMarks = \App\Models\Mark::where('student_id', $studentId)
+                        ->where('subject_id', $marksData['subject_id'])
+                        ->first();
+    
+        $message = 'تم إضافة درجات جديدة للطالب: ' . $student->user->first_name . ' ' . $student->user->last_name . "\n";
+    
+        if ($oldMarks) {
+            $message .= 'الدرجات القديمة: ' .
+                ' بونس: ' . ($oldMarks->ponus ?? ' - ').
+                ', الوظيفة: ' . ($oldMarks->homework ?? ' - ').
+                ', الشفهي: ' . ($oldMarks->oral ?? ' - ').
+                ', اختبار1: ' . ($oldMarks->test1 ?? ' - ').
+                ', اختبار2: ' . ($oldMarks->test2 ?? ' - ').
+                ', امتحان نصف السنة: ' . ($oldMarks->exam_med ?? ' - ').
+                ', الامتحان النهائي: ' . ($oldMarks->exam_final ?? ' - '). "\n";
+        } else {
+            $message .= 'لا توجد درجات سابقة لهذه المادة.' . "\n";
+        }
+    
+        $message .= 'الدرجات الجديدة: ' .
+            ' بونس: ' . ($marksData['ponus'] ?? $oldMarks->ponus ?? ' - ').
+            ', الوظيفة: ' . ($marksData['homework'] ?? $oldMarks->homework ?? ' - ').
+            ', الشفهي: ' . ($marksData['oral'] ?? $oldMarks->oral ?? ' - ').
+            ', اختبار1: ' . ($marksData['test1'] ?? $oldMarks->test1 ?? ' - ').
+            ', اختبار2: ' . ($marksData['test2'] ?? $oldMarks->test2 ?? ' - ').
+            ', امتحان نصف السنة: ' . ($marksData['exam_med'] ?? $oldMarks->exam_med ?? ' - ').
+            ', الامتحان النهائي: ' . ($marksData['exam_final'] ?? $oldMarks->exam_final ?? ' - ');
+    
+        return $message;
+    }
+
+    //تم تجربته
+    //حذف ملف دورة
+    if (preg_match('/^api\/teacher\/delete_file_course\/(\d+)$/', $path, $matches)) {
+        $fileId = $matches[1];
+    
+        $file = \App\Models\File_course::find($fileId);
+    
+        if ($file) {
+            return 'تم حذف الملف الذي وصفه: "' . $file->description . '" الخاص بالدورة "' . $file->course->name_course . '"';
+        } else {
+            return 'تم حذف ملف غير معروف (ID: ' . $fileId . ')';
+        }
+    }
+
+    
+
+    if (preg_match('/^api\/teacher\/add_note_about_student\/(\d+)$/', $path, $matches)) {
+        $studentId = $matches[1];  // استخراج معرف الشعبة
+    
+        // جلب بيانات الشعبة
+        $student = \App\Models\Student::find($studentId);
+    
+        if (!$student) {
+            return 'تم إنشاء ملاحظة لطالب غير معروفة (ID: ' . $studentId . ')';
+        }
+    
+        // الحصول على البيانات المرسلة
+        $data = $request->input(); // الحصول على البيانات المرسلة عبر الـ API
+    
+        // عرض التفاصيل المخزنة
+        $details = '';
+        if (isset($data['note_details']) && is_array($data['note_details'])) {
+            foreach ($data['note_details'] as $detail) {
+                $details .= ' [' . $detail['key'] . ': ' . $detail['value'] . ']';
+            }
+        }
+    
+        // عرض النتيجة النهائية
+        return 'تم إرسال ' . ($data['type'] ?? 'ملاحظة') . ' للطالب: ' 
+            . $student->user->first_name . ' ' . $student->user->last_name ."\n"
+            . ' بالتفاصيل التالية: ' . ($data['text'] ?? ' ');
+    }
+
+    if (preg_match('/^api\/teacher\/edit_mark\/(\d+)$/', $path, $matches)) {
+        $markId = $matches[1];
+        $mark = \App\Models\Mark::find($markId);
+        return $student ? 'تم تعديل علامة الطالب: ' . $mark->student->user->first_name . ' ' . $mark->student->user->last_name ."\n". ' في مادة : ' . $mark->subject->name : 'تم تعديل علامة لطالب غير معروف';
+    }
+
+    //تم تجربته
+    //رفع وظيفة
+    if (preg_match('/^api\/teacher\/upload_homework$/', $path, $matches)) {
+    
+        
+        $user= auth()->user()->id;
+        $teacher = \App\Models\Teacher::where('user_id', auth()->user()->id)->first();
+        $subject = DB::table('teacher_subjects')->where('teacher_id','=',$teacher->id)->first();
+    
+        $subject = \App\Models\Subject::find($subject->id);
+
+        $message = 'تم رفع وظيفة لمادة '.$subject->name ;
+        $message .= 'بالوصف التالي: '.$request->description;
+        $message .= 'من قبل الأستاذ: '. $user->first_name.' '.$user->last_name;
+        
+        return $message;
+    }
+
+
+    if (preg_match('/^api\/teacher\/delete_homework\/(\d+)$/', $path, $matches)) {
+
+        $homeworkId = $matches[1];
+
+        $homework = \App\Models\Homework::find($homeworkId);
+        $user= auth()->user()->id;
+        $teacher = \App\Models\Teacher::where('user_id', auth()->user()->id)->first();
+        // $subject = DB::table('teacher_subjects')->where('teacher_id','=',$teacher->id)->first();
+    
+        // $subject = \App\Models\Subject::find($subject->id);
+
+
+        $message = 'تم حذف وظيفة لمادة '.$homework->subject->name ;
+        $message .= 'ذات الوصف التالي: '.$request->description;
+        $message .= 'من قبل الأستاذ: '. $user->first_name.' '.$user->last_name;
+        
+        return $message;
+
+
+    
+        
+        $user= auth()->user()->id;
+        $teacher = \App\Models\Teacher::where('user_id', auth()->user()->id)->first();
+        $subject = DB::table('teacher_subjects')->where('teacher_id','=',$teacher->id)->first();
+    
+        $subject = \App\Models\Subject::find($subject->id);
+
+        $message = 'تم رفع وظيفة لمادة '.$subject->name ;
+        $message .= 'بالوصف التالي: '.$request->description;
+        $message .= 'من قبل الأستاذ: '. $user->first_name.' '.$user->last_name;
+        
         return $message;
     }
      

@@ -1396,7 +1396,7 @@ public function course_student_not_pay($student_id)
 
 
     //إضافة دفعة لطالب محدد
-    public function add_pay(Request $request, $student_id)
+    public function add_pay(Request $request, $student_id, NotificationController $notificationController)
     {
         // route::post('add_pay/{student_id}', [AdminZaController::class, 'add_pay']);
 
@@ -1445,10 +1445,26 @@ public function course_student_not_pay($student_id)
             if ($remaining_fee == 0) {
                 $order = Order::where('student_id', $student_id)->where('course_id',$request->course_id)->first();
                 $order->classification = 1;
-                $order->save();
+                // $order->save();
+
+                if ($order->save()) {
+                    $course = Course::where('id',$request->course_id)->first();
+                    $title = 'قسط دورة';
+                    $body = 'تم تسديد كامل قسط الدورة '. $course->name_course;
+
+                    $notificationController->sendNotification_for_parent($title,$body,$student_id);
+                }
+            }
+            else {
+                $course = Course::where('id',$request->course_id)->first();
+                    $title = 'قسط دورة';
+                    $body = 'تم تسديد دفعة من قسط الدورة '. $course->name_course;
+
+                    $notificationController->sendNotification_for_parent($title,$body,$student_id);
             }
     
             $pay->save();
+
     
             return response()->json([
                 'pay' => $pay,
@@ -1482,6 +1498,20 @@ public function course_student_not_pay($student_id)
         $pay->remaining_fee = $remaining_fee;
 
         $pay->save();
+        $student = Student::find($student_id);
+        if ( $remaining_fee == '0') {
+            $title = 'قسط';
+            $body = 'تم تسديد كامل القسط للطالب '. $student->user->first_name.' '. $student->user->last_name;
+
+            $notificationController->sendNotification_for_parent($title,$body,$student_id);
+        }
+
+        else {
+            $title = 'قسط';
+            $body = 'تم تسديد دفعة من قسط الطالب '. $student->user->first_name.' '. $student->user->last_name;
+
+            $notificationController->sendNotification_for_parent($title,$body,$student_id);
+        }
 
         return response()->json([
             'pay' => $pay,
@@ -1586,7 +1616,7 @@ public function order_on_course($course_id)
 }
 
     //الموافقة على طلب تسجيل في كورس
-    public function ok_order_course($order_id)
+    public function ok_order_course($order_id, NotificationController $notificationController)
     {
         $order = Order::where('id', $order_id)->first();
 
@@ -1628,12 +1658,26 @@ public function order_on_course($course_id)
             // }
             //إرسال إشعارات
             if ($course->save()) {
-                $users = User::where('user_type','admin')->get();
-                $message = 'تم إكتمال العدد للدورة (' . $course->name_course . ') و تم فتحها';
 
-                foreach ($users as $user) {
-                    $user->notify(new MyNotification($message));
-                }
+                // $users = User::where('user_type','admin')->get();
+                // $message = 'تم إكتمال العدد للدورة (' . $course->name_course . ') و تم فتحها';
+
+                // foreach ($users as $user) {
+                //     $user->notify(new MyNotification($message));
+                // }
+
+                $title = 'افتتاح دورة';
+                $body = 'تم افتتاح دورة '.$course->name_course;
+                $body_a = 'تم إكتمال العدد المطلوب للدورة (' . $course->name_course . ') و تم فتحها';
+
+                $fcm = $course->teacher->user->fcm_token;
+
+                // $notificationController->sendNotification_for_parent($title,$body,$student_id);
+                $notificationController->sendNotification_all_student_course($title,$body,$order->course_id);
+                $notificationController->sendNotification_for_all_monetor($title,$body_a);
+                $notificationController->sendNotification_for_all_admin($title,$body_a);
+                $notificationController->sendNotification_call($fcm, $title, $body_a);
+
 
                 
 
@@ -2250,7 +2294,7 @@ public function display_all_class()
  $s=Section::where('id', $s_id)->with('classs')->first();
 return $s;}
 
-public function updateAbsence_for_student(Request $request, $student_id, $date)
+public function updateAbsence_for_student(Request $request, $student_id, $date, NotificationController $notificationController)
 {
     $absence = Out_Of_Work_Student::where('student_id', $student_id)->where('date',$date)->first();
 
@@ -2267,6 +2311,12 @@ public function updateAbsence_for_student(Request $request, $student_id, $date)
     }
 
     if ($absence->save()) {
+
+        $student = Student::find($student_id);
+        $title = 'تبرير غياب';
+        $body = ' تم تبري غياب الطالب '. $student->user->first_name. ' '.$student->user->first_name.' بالتبرير التالي:'.$absence->justification;
+        
+        $notificationController->sendNotification_for_parent($title,$body,$student_id);
         return response()->json(['message' => 'Absence justification updated successfully'], 200);
     }
 
@@ -2274,16 +2324,42 @@ public function updateAbsence_for_student(Request $request, $student_id, $date)
 
 }
 
+// public function all_teatcher()
+// {
+//     $academy = Academy::find(1);
+
+//     $teachers = Teacher::with('subject')->with('user')->whereHas('user', function ($query) use ($academy) {
+//         $query->where('year', $academy->year);
+//     })->get();
+
+//     if ($teacher->user->image) {
+//         $image_file_url = asset('/upload/' . $teacher->user->image);
+//     }
+
+//     return $teachers;
+// }
 public function all_teatcher()
 {
     $academy = Academy::find(1);
 
-    $teachers = Teacher::with('subject')->with('user')->whereHas('user', function ($query) use ($academy) {
+    // جلب الأساتذة مع المعلومات المطلوبة
+    $teachers = Teacher::with(['subject', 'user'])->whereHas('user', function ($query) use ($academy) {
         $query->where('year', $academy->year);
     })->get();
 
+    $teachers = $teachers->map(function ($teacher) {
+        if ($teacher->user->image) {
+            $teacher->user->image_file_url = asset('/upload/' . $teacher->user->image);
+        } else {
+            $teacher->user->image_file_url = null; // إذا لم يكن هناك صورة
+        }
+
+        return $teacher;
+    });
+
     return $teachers;
 }
+
 
 
 public function deleteAbsence($student_id, $date)

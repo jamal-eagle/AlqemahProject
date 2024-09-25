@@ -259,13 +259,31 @@ public function login(Request $request)
                 $token = $user->createToken("auth_token")->plainTextToken;
                 $user->fcm_token = $request->fcm_token;
                 // Generate image URL if image exists
-                $user->image_file_url = isset($user->image) ? asset('/upload/' . $user->image) : null;
+                // $user->image_file_url = isset($user->image) ? asset('/upload/' . $user->image) : null;
                 // if ($user->image) {
                 //     $user->image_file_url = asset('/upload/' . $user->image);
                 // } else {
                 //     unset($user->image_file_url); // لا تقم بتحديثه إذا كان null
                 // }
-                
+                if ($user->image) {
+                    $image_file_url = asset('/upload/' . $user->image);
+                    $user->save();
+                return response()->json([
+                    'message' => 'User login successfully',
+                    'token' => $token,
+                    'user' => $user,
+                    'im'=>$image_file_url
+                ]);
+                } else {
+                    // unset($image_file_url); // لا تقم بتحديثه إذا كان null
+                    $user->save();
+                return response()->json([
+                    'message' => 'User login successfully',
+                    'token' => $token,
+                    'user' => $user,
+                    // 'im'=>$image_file_url
+                ]);
+                }
              
                 $user->save();
                 return response()->json([
@@ -282,19 +300,35 @@ public function login(Request $request)
         if ($parent && $parent->status == '1' && Hash::check($request->password, $parent->password)) {
             $token = $parent->createToken("auth_token")->plainTextToken;
             $parent->fcm_token = $request->fcm_token;
-            $parent->image_file_url = isset($parent->image) ? asset('/upload/' . $parent->image) : null;
-            // if ($parent->image) {
-            //     $parent->image_file_url = asset('/upload/' . $parent->image);
-            // } else {
-            //     unset($parent->image_file_url); // لا تقم بتحديثه إذا كان null
-            // }
+            // $parent->image_file_url = isset($parent->image) ? asset('/upload/' . $parent->image) : null;
+           
+            if ($parent->image) {
+                $image_file_url = asset('/upload/' . $parent->image);
+                $parent->save();
+            return response()->json([
+                'message' => 'User login successfully',
+                'token' => $token,
+                'user' => $parent,
+                'im'=>$image_file_url
+            ]);
+            } else {
+                // unset($image_file_url); // لا تقم بتحديثه إذا كان null
+                $parent->save();
+            return response()->json([
+                'message' => 'User login successfully',
+                'token' => $token,
+                'user' => $parent,
+                // 'im'=>$image_file_url
+            ]);
+            }
             
          
             $parent->save();
             return response()->json([
                 'message' => 'User login successfully',
                 'token' => $token,
-                'user' => $parent
+                'user' => $parent,
+                'im'=>$image_file_url
             ]);
         } elseif (isset($parent->id) && $parent->status == '0') {
             return response()->json(['message' => 'Your account is locked'], 403);
@@ -1422,8 +1456,18 @@ public function desplay_section_for_classs($class_id,$year)
 
 public function desplay_all_student_regester($year)
 {
-    $student = User::where('year',$year)->where('user_type', 'student')->get();
-    return response()->json([$student,'all student regester here']);
+    $students = User::where('year',$year)->where('user_type', 'student')->get();
+
+    $students = $students->map(function ($student) {
+        if ($student->user->image) {
+            $student->user->image_file_url = asset('/upload/' . $student->user->image);
+        } else {
+            $student->user->image_file_url = null; // إذا لم يكن هناك صورة
+        }
+
+        return $student;
+    });
+    return response()->json([$students,'all student regester here']);
 }
 
 public function desplay_classs_and_section()
@@ -2474,7 +2518,7 @@ public function Add_course(Request $request,$academy_id)
 
 
 
-public function upload_file_image_for_course(Request $request, $course_id)
+public function upload_file_image_for_course(Request $request, $course_id, NotificationController $notificationController)
 {
     $validator = Validator::make($request->all(),[
         'name' => 'required|mimes:png,jpg,jpeg,gif,pdf,docx,txt'
@@ -2775,7 +2819,7 @@ public function add_marks_to_section(Request $request, $section_id)
         return response()->json(['success' => 'Marks updated successfully for all students in the section']);
 }
 
-public function calculateStudentMarks(Request $request, $student_id)
+public function calculateStudentMarks(Request $request, $student_id, NotificationController $notificationController)
 {
     // تحقق من وجود الطالب
     $student = Student::find($student_id);
@@ -2812,7 +2856,26 @@ public function calculateStudentMarks(Request $request, $student_id)
     }
 
     // حفظ النتيجة في قاعدة البيانات
-    $mark->save();
+    // $mark->save();
+
+    if ($mark->save() && $mark->state != null) {
+
+        $subject = Subject::find($request->input('subject_id'));
+        $title = 'محصلة';
+        if ($mark->state == '1') {
+            $sate = 'ناجح';
+        }
+        else {
+            $sate = 'راسب';
+        }
+        $body ='محصلة علامات مادة '. $subject->name.' للطالب '. $student->user->first_name .' '. $student->user->last_name .' هي '. $sate;
+        $body_s ='محصلة علامات مادة ' . $subject->name . ' هي '.$sate;
+        
+        $notificationController->sendNotification_for_parent($title,$body,$student_id);
+        $notificationController->sendNotification_call($student->user->fcm_token, $title, $body_s);
+
+
+    }
 
     // إرجاع النتيجة النهائية والحالة
     return response()->json(['final_score' => $finalScore, 'state' => $mark->state]);
@@ -2865,7 +2928,7 @@ public function calculateAllStudentMarks($student_id)
     return response()->json(['results' => $results]);
 }
 
-public function add_extrahour($teacher_id, Request $request)
+public function add_extrahour($teacher_id, Request $request, NotificationController $notificationController)
     {
         // التحقق من صحة البيانات المدخلة
         $validatedData = $request->validate([
@@ -2885,6 +2948,14 @@ public function add_extrahour($teacher_id, Request $request)
             'num_hour_added' => $validatedData['num_hour_added'],
             'note_hour_added' => $validatedData['note_hour_added'],
         ]);
+
+
+        $title = 'ساعات إضافية';
+        $body_t = 'تم إضافة '. $validatedData['num_hour_added'] . ' ساعات إضافية '.$validatedData['note_hour_added'].' لك';
+        $body_a = 'تم إضافة '. $validatedData['num_hour_added'] . ' ساعات إضافية للأستاذ'. $teacher->user->first_name.' '.$teacher->user->last_name.' '.$validatedData['note_hour_added'];
+
+        $notificationController->sendNotification_call($teacher->user->fcm_token, $title, $body_t);
+        $notificationController->sendNotification_for_all_admin($title,$body_a);
 
         return response()->json([
             'message' => 'Extra hours added successfully',

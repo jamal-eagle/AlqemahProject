@@ -44,14 +44,18 @@ class PostController extends Controller
         $post->section_id = $section_id;
         $post->teacher_id = $teacher->id;
 
-        $post->save();
+        // $post->save();
 
+        if ($post->save()) {
         $title = 'مناقشة جديدة';
         $body = $post->quostion;
         $notificationController->sendNotification_student_section($title,$body,$section_id);
         $notificationController->sendNotification_for_all_admin($title,$body);
         $notificationController->sendNotification_for_all_monetor($title,$body);
 
+        }
+
+        
         return $post;
     }
 
@@ -73,6 +77,51 @@ class PostController extends Controller
     }
 
     //إضافة تعليق لمناقشة محددة من قبل طالب أو أستاذ
+    // public function addComment(Request $request, $post_id, NotificationController $notificationController)
+    // {
+    //     $comment = new Comment;
+
+    //     $comment->description = $request->description;
+    //     $comment->post_id = $post_id;
+
+    //     $post = Post::where('id', $post_id)->first();
+    //     if ($post->state_on_off == 1) {
+    //         if(auth()->user()->user_type == 'student')
+    //         {
+    //             $student = Student::where('user_id', auth()->user()->id)->first();
+    //             $comment->student_id = $student->id;
+    //         }
+    //         elseif(auth()->user()->user_type == 'teacher')
+    //         {
+    //             $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    //             $comment->teacher_id = $teacher->id;
+    //         }
+    //         $comment->save();
+
+    //         $title = 'تعليق جديد';
+    //         $body = $comment->description;
+    //         $section_id = $post->section_id;
+    //         $notificationController->sendNotification_student_section($title,$body,$section_id);
+    //         $teacher = Teacher::where('id',$post->teacher_id);
+
+    //         sendNotification_call($fcm_token, $title,$body);
+
+
+
+    //         return $comment;
+    //     }
+
+    //     elseif($post->state_on_off == 0) {
+    //         if(auth()->user()->user_type == 'teacher')
+    //         {
+    //             $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+    //             $comment->teacher_id = $teacher->id;
+    //             $comment->save();
+
+    //             return $comment;
+    //         }  
+    //     }
+    // }
     public function addComment(Request $request, $post_id, NotificationController $notificationController)
     {
         $comment = new Comment;
@@ -86,25 +135,28 @@ class PostController extends Controller
             {
                 $student = Student::where('user_id', auth()->user()->id)->first();
                 $comment->student_id = $student->id;
+                $body = 'علق '.auth()->user()->first_name .' '. auth()->user()->last_name.' في المناقشة '.$post->quostion;
             }
             elseif(auth()->user()->user_type == 'teacher')
             {
                 $teacher = Teacher::where('user_id', auth()->user()->id)->first();
                 $comment->teacher_id = $teacher->id;
+                $body = 'علق الأستاذ '.auth()->user()->first_name .' '. auth()->user()->last_name.' في المناقشة '.$post->quostion;
             }
-            $comment->save();
+            // $comment->save();
 
-            $title = 'تعليق جديد';
-            $body = $comment->description;
-            $section_id = $post->section_id;
-            $notificationController->sendNotification_student_section($title,$body,$section_id);
-            $teacher = Teacher::where('id',$post->teacher_id);
+            if ($comment->save()) {
+                $title = 'تعليق جديد';
 
-            sendNotification_call($fcm_token, $title,$body);
+                $notificationController->sendNotification_student_section($title,$body,$post->section_id);
+                $notificationController->sendNotification_call($post->teacher->user->fcm_token, $title, $body);
 
+            }
 
-
-            return $comment;
+             return response()->json([
+                'user' => auth()->user(),
+                'comment' => $comment
+            ]);
         }
 
         elseif($post->state_on_off == 0) {
@@ -113,10 +165,24 @@ class PostController extends Controller
                 $teacher = Teacher::where('user_id', auth()->user()->id)->first();
                 $comment->teacher_id = $teacher->id;
                 $comment->save();
-
-                return $comment;
-            }  
+            }
+            else {
+                return response()->json('the post off , you can not comment');
+            }
+            
         }
+
+        // if(auth()->user()->user_type == 'student')
+        // {
+        //     $student = Student::where('user_id', auth()->user()->id)->first();
+        //     $comment->student_id = $student->id;
+        // }
+        // elseif(auth()->user()->user_type == 'teacher')
+        // {
+        //     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
+        //     $comment->teacher_id = $teacher->id;
+        // }
+        // $comment->save();
     }
 
      //تعديل تعليق
@@ -213,7 +279,7 @@ class PostController extends Controller
         if ( auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'monetor' || $teacher->id == $post->teacher_id) {
             if ($post->state_on_off == 1) {
                 $post->update(['state_on_off' => 0]);
-                $message = 'تم إيقاف المناقشة من قبل ' . auth()->user()->first_name .' '. auth()->user()->last_name;
+                $body = 'تم إيقاف المناقشة من قبل ' . auth()->user()->first_name .' '. auth()->user()->last_name;
                 // if (auth()->user()->user_type != 'teacher') {
                 //     $post->teacher->user->notify(new MyNotification($message));
                 // }
@@ -221,7 +287,7 @@ class PostController extends Controller
             }
             else {
                 $post->update(['state_on_off' => 1]);
-                $bode = 'تم تفعيل مناقشة من قبل ' . auth()->user()->first_name .' '. auth()->user()->last_name;
+                $body = 'تم تفعيل مناقشة من قبل ' . auth()->user()->first_name .' '. auth()->user()->last_name;
             }
 
             $title = 'حالة مناقشة';

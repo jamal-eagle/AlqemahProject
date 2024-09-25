@@ -1036,6 +1036,7 @@ public function display_mark($student_id)
 public function add_mark_to_student(Request $request, $student_id, NotificationController $notificationController)
 {
     // التحقق من وجود الطالب
+    $student = Student::find($student_id);
     
     if (!$student) {
         return response()->json(['error' => 'The student not found'], 404);
@@ -1134,31 +1135,31 @@ public function add_mark_to_student(Request $request, $student_id, NotificationC
 public function edit_mark(Request $request,$mark_id)
 {
     $mark = Mark::where('id', $mark_id)->first();
-    if ($request->has('ponus')) {
+    if ($request->has('ponus') && !empty($request->ponus)) {
         $mark->ponus = $request->ponus;
     }
 
-    if ($request->has('homework')) {
+    if ($request->has('homework') && !empty($request->homework)) {
         $mark->homework = $request->homework;
     }
 
-    if ($request->has('oral')) {
+    if ($request->has('oral') && !empty($request->oral)) {
         $mark->oral = $request->oral;
     }
 
-    if ($request->has('test1')) {
+    if ($request->has('test1') && !empty($request->test1)) {
         $mark->test1 = $request->test1;
     }
 
-    if ($request->has('test2')) {
+    if ($request->has('test2') && !empty($request->test2)) {
         $mark->test2 = $request->test2;
     }
 
-    if ($request->has('exam_med')) {
+    if ($request->has('exam_med') && !empty($request->exam_med)) {
         $mark->exam_med = $request->exam_med;
     }
 
-    if ($request->has('exam_final')) {
+    if ($request->has('exam_final') && !empty($request->exam_final)) {
         $mark->exam_final = $request->exam_final;
     }
 
@@ -1574,7 +1575,7 @@ public function homework_subject()
     }
 }
 
-public function upload_homework(Request $request)
+public function upload_homework(Request $request, NotificationController $notificationController)
 {
     $academy = Academy::find(1);
     $teacher = Teacher::where('user_id', auth()->user()->id)->first();
@@ -1587,7 +1588,13 @@ public function upload_homework(Request $request)
     $homework->year = $academy->year;
     $homework->subject_id = $subject->id;
     $homework->class_id = $class->id;
-    $homework->save();
+    // $homework->save();
+    if ($homework->save()) {
+        $title = 'وظيفة '.$homework->subject->name;
+        $body = $homework->description;
+
+        $notificationController->sendNotification_student_class($title,$body,$homework->class_id);
+    }
 
     if ($request->path && !empty($request->path)) {
             $validator = Validator::make($request->all(),[
